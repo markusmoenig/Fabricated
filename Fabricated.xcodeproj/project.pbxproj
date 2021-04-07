@@ -15,6 +15,18 @@
 		2B7B1950261D4DC70027C905 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1939261D4DC50027C905 /* ContentView.swift */; };
 		2B7B1951261D4DC70027C905 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B7B193A261D4DC60027C905 /* Assets.xcassets */; };
 		2B7B1952261D4DC70027C905 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B7B193A261D4DC60027C905 /* Assets.xcassets */; };
+		2B7B195E261D52530027C905 /* Core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B195D261D52530027C905 /* Core.swift */; };
+		2B7B195F261D52530027C905 /* Core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B195D261D52530027C905 /* Core.swift */; };
+		2B7B1965261D52DF0027C905 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1964261D52DF0027C905 /* Project.swift */; };
+		2B7B1966261D52DF0027C905 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1964261D52DF0027C905 /* Project.swift */; };
+		2B7B1978261D851F0027C905 /* Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1977261D851F0027C905 /* Metal.metal */; };
+		2B7B1979261D851F0027C905 /* Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1977261D851F0027C905 /* Metal.metal */; };
+		2B7B197F261D85AC0027C905 /* MetalStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B197E261D85AC0027C905 /* MetalStates.swift */; };
+		2B7B1980261D85AC0027C905 /* MetalStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B197E261D85AC0027C905 /* MetalStates.swift */; };
+		2B7B1986261D86930027C905 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1985261D86930027C905 /* MetalView.swift */; };
+		2B7B1987261D86930027C905 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1985261D86930027C905 /* MetalView.swift */; };
+		2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B198A261D86DC0027C905 /* MathLibrary.swift */; };
+		2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B198A261D86DC0027C905 /* MathLibrary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +39,13 @@
 		2B7B1947261D4DC70027C905 /* Fabricated.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fabricated.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B7B1949261D4DC70027C905 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B7B194A261D4DC70027C905 /* macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macOS.entitlements; sourceTree = "<group>"; };
+		2B7B195D261D52530027C905 /* Core.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core.swift; sourceTree = "<group>"; };
+		2B7B1964261D52DF0027C905 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		2B7B196F261D84B40027C905 /* Metal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Metal.h; sourceTree = "<group>"; };
+		2B7B1977261D851F0027C905 /* Metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Metal.metal; sourceTree = "<group>"; };
+		2B7B197E261D85AC0027C905 /* MetalStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalStates.swift; sourceTree = "<group>"; };
+		2B7B1985261D86930027C905 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
+		2B7B198A261D86DC0027C905 /* MathLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathLibrary.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +82,13 @@
 				2B7B1937261D4DC50027C905 /* FabricatedApp.swift */,
 				2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */,
 				2B7B1939261D4DC50027C905 /* ContentView.swift */,
+				2B7B1964261D52DF0027C905 /* Project.swift */,
+				2B7B195D261D52530027C905 /* Core.swift */,
+				2B7B196F261D84B40027C905 /* Metal.h */,
+				2B7B1977261D851F0027C905 /* Metal.metal */,
+				2B7B197E261D85AC0027C905 /* MetalStates.swift */,
+				2B7B1985261D86930027C905 /* MetalView.swift */,
+				2B7B198A261D86DC0027C905 /* MathLibrary.swift */,
 				2B7B193A261D4DC60027C905 /* Assets.xcassets */,
 			);
 			path = Shared;
@@ -191,8 +217,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B7B1986261D86930027C905 /* MetalView.swift in Sources */,
+				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
+				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
+				2B7B1978261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */,
 				2B7B194D261D4DC70027C905 /* FabricatedDocument.swift in Sources */,
+				2B7B197F261D85AC0027C905 /* MetalStates.swift in Sources */,
+				2B7B195E261D52530027C905 /* Core.swift in Sources */,
 				2B7B194F261D4DC70027C905 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -201,8 +233,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B7B1987261D86930027C905 /* MetalView.swift in Sources */,
+				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
+				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,
+				2B7B1979261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */,
 				2B7B194E261D4DC70027C905 /* FabricatedDocument.swift in Sources */,
+				2B7B1980261D85AC0027C905 /* MetalStates.swift in Sources */,
+				2B7B195F261D52530027C905 /* Core.swift in Sources */,
 				2B7B1950261D4DC70027C905 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -338,6 +376,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Fabricated;
 				PRODUCT_NAME = Fabricated;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = Shared/Metal.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -360,6 +399,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Fabricated;
 				PRODUCT_NAME = Fabricated;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = Shared/Metal.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -386,6 +426,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Fabricated;
 				PRODUCT_NAME = Fabricated;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Shared/Metal.h;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -410,6 +451,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Fabricated;
 				PRODUCT_NAME = Fabricated;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Shared/Metal.h;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

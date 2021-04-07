@@ -9,31 +9,42 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static var exampleText: UTType {
-        UTType(importedAs: "com.example.plain-text")
+    static var fabricatedProject: UTType {
+        UTType(exportedAs: "com.Fabricated.project")
     }
 }
 
 struct FabricatedDocument: FileDocument {
-    var text: String
+    
+    var core    = Core()
+    var updated = false
 
-    init(text: String = "Hello, world!") {
-        self.text = text
+    init() {
     }
 
-    static var readableContentTypes: [UTType] { [.exampleText] }
-
+    static var readableContentTypes: [UTType] { [.fabricatedProject] }
+    static var writableContentTypes: [UTType] { [.fabricatedProject, .png] }
+        
     init(configuration: ReadConfiguration) throws {
         guard let data = configuration.file.regularFileContents,
-              let string = String(data: data, encoding: .utf8)
+                let project = try? JSONDecoder().decode(FABProject.self, from: data)
         else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        text = string
+        if data.isEmpty == false {
+            
+            core.setProject(project: project)
+        }
     }
     
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = text.data(using: .utf8)!
+        var data = Data()
+        
+        let encodedData = try? JSONEncoder().encode(core.project)
+        if let json = String(data: encodedData!, encoding: .utf8) {
+            data = json.data(using: .utf8)!
+        }
+        
         return .init(regularFileWithContents: data)
     }
 }

@@ -10,8 +10,17 @@ import SwiftUI
 struct ContentView: View {
     @Binding var document: FabricatedDocument
 
+    @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
+
     var body: some View {
-        TextEditor(text: $document.text)
+        HStack() {
+            NavigationView() {
+                VStack(spacing: 2) {
+                    MetalView(document.core, .Preview)
+                    MetalView(document.core, .Nodes)
+                }
+            }
+        }
     }
 }
 
