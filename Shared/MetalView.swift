@@ -8,7 +8,7 @@
 import SwiftUI
 import MetalKit
 
-public class FABView        : MTKView
+public class DMTKView        : MTKView
 {
     enum MetalViewType {
         case Preview, Nodes
@@ -158,14 +158,14 @@ public class FABView        : MTKView
             lastX = Float(translation.x)
             lastY = Float(translation.y)
             
-            core.nodesWidget.scrollWheel(delta)
+            //core.nodesWidget.scrollWheel(delta)
         }
     }
     
     var firstTouch      : Bool = false
     @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
     {
-        core.nodesWidget.pinchGesture(Float(recognizer.scale), firstTouch)
+        //core.nodesWidget.pinchGesture(Float(recognizer.scale), firstTouch)
         firstTouch = false
     }
     
@@ -181,7 +181,7 @@ public class FABView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            core.nodesWidget.touchDown(mousePos)
+            //core.nodesWidget.touchDown(mousePos)
         }
     }
     
@@ -189,7 +189,7 @@ public class FABView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            core.nodesWidget.touchMoved(mousePos)
+            //core.nodesWidget.touchMoved(mousePos)
         }
     }
     
@@ -198,7 +198,7 @@ public class FABView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            core.nodesWidget.touchUp(mousePos)
+            //core.nodesWidget.touchUp(mousePos)
         }
     }
     
@@ -277,9 +277,9 @@ struct MetalView: NSViewRepresentable {
     var core                : Core!
     var trackingArea        : NSTrackingArea?
 
-    var viewType            : FABView.MetalViewType
+    var viewType            : DMTKView.MetalViewType
 
-    init(_ core: Core,_ viewType: FABView.MetalViewType)
+    init(_ core: Core,_ viewType: DMTKView.MetalViewType)
     {
         self.core = core
         self.viewType = viewType
@@ -290,7 +290,7 @@ struct MetalView: NSViewRepresentable {
     }
     
     func makeNSView(context: NSViewRepresentableContext<MetalView>) -> MTKView {
-        let mtkView = FABView()
+        let mtkView = DMTKView()
         mtkView.core = core
         mtkView.delegate = context.coordinator
         mtkView.preferredFramesPerSecond = 60
@@ -336,10 +336,10 @@ struct MetalView: NSViewRepresentable {
         
         func draw(in view: MTKView) {
             if parent.viewType == .Preview {
-                parent.core.draw()
+                parent.core.drawPreview()
             } else
             if parent.viewType == .Nodes {
-                //parent.core.nodesWidget.draw()
+                parent.core.drawNodes()
             }
         }
     }
@@ -376,7 +376,7 @@ struct MetalView: UIViewRepresentable {
         mtkView.enableSetNeedsDisplay = true
         mtkView.isPaused = true
                 
-        if viewType == .Main {
+        if viewType == .Preview {
             core.setupView(mtkView)
         } else
         if viewType == .Nodes {
@@ -407,11 +407,11 @@ struct MetalView: UIViewRepresentable {
         }
         
         func draw(in view: MTKView) {
-            if parent.viewType == .Main {
-                parent.core.draw()
+            if parent.viewType == .Preview {
+                parent.core.drawPreview()
             } else
             if parent.viewType == .Nodes {
-                parent.core.nodesWidget.draw()
+                parent.core.drawNodes()
             }
         }
     }

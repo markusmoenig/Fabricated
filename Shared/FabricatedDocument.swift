@@ -27,7 +27,7 @@ struct FabricatedDocument: FileDocument {
         
     init(configuration: ReadConfiguration) throws {
         guard let data = configuration.file.regularFileContents,
-                let project = try? JSONDecoder().decode(FABProject.self, from: data)
+                let project = try? JSONDecoder().decode(Project.self, from: data)
         else {
             throw CocoaError(.fileReadCorruptFile)
         }

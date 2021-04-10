@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B1A6FAD2621239C005F65E6 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FAC2621239C005F65E6 /* Renderer.swift */; };
+		2B1A6FAE2621239C005F65E6 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FAC2621239C005F65E6 /* Renderer.swift */; };
+		2B1A6FBF26213F60005F65E6 /* NodeArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FBE26213F60005F65E6 /* NodeArray.swift */; };
+		2B1A6FC026213F60005F65E6 /* NodeArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FBE26213F60005F65E6 /* NodeArray.swift */; };
+		2B1A6FC426214078005F65E6 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FC326214078005F65E6 /* Shapes.swift */; };
+		2B1A6FC526214078005F65E6 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FC326214078005F65E6 /* Shapes.swift */; };
 		2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194D261D4DC70027C905 /* FabricatedDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */; };
@@ -27,9 +33,26 @@
 		2B7B1987261D86930027C905 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1985261D86930027C905 /* MetalView.swift */; };
 		2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B198A261D86DC0027C905 /* MathLibrary.swift */; };
 		2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B198A261D86DC0027C905 /* MathLibrary.swift */; };
+		2B7D0748261E94A40097212F /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D0747261E94A40097212F /* Views.swift */; };
+		2B7D0749261E94A40097212F /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D0747261E94A40097212F /* Views.swift */; };
+		2B7D074D261E9E850097212F /* MetalDrawables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D074C261E9E850097212F /* MetalDrawables.swift */; };
+		2B7D074E261E9E850097212F /* MetalDrawables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D074C261E9E850097212F /* MetalDrawables.swift */; };
+		2B7D0755261EA0050097212F /* Classes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D0754261EA0050097212F /* Classes.swift */; };
+		2B7D0756261EA0050097212F /* Classes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D0754261EA0050097212F /* Classes.swift */; };
+		2B7D075C261EA0110097212F /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D075B261EA0110097212F /* Font.swift */; };
+		2B7D075D261EA0110097212F /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D075B261EA0110097212F /* Font.swift */; };
+		2B7D0763261EA3AA0097212F /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0761261EA3AA0097212F /* OpenSans.tiff */; };
+		2B7D0764261EA3AA0097212F /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0761261EA3AA0097212F /* OpenSans.tiff */; };
+		2B7D0765261EA3AA0097212F /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0762261EA3AA0097212F /* OpenSans.json */; };
+		2B7D0766261EA3AA0097212F /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0762261EA3AA0097212F /* OpenSans.json */; };
+		2B7D076B261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
+		2B7D076C261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B1A6FAC2621239C005F65E6 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		2B1A6FBE26213F60005F65E6 /* NodeArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeArray.swift; sourceTree = "<group>"; };
+		2B1A6FC326214078005F65E6 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
 		2B7B1937261D4DC50027C905 /* FabricatedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedApp.swift; sourceTree = "<group>"; };
 		2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedDocument.swift; sourceTree = "<group>"; };
 		2B7B1939261D4DC50027C905 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -46,6 +69,13 @@
 		2B7B197E261D85AC0027C905 /* MetalStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalStates.swift; sourceTree = "<group>"; };
 		2B7B1985261D86930027C905 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
 		2B7B198A261D86DC0027C905 /* MathLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathLibrary.swift; sourceTree = "<group>"; };
+		2B7D0747261E94A40097212F /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		2B7D074C261E9E850097212F /* MetalDrawables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalDrawables.swift; sourceTree = "<group>"; };
+		2B7D0754261EA0050097212F /* Classes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Classes.swift; sourceTree = "<group>"; };
+		2B7D075B261EA0110097212F /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
+		2B7D0761261EA3AA0097212F /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
+		2B7D0762261EA3AA0097212F /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
+		2B7D076A261EA44A0097212F /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,13 +112,19 @@
 				2B7B1937261D4DC50027C905 /* FabricatedApp.swift */,
 				2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */,
 				2B7B1939261D4DC50027C905 /* ContentView.swift */,
+				2B7D0747261E94A40097212F /* Views.swift */,
 				2B7B1964261D52DF0027C905 /* Project.swift */,
 				2B7B195D261D52530027C905 /* Core.swift */,
-				2B7B196F261D84B40027C905 /* Metal.h */,
+				2B1A6FAC2621239C005F65E6 /* Renderer.swift */,
 				2B7B1977261D851F0027C905 /* Metal.metal */,
+				2B7B196F261D84B40027C905 /* Metal.h */,
 				2B7B197E261D85AC0027C905 /* MetalStates.swift */,
 				2B7B1985261D86930027C905 /* MetalView.swift */,
+				2B7D074C261E9E850097212F /* MetalDrawables.swift */,
 				2B7B198A261D86DC0027C905 /* MathLibrary.swift */,
+				2B7D0769261EA4360097212F /* Nodes */,
+				2B7D0753261E9FCC0097212F /* Classes */,
+				2B7D0760261EA3960097212F /* Fonts */,
 				2B7B193A261D4DC60027C905 /* Assets.xcassets */,
 			);
 			path = Shared;
@@ -118,6 +154,34 @@
 				2B7B194A261D4DC70027C905 /* macOS.entitlements */,
 			);
 			path = macOS;
+			sourceTree = "<group>";
+		};
+		2B7D0753261E9FCC0097212F /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				2B7D0754261EA0050097212F /* Classes.swift */,
+				2B7D075B261EA0110097212F /* Font.swift */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		2B7D0760261EA3960097212F /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				2B7D0762261EA3AA0097212F /* OpenSans.json */,
+				2B7D0761261EA3AA0097212F /* OpenSans.tiff */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		2B7D0769261EA4360097212F /* Nodes */ = {
+			isa = PBXGroup;
+			children = (
+				2B7D076A261EA44A0097212F /* Node.swift */,
+				2B1A6FC326214078005F65E6 /* Shapes.swift */,
+				2B1A6FBE26213F60005F65E6 /* NodeArray.swift */,
+			);
+			path = Nodes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -199,6 +263,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B7B1951261D4DC70027C905 /* Assets.xcassets in Resources */,
+				2B7D0765261EA3AA0097212F /* OpenSans.json in Resources */,
+				2B7D0763261EA3AA0097212F /* OpenSans.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,6 +273,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B7B1952261D4DC70027C905 /* Assets.xcassets in Resources */,
+				2B7D0766261EA3AA0097212F /* OpenSans.json in Resources */,
+				2B7D0764261EA3AA0097212F /* OpenSans.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,13 +287,21 @@
 			files = (
 				2B7B1986261D86930027C905 /* MetalView.swift in Sources */,
 				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
+				2B7D0755261EA0050097212F /* Classes.swift in Sources */,
 				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1978261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */,
+				2B1A6FC426214078005F65E6 /* Shapes.swift in Sources */,
 				2B7B194D261D4DC70027C905 /* FabricatedDocument.swift in Sources */,
+				2B7D075C261EA0110097212F /* Font.swift in Sources */,
 				2B7B197F261D85AC0027C905 /* MetalStates.swift in Sources */,
 				2B7B195E261D52530027C905 /* Core.swift in Sources */,
+				2B7D0748261E94A40097212F /* Views.swift in Sources */,
+				2B7D076B261EA44A0097212F /* Node.swift in Sources */,
 				2B7B194F261D4DC70027C905 /* ContentView.swift in Sources */,
+				2B1A6FAD2621239C005F65E6 /* Renderer.swift in Sources */,
+				2B7D074D261E9E850097212F /* MetalDrawables.swift in Sources */,
+				2B1A6FBF26213F60005F65E6 /* NodeArray.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,13 +311,21 @@
 			files = (
 				2B7B1987261D86930027C905 /* MetalView.swift in Sources */,
 				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
+				2B7D0756261EA0050097212F /* Classes.swift in Sources */,
 				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1979261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */,
+				2B1A6FC526214078005F65E6 /* Shapes.swift in Sources */,
 				2B7B194E261D4DC70027C905 /* FabricatedDocument.swift in Sources */,
+				2B7D075D261EA0110097212F /* Font.swift in Sources */,
 				2B7B1980261D85AC0027C905 /* MetalStates.swift in Sources */,
 				2B7B195F261D52530027C905 /* Core.swift in Sources */,
+				2B7D0749261E94A40097212F /* Views.swift in Sources */,
+				2B7D076C261EA44A0097212F /* Node.swift in Sources */,
 				2B7B1950261D4DC70027C905 /* ContentView.swift in Sources */,
+				2B1A6FAE2621239C005F65E6 /* Renderer.swift in Sources */,
+				2B7D074E261E9E850097212F /* MetalDrawables.swift in Sources */,
+				2B1A6FC026213F60005F65E6 /* NodeArray.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
