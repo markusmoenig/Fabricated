@@ -90,7 +90,9 @@ public class DMTKView        : MTKView
     }
     
     override public func scrollWheel(with event: NSEvent) {
-        //core.nodesWidget.scrollWheel(float3(Float(event.deltaX), Float(event.deltaY), Float(event.deltaZ)))
+        if viewType == .Nodes {
+            core.nodeView.scrollWheel(float3(Float(event.deltaX), Float(event.deltaY), Float(event.deltaZ)))
+        }
     }
     
     override public func flagsChanged(with event: NSEvent) {
@@ -158,14 +160,16 @@ public class DMTKView        : MTKView
             lastX = Float(translation.x)
             lastY = Float(translation.y)
             
-            //core.nodesWidget.scrollWheel(delta)
+            if viewType == .Nodes {
+                core.nodesView.scrollWheel(delta)
+            }
         }
     }
     
     var firstTouch      : Bool = false
     @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
     {
-        //core.nodesWidget.pinchGesture(Float(recognizer.scale), firstTouch)
+        core.nodesView.pinchGesture(Float(recognizer.scale), firstTouch)
         firstTouch = false
     }
     
@@ -292,6 +296,7 @@ struct MetalView: NSViewRepresentable {
     func makeNSView(context: NSViewRepresentableContext<MetalView>) -> MTKView {
         let mtkView = DMTKView()
         mtkView.core = core
+        mtkView.viewType = viewType
         mtkView.delegate = context.coordinator
         mtkView.preferredFramesPerSecond = 60
         mtkView.enableSetNeedsDisplay = true
@@ -364,6 +369,7 @@ struct MetalView: UIViewRepresentable {
     func makeUIView(context: UIViewRepresentableContext<MetalView>) -> MTKView {
         let mtkView = DMTKView()
         mtkView.core = core
+        mtkView.viewType = viewType
         mtkView.delegate = context.coordinator
         mtkView.preferredFramesPerSecond = 60
         mtkView.enableSetNeedsDisplay = true

@@ -52,13 +52,14 @@ class TilePixelContext
         self.texWidth = texWidth
         self.texHeight = texHeight
         
-        texUV = texOffset / float2(texWidth, texHeight)
+        texUV = texOffset / float2(texWidth, texHeight) - float2(0.5, 0.5)
         
         offset = float2(texOffset.x - Float(tileRect.x), texOffset.y - Float(tileRect.y))
         
         width = Float(tileRect.width)
         height = Float(tileRect.height)
-        uv = offset / float2(width, height)
+        
+        uv = offset / float2(width, height) - float2(0.5, 0.5)
     }
 }
 
@@ -87,7 +88,6 @@ class Renderer
     
     func renderTile(_ tile: Tile,_ tileRect: TileRect)
     {
-        print("here")
         guard let texture = texture else {
             return
         }
