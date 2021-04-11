@@ -17,11 +17,13 @@ class ShapeDisk : TileNode {
     required init()
     {
         super.init(.Shape, "Disk")
+        writeFloat("Radius", value: 0.5)
     }
     
     override func setup()
     {
         type = "ShapeDisk"
+        options.append(TileNodeOption(self, "Radius", .Float))
     }
     
     required init(from decoder: Decoder) throws
@@ -43,7 +45,7 @@ class ShapeDisk : TileNode {
     
     override func render(ctx: TilePixelContext, prevColor: float4) -> float4
     {
-        let d = length(ctx.uv) - 0.4
+        let d = length(ctx.uv) - readFloat("Radius")
         var rc = float4(0,0,0,0)
         if d <= 0 {
             let d = abs(d)

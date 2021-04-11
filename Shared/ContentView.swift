@@ -29,8 +29,17 @@ struct ContentView: View {
                     .frame(minWidth: leftPanelWidth, idealWidth: leftPanelWidth, maxWidth: leftPanelWidth)
                 
                 VStack(spacing: 2) {
-                    MetalView(document.core, .Preview)
-                    MetalView(document.core, .Nodes)
+                    HStack {
+                        MetalView(document.core, .Preview)
+                        ScreenLayerSettingsView(document: document, updateView: $updateView)
+                    }
+                    HStack {
+                        ZStack(alignment: .topLeading) {
+                            MetalView(document.core, .Nodes)
+                            NodeToolbar(document: document, updateView: $updateView)
+                        }
+                        NodeSettingsView(document: document, updateView: $updateView)
+                    }
                 }
             }
         }

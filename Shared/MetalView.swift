@@ -73,12 +73,16 @@ public class DMTKView        : MTKView
         
     override public func mouseDown(with event: NSEvent) {
         setMousePos(event)
-        //core.nodesWidget.touchDown(mousePos)
+        if viewType == .Nodes {
+            core.nodeView.touchDown(mousePos)
+        }
     }
     
     override public func mouseDragged(with event: NSEvent) {
         setMousePos(event)
-        //core.nodesWidget.touchMoved(mousePos)
+        if viewType == .Nodes {
+            core.nodeView.touchMoved(mousePos)
+        }
     }
     
     override public func mouseUp(with event: NSEvent) {
@@ -86,7 +90,9 @@ public class DMTKView        : MTKView
         hasTap = false
         hasDoubleTap = false
         setMousePos(event)
-        //core.nodesWidget.touchUp(mousePos)
+        if viewType == .Nodes {
+            core.nodeView.touchUp(mousePos)
+        }
     }
     
     override public func scrollWheel(with event: NSEvent) {
@@ -161,7 +167,7 @@ public class DMTKView        : MTKView
             lastY = Float(translation.y)
             
             if viewType == .Nodes {
-                core.nodesView.scrollWheel(delta)
+                core.nodeView.scrollWheel(delta)
             }
         }
     }
@@ -169,7 +175,7 @@ public class DMTKView        : MTKView
     var firstTouch      : Bool = false
     @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
     {
-        core.nodesView.pinchGesture(Float(recognizer.scale), firstTouch)
+        core.nodeView.pinchGesture(Float(recognizer.scale), firstTouch)
         firstTouch = false
     }
     
@@ -185,7 +191,9 @@ public class DMTKView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            //core.nodesWidget.touchDown(mousePos)
+            if viewType == .Nodes {
+                core.nodeView.touchDown(mousePos)
+            }
         }
     }
     
@@ -193,7 +201,9 @@ public class DMTKView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            //core.nodesWidget.touchMoved(mousePos)
+            if viewType == .Nodes {
+                core.nodeView.touchMoved(mousePos)
+            }
         }
     }
     
@@ -202,7 +212,9 @@ public class DMTKView        : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             setMousePos(Float(point.x), Float(point.y))
-            //core.nodesWidget.touchUp(mousePos)
+            if viewType == .Nodes {
+                core.nodeView.touchUp(mousePos)
+            }
         }
     }
     

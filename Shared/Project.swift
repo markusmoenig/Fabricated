@@ -12,6 +12,8 @@ class Project           : Codable
     var screens         : [Screen] = []
     var tiles           : [Tile] = []
 
+    var currentLayer    : Layer? = nil
+    
     init()
     {
         
@@ -26,12 +28,14 @@ class Project           : Codable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         screens = try container.decode([Screen].self, forKey: .screens)
+        tiles = try container.decode([Tile].self, forKey: .tiles)
     }
     
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(screens, forKey: .screens)
+        try container.encode(tiles, forKey: .tiles)
     }
 }
 

@@ -68,6 +68,8 @@ class NodeView
     var currentTile         : Tile? = nil
     var currentTerminalId   : Int? = nil
     
+    var currentNode         : TileNode? = nil
+    
     // For connecting terminals
     var connectingNode      : TileNode? = nil
     var connectingTerminalId: Int? = nil
@@ -100,7 +102,7 @@ class NodeView
         let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
 
         for node in tile.nodes {
-            drawNode(node, true, skin)
+            drawNode(node, node === currentNode, skin)
         }
         
         drawables.encodeEnd()
@@ -110,7 +112,7 @@ class NodeView
     {
         let rect = MMRect()
                 
-        var extraSpaceForSlots : Float = 0
+        let extraSpaceForSlots : Float = 0
         //if let shader = node.shader {
         //    extraSpaceForSlots = 20 * Float(shader.inputs.count)
         //}
@@ -141,6 +143,125 @@ class NodeView
         currentTile = tile
 
     }
+    
+    func setCurrentNode(_ node: TileNode?) {
+        if node !== currentNode {
+            currentNode = node
+            core.tileNodeChanged.send(node)
+        }
+    }
+    
+    /// Check if there is a terminal the given position
+    func checkForNodeTerminal(_ node: TileNode, at: float2) -> Int?
+    {
+        /*
+        for (index, slot) in node.nodeIn.enumerated() {
+            if slot.contains(at.x, at.y) {
+                return index
+            }
+        }
+        
+        if node.nodeOut.contains(at.x, at.y) {
+            return -1
+        }*/
+        
+        return nil
+    }
+    
+    func touchDown(_ pos: float2)
+    {
+        if let tile = currentTile {
+            for node in tile.nodes {
+                
+                if let t = checkForNodeTerminal(node, at: pos) {
+                    /*
+                    if currentNode !== asset {
+                        selectNode(asset)
+                    }
+                    
+                    let canConnect = true
+                    if t != -1 && asset.slots[t] != nil {
+                        //canConnect = false
+                        asset.slots[t] = nil
+                        // Disconnect instead of not allowing to connect when slot is already taken
+                        core.contentChanged.send()
+                    }
+                    
+                    if canConnect {
+                        currentTerminalId = t
+                        action = .Connecting
+                    }*/
+                } else
+                {
+                    var freshlySelectedNode : TileNode? = nil
+                    if node.nodeRect.contains(pos.x, pos.y) {
+                        action = .DragNode
+                        dragStart = pos
+                        
+                        freshlySelectedNode = node
+                    }
+                    if freshlySelectedNode != nil && currentNode !== freshlySelectedNode {
+                        setCurrentNode(freshlySelectedNode!)
+                    }
+                }
+            }
+        }
+        drawables.update()
+    }
+    
+    func touchMoved(_ pos: float2)
+    {
+        mouseMovedPos = pos
+        if action == .DragNode {
+            if let node = currentNode {
+                node.values["nodePos_x"]! += (pos.x - dragStart.x) / graphZoom
+                node.values["nodePos_y"]! += (pos.y - dragStart.y) / graphZoom
+                dragStart = pos
+                update()
+            }
+        }
+        if action == .Connecting {
+            connectingNode = nil
+            connectingTerminalId = nil
+            /*
+            if let assets = core.assetFolder?.assets {
+                for asset in assets {
+                    if let t = checkForNodeTerminal(asset, at: pos) {
+                        if currentNode !== asset {
+                            if (t == -1 && currentTerminalId != -1) || (currentTerminalId == -1 && t != -1) {
+                                connectingNode = asset
+                                connectingTerminalId = t
+                            }
+                        }
+                        break
+                    }
+                }
+            }*/
+            update()
+        }
+    }
+
+    func touchUp(_ pos: float2)
+    {
+        /*
+        if action == .Connecting && connectingNode != nil {
+            // Create Connection
+            
+            if currentTerminalId != -1 {
+                currentNode!.slots[currentTerminalId!] = connectingNode!.id
+            } else {
+                connectingNode!.slots[connectingTerminalId!] = currentNode!.id
+            }
+            
+            core.contentChanged.send()
+        }*/
+
+        action = .None
+        currentTerminalId = nil
+        mouseMovedPos = nil
+        update()
+    }
+    
     
     func scrollWheel(_ delta: float3)
     {

@@ -26,6 +26,12 @@ class Core
     var project         : Project
     var renderer        : Renderer!
     var nodeView        : NodeView!
+    
+    /// Send when the current tile node in the NodeView changed
+    let tileNodeChanged = PassthroughSubject<TileNode?, Never>()
+    
+    let screenChanged = PassthroughSubject<Screen?, Never>()
+    let layerChanged = PassthroughSubject<Layer?, Never>()
 
     init()
     {
@@ -34,7 +40,14 @@ class Core
         let tile = Tile("Test")
         let discNode = ShapeDisk()
         
+        let screen = Screen("Screen #1")
+        let layer = Layer("Main Layer")
+        
+        screen.layers.append(layer)
+
         tile.nodes.append(discNode)
+        
+        project.screens.append(screen)
         project.tiles.append(tile)
                 
         #if os(OSX)

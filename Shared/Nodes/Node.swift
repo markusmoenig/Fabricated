@@ -7,7 +7,28 @@
 
 import Foundation
 
-class TileNode : Codable, Equatable, Identifiable {
+class TileNodeOption
+{
+    enum OptionType {
+        case Float
+    }
+    
+    var id                  = UUID()
+
+    var type                : OptionType = .Float
+    var name                = ""
+    
+    let node                : TileNode
+    
+    init(_ node: TileNode,_ name: String,_ type: OptionType)
+    {
+        self.node = node
+        self.name = name
+        self.type = type
+    }
+}
+
+class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
         case Invalid, Pattern, Shape
@@ -21,8 +42,8 @@ class TileNode : Codable, Equatable, Identifiable {
     var role                : TileNodeRole = .Invalid
     
     var nodeRect            = MMRect()
-
-    var values              : [String:Float] = ["nodePos_x": 0, "nodePos_y": 0]
+    
+    var options             : [TileNodeOption] = []
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -34,11 +55,14 @@ class TileNode : Codable, Equatable, Identifiable {
     {
         self.role = role
         self.name = name
+        super.init()
+        writeFloat2("nodePos", value: float2(0,0))
         setup()
     }
     
     required init(from decoder: Decoder) throws
     {
+        super.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
@@ -65,41 +89,5 @@ class TileNode : Codable, Equatable, Identifiable {
         
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
-    }
-    
-    func readFloat(_ name: String) -> Float
-    {
-        var rc = Float(0)
-        if let x = values[name] { rc = x }
-        return rc
-    }
-    
-    func writeFloat(_ name: String, value: Float)
-    {
-        values[name] = value
-    }
-    
-    func readFloat2(_ name: String) -> float2
-    {
-        var rc = float2(0,0)
-        if let x = values[name + "_x"] { rc.x = x }
-        if let y = values[name + "_y"] { rc.y = y }
-        return rc
-    }
-    
-    func readFloat3(_ name: String) -> float3
-    {
-        var rc = float3(0,0,0)
-        if let x = values[name + "_x"] { rc.x = x }
-        if let y = values[name + "_y"] { rc.y = y }
-        if let z = values[name + "_z"] { rc.z = z }
-        return rc
-    }
-    
-    func writeFloat3(_ name: String, value: float3)
-    {
-        values[name + "_x"] = value.x
-        values[name + "_y"] = value.y
-        values[name + "_z"] = value.z
     }
 }

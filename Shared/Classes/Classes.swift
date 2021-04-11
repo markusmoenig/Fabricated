@@ -7,6 +7,72 @@
 
 import Foundation
 
+/// Utility class to handles reading / writing values from a named float map
+class MMValues
+{
+    var values    : [String:Float] = [:]
+
+    func readFloat(_ name: String) -> Float
+    {
+        var rc = Float(0)
+        if let x = values[name] { rc = x }
+        return rc
+    }
+    
+    func writeFloat(_ name: String, value: Float)
+    {
+        values[name] = value
+    }
+    
+    func readFloat2(_ name: String) -> float2
+    {
+        var rc = float2(0,0)
+        if let x = values[name + "_x"] { rc.x = x }
+        if let y = values[name + "_y"] { rc.y = y }
+        return rc
+    }
+    
+    func writeFloat2(_ name: String, value: float2)
+    {
+        values[name + "_x"] = value.x
+        values[name + "_y"] = value.y
+    }
+    
+    func readFloat3(_ name: String) -> float3
+    {
+        var rc = float3(0,0,0)
+        if let x = values[name + "_x"] { rc.x = x }
+        if let y = values[name + "_y"] { rc.y = y }
+        if let z = values[name + "_z"] { rc.z = z }
+        return rc
+    }
+    
+    func writeFloat3(_ name: String, value: float3)
+    {
+        values[name + "_x"] = value.x
+        values[name + "_y"] = value.y
+        values[name + "_z"] = value.z
+    }
+    
+    func readFloat4(_ name: String) -> float4
+    {
+        var rc = float4(0,0,0,0)
+        if let x = values[name + "_x"] { rc.x = x }
+        if let y = values[name + "_y"] { rc.y = y }
+        if let z = values[name + "_z"] { rc.z = z }
+        if let w = values[name + "_w"] { rc.w = w }
+        return rc
+    }
+    
+    func writeFloat4(_ name: String, value: float4)
+    {
+        values[name + "_x"] = value.x
+        values[name + "_y"] = value.y
+        values[name + "_z"] = value.z
+        values[name + "_w"] = value.w
+    }
+}
+
 /// MMRect class
 class MMRect
 {
