@@ -43,6 +43,9 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear(perform: {
+            document.core.renderer.render()
+        })
     }
 }
 

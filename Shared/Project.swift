@@ -138,9 +138,9 @@ class Tile         : Codable, Equatable
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        nodes = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .nodes)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-        nodes = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .nodes)
     }
     
     func encode(to encoder: Encoder) throws

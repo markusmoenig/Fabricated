@@ -38,14 +38,14 @@ class Core
         project = Project()
         
         let tile = Tile("Test")
-        let tileNode = TileNode(.Tile, "Tile")
+        let tiledNode = TiledNode()
         
         let screen = Screen("Screen #1")
         let layer = Layer("Main Layer")
         
         screen.layers.append(layer)
 
-        tile.nodes.append(tileNode)
+        tile.nodes.append(tiledNode)
         
         project.screens.append(screen)
         project.tiles.append(tile)

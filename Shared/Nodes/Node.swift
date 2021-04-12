@@ -37,7 +37,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var id                  = UUID()
     var name                = "" // User defined
     
-    var type                = "" // To identify the node when loading via JSON
+    var type                : String = "" // To identify the node when loading via JSON
     
     var role                : TileNodeRole = .Tile
     
@@ -56,7 +56,10 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case id
         case name
+        case role
         case values
+        case terminalsOut
+        case terminalIn
     }
     
     init(_ role: TileNodeRole,_ name: String = "Unnamed")
@@ -74,13 +77,15 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        role = try container.decode(TileNodeRole.self, forKey: .role)
         values = try container.decode([String:Float].self, forKey: .values)
+        terminalsOut = try container.decode([Int:UUID].self, forKey: .terminalsOut)
+        terminalIn = try container.decode(UUID?.self, forKey: .terminalIn)
         setup()
     }
     
     func setup()
     {
-        type = "TileNode"
     }
     
     func encode(to encoder: Encoder) throws
@@ -88,7 +93,10 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
+        try container.encode(role, forKey: .role)
         try container.encode(values, forKey: .values)
+        try container.encode(terminalsOut, forKey: .terminalsOut)
+        try container.encode(terminalIn, forKey: .terminalIn)
     }
     
     /// Renders the node
@@ -119,5 +127,40 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
+    }
+}
+
+/// For JSON storage we need a derived version of TileNode
+class TiledNode : TileNode {
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    required init()
+    {
+        super.init(.Tile, "Tile")
+    }
+    
+    override func setup()
+    {
+        type = "TiledNode"
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
     }
 }

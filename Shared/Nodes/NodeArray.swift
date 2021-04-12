@@ -22,7 +22,7 @@ enum NodeDiscriminator: String, CodingKey {
 
 /// The NodeFamily enum describes the node types
 enum NodeFamily: String, NodeClassFamily {
-    case tileNode = "TileNode"
+    case tiledNode = "TiledNode"
     case shapeDisk = "ShapeDisk"
 
     static var discriminator: NodeDiscriminator = .type
@@ -31,8 +31,8 @@ enum NodeFamily: String, NodeClassFamily {
     {
         switch self
         {
-            case .tileNode:
-                return TileNode.self
+            case .tiledNode:
+                return TiledNode.self
             case .shapeDisk:
                 return ShapeDisk.self
         }
