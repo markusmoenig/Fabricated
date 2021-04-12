@@ -31,7 +31,7 @@ class TileNodeOption
 class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
-        case Invalid, Pattern, Shape
+        case Tile, Pattern, Shape
     }
     
     var id                  = UUID()
@@ -39,12 +39,20 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     
     var type                = "" // To identify the node when loading via JSON
     
-    var role                : TileNodeRole = .Invalid
+    var role                : TileNodeRole = .Tile
     
     var nodeRect            = MMRect()
     
     var options             : [TileNodeOption] = []
+    
+    // --- The terminals, nodes can have multiple outputs but only one input
+    var terminalsOut        : [Int: UUID] = [:]
+    var terminalIn          : UUID? = nil
 
+    // --- For terminal drawing
+    var terminalsOutRect    = [MMRect(), MMRect(),MMRect(),MMRect()]
+    var terminalInRect      = MMRect()
+    
     private enum CodingKeys: String, CodingKey {
         case id
         case name
@@ -72,6 +80,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     
     func setup()
     {
+        type = "TileNode"
     }
     
     func encode(to encoder: Encoder) throws
@@ -82,9 +91,30 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         try container.encode(values, forKey: .values)
     }
     
+    /// Renders the node
     func render(ctx: TilePixelContext, prevColor: float4) -> float4
     {
         return float4()
+    }
+    
+    /// Gets  the next optional id in the chain
+    func getChainedNodeIdForRole(_ connectedRole: TileNodeRole) -> UUID?
+    {
+        if role == .Tile {
+            if connectedRole == .Shape || connectedRole == .Pattern {
+                if let id = terminalsOut[0] {
+                    return id
+                }
+            }
+        } else
+        if role == .Shape {
+            if connectedRole == .Shape || connectedRole == .Pattern {
+                if let id = terminalsOut[2] {
+                    return id
+                }
+            }
+        }
+        return nil
     }
         
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable

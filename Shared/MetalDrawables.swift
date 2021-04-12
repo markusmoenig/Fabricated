@@ -288,6 +288,28 @@ class MetalDrawables
         }
     }
     
+    /// Gets the width of the given text
+    func getTextWidth(text: String, size: Float) -> Float
+    {
+        if let font = font {
+         
+            let scale : Float = (1.0 / font.bmFont!.common.lineHeight) * size
+            let adjScale : Float = scale// / 2
+            
+            var posX : Float = 0
+
+            for c in text {
+                let bmChar = font.getItemForChar( c )
+                if bmChar != nil {
+                    posX += bmChar!.xadvance * adjScale
+                }
+            }
+            
+            return posX
+        }
+        return 0
+    }
+    
     /// Creates vertex data for the given rectangle
     func createVertexData(_ rect: MMRect) -> [Float]
     {

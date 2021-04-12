@@ -154,4 +154,25 @@ class Tile         : Codable, Equatable
     static func ==(lhs:Tile, rhs:Tile) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
+    
+    /// Returns a node by its id
+    func getNodeById(_ id: UUID) -> TileNode?
+    {
+        for node in nodes {
+            if node.id == id {
+                return node
+            }
+        }
+        return nil
+    }
+    
+    /// Returns the next node of the given role in the chain
+    func getNextInChain(_ node: TileNode,_ role: TileNode.TileNodeRole) -> TileNode?
+    {
+        if let id = node.getChainedNodeIdForRole(role) {
+            return getNodeById(id)
+        }
+        
+        return nil
+    }
 }

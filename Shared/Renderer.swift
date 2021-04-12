@@ -96,7 +96,7 @@ class Renderer
 
         let width: Float = Float(texture.width)
         let height: Float = Float(texture.height)
-                
+                        
         for h in tileRect.y..<tileRect.bottom {
 
             for w in tileRect.x..<tileRect.right {
@@ -109,8 +109,10 @@ class Renderer
                 
                 var color = float4(0, 0, 0, 0)
                 
-                for node in tile.nodes {
-                    color = node.render(ctx: pixelContext, prevColor: color)
+                var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                while node !== nil {
+                    color = node!.render(ctx: pixelContext, prevColor: color)
+                    node = tile.getNextInChain(node!, .Shape)
                 }
 
                 texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))

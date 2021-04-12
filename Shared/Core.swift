@@ -38,14 +38,14 @@ class Core
         project = Project()
         
         let tile = Tile("Test")
-        let discNode = ShapeDisk()
+        let tileNode = TileNode(.Tile, "Tile")
         
         let screen = Screen("Screen #1")
         let layer = Layer("Main Layer")
         
         screen.layers.append(layer)
 
-        tile.nodes.append(discNode)
+        tile.nodes.append(tileNode)
         
         project.screens.append(screen)
         project.tiles.append(tile)
@@ -77,9 +77,7 @@ class Core
         metalStates = MetalStates(self)
         drawables = MetalDrawables(view)
         renderer = Renderer(self)
-        
-        renderer.render()
-        
+                
         textureLoader = MTKTextureLoader(device: device)
 
         view.platformInit()
