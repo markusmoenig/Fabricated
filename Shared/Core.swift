@@ -33,23 +33,31 @@ class Core
     let screenChanged = PassthroughSubject<Screen?, Never>()
     let layerChanged = PassthroughSubject<Layer?, Never>()
 
+    let tileSetChanged = PassthroughSubject<TileSet?, Never>()
+
     init()
     {
         project = Project()
-        
-        let tile = Tile("Test")
-        let tiledNode = TiledNode()
-        
+                
         let screen = Screen("Screen #1")
         let layer = Layer("Main Layer")
         
         screen.layers.append(layer)
-
+        
+        let tileSet = TileSet("Tiles #1")
+        let tile = Tile("Test")
+        let tiledNode = TiledNode()
+        
+        tileSet.tiles.append(tile)
         tile.nodes.append(tiledNode)
         
         project.screens.append(screen)
-        project.tiles.append(tile)
-                
+        project.tileSets.append(tileSet)
+            
+        project.currentTileSet = tileSet
+        
+        tileSetChanged.send(tileSet)
+        
         #if os(OSX)
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
         #else
@@ -116,7 +124,7 @@ class Core
     // Called when the nodes have to be drawn
     public func drawNodes()
     {
-        nodeView.setCurrentTile(project.tiles[0])
+        nodeView.setCurrentTile(project.currentTileSet!.tiles[0])
         nodeView.draw()
     }
     

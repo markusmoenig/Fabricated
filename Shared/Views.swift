@@ -47,6 +47,32 @@ struct ProjectView: View {
                     }
                 }
                 
+                Section(header: Text("Tile Sets")) {
+                    ForEach(document.core.project.tileSets, id: \.id) { tileSet in
+                        Button(action: {
+                            document.core.project.currentTileSet = tileSet
+                            tileSet.currentTile = nil
+                            document.core.tileSetChanged.send(tileSet)
+                        })
+                        {
+                            Label(tileSet.name, systemImage: "camera")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .listRowBackground(Group {
+                            //if selection == cameraNode.id {
+            //                        Color.gray.mask(RoundedRectangle(cornerRadius: 4))
+            //                    } else { Color.clear }
+                            
+                            Color.clear
+                        })
+                            .contextMenu {
+                                Text("tileSet")
+                            }
+                    }
+                }
+                
                 #if os(macOS)
                 Divider()
                 #endif
@@ -137,6 +163,17 @@ struct NodeToolbar: View {
             .padding(.leading, 10)
             
             Spacer()
+            
+            Button(action: {
+                if let tileSet = document.core.project.currentTileSet {
+                    tileSet.currentTile = nil
+                    document.core.tileSetChanged.send(tileSet)
+                }
+            })
+            {
+                Text("Tile Set")
+            }
+            .buttonStyle(BorderlessButtonStyle())
         }
         .padding(4)
         .frame(minHeight: 30)
@@ -152,15 +189,24 @@ struct NodeSettingsView: View {
     
     var body: some View {
         VStack {
-            List() {
+            //if let currentTile = document.core.project.currentTileSet?.currentTile {
+                
+                //Text(currentTile.name)
+                //Divider()
+                
                 if let currentNode = currentNode {
-                    ForEach(currentNode.options, id: \.id) { option in
-                        if option.type == .Float {
-                            ParamFloatView(document.core, option)
+                
+                    List() {
+                        ForEach(currentNode.options, id: \.id) { option in
+                            if option.type == .Float {
+                                ParamFloatView(document.core, option)
+                            }
                         }
                     }
                 }
-            }
+                
+                Spacer()
+            //}
         }
         .frame(maxWidth: 200)
         

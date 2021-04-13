@@ -12,6 +12,7 @@ struct ContentView: View {
     @Binding var document                   : FabricatedDocument
 
     @State private var updateView           : Bool = false
+    @State var currentTileSet               : TileSet? = nil
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
 
@@ -35,8 +36,14 @@ struct ContentView: View {
                     }
                     HStack {
                         ZStack(alignment: .topLeading) {
-                            MetalView(document.core, .Nodes)
-                            NodeToolbar(document: document, updateView: $updateView)
+                            if let tileSet = currentTileSet {
+                                if tileSet.currentTile !== nil {
+                                    MetalView(document.core, .Nodes)
+                                    NodeToolbar(document: document, updateView: $updateView)
+                                } else {
+                                    TileGridView(document: document, updateView: $updateView)
+                                }
+                            }
                         }
                         NodeSettingsView(document: document, updateView: $updateView)
                     }
@@ -44,8 +51,16 @@ struct ContentView: View {
             }
         }
         .onAppear(perform: {
+            currentTileSet = document.core.project.currentTileSet
+            document.core.tileSetChanged.send(currentTileSet)
+
             document.core.renderer.render()
         })
+        
+        .onReceive(self.document.core.tileSetChanged) { tileSet in
+            currentTileSet = nil
+            currentTileSet = tileSet
+        }
     }
 }
 

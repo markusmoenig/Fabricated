@@ -32,7 +32,7 @@ class TileRect
     }
 }
 
-class TilePixelContext
+class TileContext
 {
     let texOffset   : float2    // The offset into the texture
     let texUV       : float2    // The global texture UV
@@ -80,10 +80,12 @@ class Renderer
     
     func render()
     {
-        let tile = core.project.tiles[0]
-        let rect = TileRect(0, 0, 64, 64)
+        if let tileSet = core.project.currentTileSet {
+            let tile = tileSet.tiles[0]
+            let rect = TileRect(0, 0, 64, 64)
         
-        renderTile(tile, rect)
+            renderTile(tile, rect)
+        }
     }
     
     func renderTile(_ tile: Tile,_ tileRect: TileRect)
@@ -105,7 +107,7 @@ class Renderer
                     break
                 }
                 
-                let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                let pixelContext = TileContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
                 
                 var color = float4(0, 0, 0, 0)
                 

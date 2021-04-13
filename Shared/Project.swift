@@ -10,9 +10,10 @@ import Foundation
 class Project           : Codable
 {
     var screens         : [Screen] = []
-    var tiles           : [Tile] = []
+    var tileSets        : [TileSet] = []
 
     var currentLayer    : Layer? = nil
+    var currentTileSet  : TileSet? = nil
     
     init()
     {
@@ -21,21 +22,21 @@ class Project           : Codable
     
     private enum CodingKeys: String, CodingKey {
         case screens
-        case tiles
+        case tileSets
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         screens = try container.decode([Screen].self, forKey: .screens)
-        tiles = try container.decode([Tile].self, forKey: .tiles)
+        tileSets = try container.decode([TileSet].self, forKey: .tileSets)
     }
     
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(screens, forKey: .screens)
-        try container.encode(tiles, forKey: .tiles)
+        try container.encode(tileSets, forKey: .tileSets)
     }
 }
 
@@ -109,6 +110,47 @@ class Layer         : Codable, Equatable
     }
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable
+        return lhs.id == rhs.id
+    }
+}
+
+class TileSet      : Codable, Equatable
+{
+    var tiles      : [Tile] = []
+    
+    var currentTile: Tile? = nil
+
+    var id          = UUID()
+    var name        = ""
+    
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case tiles
+    }
+    
+    init(_ name: String = "Unnamed")
+    {
+        self.name = name
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tiles = try container.decode([Tile].self, forKey: .tiles)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(tiles, forKey: .tiles)
+    }
+    
+    static func ==(lhs:TileSet, rhs:TileSet) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
 }

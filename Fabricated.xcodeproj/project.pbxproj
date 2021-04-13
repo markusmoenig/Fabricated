@@ -49,6 +49,8 @@
 		2B7D0766261EA3AA0097212F /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0762261EA3AA0097212F /* OpenSans.json */; };
 		2B7D076B261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
 		2B7D076C261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
+		2B9D93002625319500A18D2A /* TileGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9D92FF2625319500A18D2A /* TileGridView.swift */; };
+		2B9D93012625319500A18D2A /* TileGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9D92FF2625319500A18D2A /* TileGridView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +81,7 @@
 		2B7D0761261EA3AA0097212F /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B7D0762261EA3AA0097212F /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2B7D076A261EA44A0097212F /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
+		2B9D92FF2625319500A18D2A /* TileGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileGridView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +119,7 @@
 				2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */,
 				2B7B1939261D4DC50027C905 /* ContentView.swift */,
 				2B7D0747261E94A40097212F /* Views.swift */,
+				2B9D92FF2625319500A18D2A /* TileGridView.swift */,
 				2B7B1964261D52DF0027C905 /* Project.swift */,
 				2B7B195D261D52530027C905 /* Core.swift */,
 				2B1A6FAC2621239C005F65E6 /* Renderer.swift */,
@@ -302,6 +306,7 @@
 				2B7B195E261D52530027C905 /* Core.swift in Sources */,
 				2B7D0748261E94A40097212F /* Views.swift in Sources */,
 				2B7D076B261EA44A0097212F /* Node.swift in Sources */,
+				2B9D93002625319500A18D2A /* TileGridView.swift in Sources */,
 				2B7B194F261D4DC70027C905 /* ContentView.swift in Sources */,
 				2B1A6FCD262189A7005F65E6 /* NodeView.swift in Sources */,
 				2B1A6FAD2621239C005F65E6 /* Renderer.swift in Sources */,
@@ -327,6 +332,7 @@
 				2B7B195F261D52530027C905 /* Core.swift in Sources */,
 				2B7D0749261E94A40097212F /* Views.swift in Sources */,
 				2B7D076C261EA44A0097212F /* Node.swift in Sources */,
+				2B9D93012625319500A18D2A /* TileGridView.swift in Sources */,
 				2B7B1950261D4DC70027C905 /* ContentView.swift in Sources */,
 				2B1A6FCE262189A7005F65E6 /* NodeView.swift in Sources */,
 				2B1A6FAE2621239C005F65E6 /* Renderer.swift in Sources */,

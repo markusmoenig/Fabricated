@@ -43,7 +43,7 @@ class ShapeDisk : TileNode {
         try super.encode(to: superdecoder)
     }
     
-    override func render(ctx: TilePixelContext, prevColor: float4) -> float4
+    override func render(ctx: TileContext, prevColor: float4) -> float4
     {
         let d = length(ctx.uv) - readFloat("Radius")
         var rc = float4(0,0,0,0)
