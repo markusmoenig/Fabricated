@@ -25,7 +25,7 @@ struct TileGridView: View {
                     }
                 })
                 {
-                    Text("Edit Tile")
+                    Label("Edit Tile", systemImage: "rectangle.3.offgrid")
                 }
                 .buttonStyle(BorderlessButtonStyle())
                 .padding(.leading, 10)

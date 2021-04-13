@@ -25,6 +25,8 @@ class Core
 
     var project         : Project
     var renderer        : Renderer!
+    
+    var screenView      : ScreenView!
     var nodeView        : NodeView!
     
     /// Send when the current tile node in the NodeView changed
@@ -54,6 +56,7 @@ class Core
         project.screens.append(screen)
         project.tileSets.append(tileSet)
             
+        project.currentLayer = layer
         project.currentTileSet = tileSet
         
         tileSetChanged.send(tileSet)
@@ -88,6 +91,8 @@ class Core
                 
         textureLoader = MTKTextureLoader(device: device)
 
+        screenView = ScreenView(self)
+
         view.platformInit()
     }
     
@@ -99,26 +104,12 @@ class Core
         view.core = self
         
         nodeView = NodeView(self)
-
-        //nodesWidget = NodesWidget(self)
     }
     
     // Called when the preview needs to be drawn
     public func drawPreview()
     {
-        drawables.encodeStart()
-        
-        drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
-        
-        //if renderer.checkIfTextureIsValid(self) == false {
-        //            return
-        //}
-        
-        if let texture = renderer.texture {
-            drawables.drawBox(position: float2(0,0), size: float2(Float(texture.width), Float(texture.height)), texture: texture)
-        }
-
-        drawables.encodeEnd()
+        screenView.draw()
     }
     
     // Called when the nodes have to be drawn

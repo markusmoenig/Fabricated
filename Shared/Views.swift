@@ -31,15 +31,9 @@ struct ProjectView: View {
                                 Label(layer.name, systemImage: "camera")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
+                                    .foregroundColor(layer === document.core.project.currentLayer ? Color.accentColor : Color.primary)
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .listRowBackground(Group {
-                                //if selection == cameraNode.id {
-                //                        Color.gray.mask(RoundedRectangle(cornerRadius: 4))
-                //                    } else { Color.clear }
-                                
-                                Color.clear
-                            })
+                                .buttonStyle(PlainButtonStyle())
                                 .contextMenu {
                                     Text("Layer")
                                 }
@@ -58,15 +52,9 @@ struct ProjectView: View {
                             Label(tileSet.name, systemImage: "camera")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
+                                .foregroundColor(tileSet === document.core.project.currentTileSet ? Color.accentColor : Color.primary)
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .listRowBackground(Group {
-                            //if selection == cameraNode.id {
-            //                        Color.gray.mask(RoundedRectangle(cornerRadius: 4))
-            //                    } else { Color.clear }
-                            
-                            Color.clear
-                        })
+                            .buttonStyle(PlainButtonStyle())
                             .contextMenu {
                                 Text("tileSet")
                             }
@@ -171,7 +159,7 @@ struct NodeToolbar: View {
                 }
             })
             {
-                Text("Tile Set")
+                Label("Tile Set", systemImage: "arrowshape.turn.up.backward")
             }
             .buttonStyle(BorderlessButtonStyle())
         }

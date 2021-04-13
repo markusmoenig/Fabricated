@@ -47,6 +47,7 @@ struct ContentView: View {
                         }
                         NodeSettingsView(document: document, updateView: $updateView)
                     }
+                    .animation(.easeInOut)
                 }
             }
         }
