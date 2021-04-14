@@ -65,11 +65,19 @@ class TileContext
 
 class Renderer
 {
+    enum RenderDimensions {
+        case All, Visible
+    }
+    
     let core            : Core
     
     var texture         : MTLTexture? = nil
-    
     var stopRunning     : Bool = false
+    
+    var commandQueue    : MTLCommandQueue? = nil
+    var commandBuffer   : MTLCommandBuffer? = nil
+    
+    var screenDim       = SIMD4<Int>(0,0,0,0)
 
     init(_ core: Core)
     {
@@ -80,12 +88,33 @@ class Renderer
     
     func render()
     {
-        if let tileSet = core.project.currentTileSet {
-            let tile = tileSet.tiles[0]
-            let rect = TileRect(0, 0, 64, 64)
+        //let texSize = SIMD2<Int>(Int(core.screenView.drawables.viewSize.x), Int(core.screenView.drawables.viewSize.y))
         
-            renderTile(tile, rect)
+        let dims = calculateTextureSizeForScreen()
+        let texSize = dims.0
+        
+        print("texSize", texSize.x, texSize.y)
+
+        checkIfTextureIsValid(size: texSize)
+        
+        if let layer = core.project.currentLayer {
+            
+            for (index, instance) in layer.tileInstances {
+                                
+                if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
+                    
+                    let x : Float = Float(abs(dims.1.x - index.x)) * 64
+                    let y : Float = Float(abs(dims.1.y - index.y)) * 64
+                    
+                    //print("render at offset", x, y, index.x, index.y)
+
+                    let rect = TileRect(Int(x), Int(y), 64, 64)
+                    renderTile(tile, rect)
+                }
+            }
         }
+        
+        screenDim = dims.1
     }
     
     func renderTile(_ tile: Tile,_ tileRect: TileRect)
@@ -104,7 +133,7 @@ class Renderer
             for w in tileRect.x..<tileRect.right {
                 
                 if stopRunning {
-                    break
+                    //break
                 }
                 
                 let pixelContext = TileContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
@@ -122,7 +151,7 @@ class Renderer
         }
         
         if stopRunning {
-            return
+            //return
         }
         
         //semaphore.wait()
@@ -133,6 +162,54 @@ class Renderer
         }
         
         core.updatePreviewOnce()
+    }
+    
+    func calculateTextureSizeForScreen() -> (SIMD2<Int>, SIMD4<Int>) {
+        var width   : Int = 0
+        var height  : Int = 0
+        
+        var minX    : Int = 10000
+        var maxX    : Int = -10000
+        var minY    : Int = 10000
+        var maxY    : Int = -10000
+        
+        var tilesInScreen : Int = 0
+
+        if let layer = core.project.currentLayer {
+            if let screen = core.project.getScreenForLayer(layer.id) {
+                
+                for layer in screen.layers {
+                    for (index, _) in layer.tileInstances {
+                        if index.x < minX {
+                            minX = index.x
+                        }
+                        if index.x > maxX {
+                            maxX = index.x
+                        }
+                        if index.y < minY {
+                            minY = index.y
+                        }
+                        if index.y > maxY {
+                            maxY = index.y
+                        }
+                        
+                        tilesInScreen += 1
+                    }
+                }
+            }
+        }
+        
+        //print("range", minX, maxX, minY, maxY)
+        
+        if tilesInScreen > 0 {
+            width = (abs(maxX - minX) + 1) * 64
+            height = (abs(maxY - minY) + 1) * 64
+        }
+        
+        //print("dims", width, height)
+
+        
+        return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
     }
         
     func allocateTexture(_ device: MTLDevice, width: Int, height: Int) -> MTLTexture?
@@ -145,6 +222,72 @@ class Renderer
         
         textureDescriptor.usage = MTLTextureUsage.unknown
         return device.makeTexture(descriptor: textureDescriptor)
+    }
+    
+    /// Checks if the texture is of the given size and if not reallocate, returns true if the texture has been reallocated
+    @discardableResult func checkIfTextureIsValid(size: SIMD2<Int>) -> Bool
+    {
+        let size = SIMD2<Int>(Int(core.view.frame.width), Int(core.view.frame.height))
+        
+        if size.x == 0 || size.y == 0 {
+            return false
+        }
+        
+        // Make sure texture is of size size
+        if texture == nil || texture!.width != size.x || texture!.height != size.y {
+            
+            stopRunning = true
+            
+            if texture != nil {
+                texture!.setPurgeableState(.empty)
+                texture = nil
+            }
+            texture = allocateTexture(core.device, width: size.x, height: size.y)
+            
+            startDrawing(core.device)
+            clearTexture(texture!, float4(1,0,0,1))
+            stopDrawing(syncTexture: texture!, waitUntilCompleted: true)
+            
+            return true
+        }
+        
+        return false
+    }
+    
+    func startDrawing(_ device: MTLDevice)
+    {
+        if commandQueue == nil {
+            commandQueue = device.makeCommandQueue()
+        }
+        commandBuffer = commandQueue!.makeCommandBuffer()
+    }
+    
+    /// Clears the textures
+    func clearTexture(_ texture: MTLTexture, _ color: float4 = SIMD4<Float>(0,0,0,1))
+    {
+        let renderPassDescriptor = MTLRenderPassDescriptor()
+
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(Double(color.x), Double(color.y), Double(color.z), Double(color.w))
+        renderPassDescriptor.colorAttachments[0].texture = texture
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        let renderEncoder = commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+        renderEncoder.endEncoding()
+    }
+    
+    func stopDrawing(syncTexture: MTLTexture? = nil, waitUntilCompleted: Bool = false)
+    {
+        #if os(OSX)
+        if let texture = syncTexture {
+            let blitEncoder = commandBuffer!.makeBlitCommandEncoder()!
+            blitEncoder.synchronize(texture: texture, slice: 0, level: 0)
+            blitEncoder.endEncoding()
+        }
+        #endif
+        commandBuffer?.commit()
+        if waitUntilCompleted {
+            commandBuffer?.waitUntilCompleted()
+        }
+        commandBuffer = nil
     }
 }
 

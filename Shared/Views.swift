@@ -26,6 +26,9 @@ struct ProjectView: View {
                                 } ) {
                         ForEach(screen.layers, id: \.id) { layer in
                             Button(action: {
+                                document.core.project.currentLayer = layer
+                                document.core.layerChanged.send(layer)
+                                document.core.renderer.render()
                             })
                             {
                                 Label(layer.name, systemImage: "camera")
@@ -45,7 +48,7 @@ struct ProjectView: View {
                     ForEach(document.core.project.tileSets, id: \.id) { tileSet in
                         Button(action: {
                             document.core.project.currentTileSet = tileSet
-                            tileSet.currentTile = nil
+                            tileSet.openTile = nil
                             document.core.tileSetChanged.send(tileSet)
                         })
                         {
@@ -129,7 +132,7 @@ struct NodeToolbar: View {
             Menu {
                 Menu("Shapes") {
                     Button("Disk", action: {
-                        if let tile = document.core.nodeView.currentTile {
+                        if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeDisk())
                             document.core.nodeView.update()
                         }
@@ -154,7 +157,7 @@ struct NodeToolbar: View {
             
             Button(action: {
                 if let tileSet = document.core.project.currentTileSet {
-                    tileSet.currentTile = nil
+                    tileSet.openTile = nil
                     document.core.tileSetChanged.send(tileSet)
                 }
             })

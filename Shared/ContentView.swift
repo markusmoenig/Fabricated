@@ -37,7 +37,7 @@ struct ContentView: View {
                     HStack {
                         ZStack(alignment: .topLeading) {
                             if let tileSet = currentTileSet {
-                                if tileSet.currentTile !== nil {
+                                if tileSet.openTile !== nil {
                                     MetalView(document.core, .Nodes)
                                     NodeToolbar(document: document, updateView: $updateView)
                                 } else {

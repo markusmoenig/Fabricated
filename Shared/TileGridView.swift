@@ -21,6 +21,7 @@ struct TileGridView: View {
                 Button(action: {
                     if let currentTileSet = document.core.project.currentTileSet {
                         currentTileSet.currentTile = currentTile
+                        currentTileSet.openTile = currentTile
                         document.core.tileSetChanged.send(currentTileSet)
                     }
                 })
@@ -49,6 +50,7 @@ struct TileGridView: View {
                                 .frame(width: 50, height: 50)
                                 .onTapGesture(perform: {
                                     currentTile = tile
+                                    currentTileSet.currentTile = tile
                                 })
                                 .padding(10)
                         
@@ -69,11 +71,17 @@ struct TileGridView: View {
         
         .onAppear(perform: {
             currentTileSet = document.core.project.currentTileSet
+            if let currentTileSet = currentTileSet {
+                currentTile = currentTileSet.currentTile
+            }
         })
         
         .onReceive(self.document.core.tileSetChanged) { tileSet in
             currentTileSet = nil
             currentTileSet = tileSet
+            if let tileSet = tileSet {
+                currentTile = tileSet.currentTile
+            }
         }
     }
 }

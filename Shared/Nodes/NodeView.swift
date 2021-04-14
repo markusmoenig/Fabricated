@@ -65,7 +65,6 @@ class NodeView
     
     let drawables           : MetalDrawables
     
-    var currentTile         : Tile? = nil
     var currentTerminalId   : Int? = nil
     
     var currentNode         : TileNode? = nil
@@ -89,9 +88,13 @@ class NodeView
         drawables = MetalDrawables(core.nodesView)
     }
     
+    func getCurrentTile() -> Tile? {
+        return core.project.currentTileSet?.openTile
+    }
+    
     func draw()
     {
-        guard let tile = currentTile else {
+        guard let tile = getCurrentTile() else {
             return
         }
         
@@ -283,11 +286,6 @@ class NodeView
         }
     }
     
-    func setCurrentTile(_ tile: Tile) {
-        currentTile = tile
-
-    }
-    
     func setCurrentNode(_ node: TileNode?) {
         if node !== currentNode {
             currentNode = node
@@ -313,7 +311,7 @@ class NodeView
     
     func touchDown(_ pos: float2)
     {
-        if let tile = currentTile {
+        if let tile = getCurrentTile() {
             for node in tile.nodes {
                 
                 if let t = checkForNodeTerminal(node, at: pos) {
@@ -369,7 +367,7 @@ class NodeView
             connectingNode = nil
             connectingTerminalId = nil
             
-            if let tile = currentTile {
+            if let tile = getCurrentTile() {
                 for node in tile.nodes {
                     if let t = checkForNodeTerminal(node, at: pos) {
                         if currentNode !== node {

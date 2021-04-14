@@ -115,7 +115,6 @@ class Core
     // Called when the nodes have to be drawn
     public func drawNodes()
     {
-        nodeView.setCurrentTile(project.currentTileSet!.tiles[0])
         nodeView.draw()
     }
     

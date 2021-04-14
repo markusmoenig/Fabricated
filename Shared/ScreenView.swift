@@ -21,16 +21,14 @@ class ScreenView
     
     let drawables           : MetalDrawables
 
-    var graphZoom           : Float = 0.63
+    var graphZoom           : Float = 1
     var graphOffset         = float2(0, 0)
 
     var dragStart           = float2(0, 0)
     var mouseMovedPos       : float2? = nil
     
     var firstDraw           = true
-    
-    var m                   : [SIMD2<Int>: Float] = [:]
-    
+        
     init(_ core: Core)
     {
         self.core = core
@@ -43,6 +41,14 @@ class ScreenView
         drawables.encodeStart()
         
         //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
+        
+        if let texture = core.renderer.texture {
+            
+            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * 64 + graphOffset.x
+            let y = drawables.viewSize.y / 2 - Float(core.renderer.screenDim.y) * 64 + graphOffset.y
+
+            drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
+        }
         
         let center = drawables.viewSize / 2.0 + graphOffset
         
@@ -71,10 +77,6 @@ class ScreenView
             drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
             xOffset += 64 * graphZoom
         }
-        
-        if let texture = core.renderer.texture {
-            drawables.drawBox(position: float2(0,0), size: float2(Float(texture.width), Float(texture.height)), texture: texture)
-        }
 
         drawables.encodeEnd()
     }
@@ -86,14 +88,17 @@ class ScreenView
         
         let p = pos - center
         var tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / 64.0 / graphZoom)), Int(floor(p.y / 64.0 / graphZoom)))
-        if tileId.x >= 0 {
-            tileId.x += 1
-        }
         tileId.y = -tileId.y
-        if tileId.y <= 0 {
-            tileId.y -= 1
+        print("touch at", tileId.x, tileId.y)
+        
+        if let layer = core.project.currentLayer {
+            if let currentTileSet = core.project.currentTileSet {
+                if let currentTile = currentTileSet.currentTile {
+                    layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
+                    core.renderer.render()
+                }
+            }
         }
-        print(tileId.x, tileId.y)
         
         update()
     }

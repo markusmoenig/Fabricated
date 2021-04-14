@@ -38,6 +38,40 @@ class Project           : Codable
         try container.encode(screens, forKey: .screens)
         try container.encode(tileSets, forKey: .tileSets)
     }
+    
+    /// Returns the screen which contains the layer identified by its id
+    func getScreenForLayer(_ id: UUID) -> Screen? {
+        for screen in screens {
+            for layer in screen.layers {
+                if layer.id == id {
+                    return screen
+                }
+            }
+        }
+        return nil
+    }
+    
+    /// Returns the TileSet identified by its id
+    func getTileSet(_ id: UUID) -> TileSet? {
+        for tileSet in tileSets {
+            if tileSet.id == id {
+                return tileSet
+            }
+        }
+        return nil
+    }
+    
+    /// Returns the Tile of a TileSet, both identified by their id
+    func getTileOfTileSet(_ tileSetId: UUID, _ tileId: UUID) -> Tile? {
+        if let tileSet = getTileSet(tileSetId) {
+            for tile in tileSet.tiles {
+                if tile.id == tileId {
+                    return tile
+                }
+            }
+        }
+        return nil
+    }
 }
 
 class Screen        : Codable, Equatable
@@ -79,15 +113,18 @@ class Screen        : Codable, Equatable
     }
 }
 
-class Layer         : Codable, Equatable
+class Layer             : Codable, Equatable
 {
-    var layers      : [Layer] = []
-    var id          = UUID()
-    var name        = ""
+    var layers          : [Layer] = []
+    var id              = UUID()
+    var name            = ""
+    
+    var tileInstances   : [SIMD2<Int>: TileInstance] = [:]
     
     private enum CodingKeys: String, CodingKey {
         case id
         case name
+        case tileInstances
     }
     
     init(_ name: String = "Unnamed")
@@ -100,6 +137,7 @@ class Layer         : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        tileInstances = try container.decode([SIMD2<Int>: TileInstance].self, forKey: .tileInstances)
     }
     
     func encode(to encoder: Encoder) throws
@@ -107,6 +145,7 @@ class Layer         : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
+        try container.encode(tileInstances, forKey: .tileInstances)
     }
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable
@@ -119,6 +158,7 @@ class TileSet      : Codable, Equatable
     var tiles      : [Tile] = []
     
     var currentTile: Tile? = nil
+    var openTile   : Tile? = nil
 
     var id          = UUID()
     var name        = ""
@@ -216,5 +256,45 @@ class Tile         : Codable, Equatable
         }
         
         return nil
+    }
+}
+
+class TileInstance : Codable, Equatable
+{
+    var id          = UUID()
+
+    var tileSetId   : UUID
+    var tileId      : UUID
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case tileSetId
+        case tileId
+    }
+    
+    init(_ tileSetId: UUID,_ tileId: UUID)
+    {
+        self.tileSetId = tileSetId
+        self.tileId = tileId
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        tileSetId = try container.decode(UUID.self, forKey: .tileSetId)
+        tileId = try container.decode(UUID.self, forKey: .tileId)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(tileSetId, forKey: .tileSetId)
+        try container.encode(tileId, forKey: .tileId)
+    }
+    
+    static func ==(lhs:TileInstance, rhs:TileInstance) -> Bool { // Implement Equatable
+        return lhs.id == rhs.id
     }
 }
