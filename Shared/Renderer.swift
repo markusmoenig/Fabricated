@@ -93,8 +93,6 @@ class Renderer
         let dims = calculateTextureSizeForScreen()
         let texSize = dims.0
         
-        print("texSize", texSize.x, texSize.y)
-
         checkIfTextureIsValid(size: texSize)
         
         if let layer = core.project.currentLayer {
@@ -106,8 +104,6 @@ class Renderer
                     let x : Float = Float(abs(dims.1.x - index.x)) * 64
                     let y : Float = Float(abs(dims.1.y - index.y)) * 64
                     
-                    //print("render at offset", x, y, index.x, index.y)
-
                     let rect = TileRect(Int(x), Int(y), 64, 64)
                     renderTile(tile, rect)
                 }
@@ -180,17 +176,21 @@ class Renderer
                 
                 for layer in screen.layers {
                     for (index, _) in layer.tileInstances {
-                        if index.x < minX {
-                            minX = index.x
+                        
+                        let x = index.x
+                        let y = index.y
+                        
+                        if x < minX {
+                            minX = x
                         }
-                        if index.x > maxX {
-                            maxX = index.x
+                        if x > maxX {
+                            maxX = x
                         }
-                        if index.y < minY {
-                            minY = index.y
+                        if y < minY {
+                            minY = y
                         }
-                        if index.y > maxY {
-                            maxY = index.y
+                        if y > maxY {
+                            maxY = y
                         }
                         
                         tilesInScreen += 1
@@ -198,16 +198,11 @@ class Renderer
                 }
             }
         }
-        
-        //print("range", minX, maxX, minY, maxY)
-        
+                
         if tilesInScreen > 0 {
             width = (abs(maxX - minX) + 1) * 64
             height = (abs(maxY - minY) + 1) * 64
         }
-        
-        //print("dims", width, height)
-
         
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
     }
@@ -227,8 +222,6 @@ class Renderer
     /// Checks if the texture is of the given size and if not reallocate, returns true if the texture has been reallocated
     @discardableResult func checkIfTextureIsValid(size: SIMD2<Int>) -> Bool
     {
-        let size = SIMD2<Int>(Int(core.view.frame.width), Int(core.view.frame.height))
-        
         if size.x == 0 || size.y == 0 {
             return false
         }
@@ -242,12 +235,13 @@ class Renderer
                 texture!.setPurgeableState(.empty)
                 texture = nil
             }
+            
             texture = allocateTexture(core.device, width: size.x, height: size.y)
             
             startDrawing(core.device)
             clearTexture(texture!, float4(1,0,0,1))
             stopDrawing(syncTexture: texture!, waitUntilCompleted: true)
-            
+                        
             return true
         }
         

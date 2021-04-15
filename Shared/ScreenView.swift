@@ -44,8 +44,8 @@ class ScreenView
         
         if let texture = core.renderer.texture {
             
-            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * 64 + graphOffset.x
-            let y = drawables.viewSize.y / 2 - Float(core.renderer.screenDim.y) * 64 + graphOffset.y
+            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * 64 * graphZoom + graphOffset.x
+            let y = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * 64 * graphZoom + graphOffset.y
 
             drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
         }
@@ -88,7 +88,7 @@ class ScreenView
         
         let p = pos - center
         var tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / 64.0 / graphZoom)), Int(floor(p.y / 64.0 / graphZoom)))
-        tileId.y = -tileId.y
+        //tileId.y = -tileId.y
         print("touch at", tileId.x, tileId.y)
         
         if let layer = core.project.currentLayer {
