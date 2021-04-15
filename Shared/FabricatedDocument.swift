@@ -29,13 +29,13 @@ struct FabricatedDocument: FileDocument {
         guard let data = configuration.file.regularFileContents,
                 let project = try? JSONDecoder().decode(Project.self, from: data)
         else {
-            
+            /*
             do {
                 let data = configuration.file.regularFileContents
                 let response = try JSONDecoder().decode(Project.self, from: data!)
             } catch {
                 print(error) //here.....
-            }
+            }*/
             
             throw CocoaError(.fileReadCorruptFile)
         }

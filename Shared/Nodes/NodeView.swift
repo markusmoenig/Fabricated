@@ -199,7 +199,7 @@ class NodeView
         /// Get the colors for a terminal
         func terminalInColor() -> (float4, float4)
         {
-            var fillColor = skin.normalInteriorColor
+            let fillColor = skin.normalInteriorColor
             var borderColor = skin.normalBorderColor
             
             if selected {
@@ -212,7 +212,7 @@ class NodeView
         /// Get the colors for an out terminal
         func terminalOutColor(_ terminalId: Int) -> (float4, float4)
         {
-            var fillColor = skin.normalInteriorColor
+            let fillColor = skin.normalInteriorColor
             var borderColor = skin.normalBorderColor
             
             /*

@@ -87,8 +87,8 @@ class ScreenView
         let center = size / 2 + graphOffset
         
         let p = pos - center
-        var tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / 64.0 / graphZoom)), Int(floor(p.y / 64.0 / graphZoom)))
-        //tileId.y = -tileId.y
+        let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / 64.0 / graphZoom)), Int(floor(p.y / 64.0 / graphZoom)))
+        
         print("touch at", tileId.x, tileId.y)
         
         if let layer = core.project.currentLayer {
