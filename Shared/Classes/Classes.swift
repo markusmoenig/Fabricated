@@ -12,9 +12,9 @@ class MMValues
 {
     var values    : [String:Float] = [:]
 
-    func readFloat(_ name: String) -> Float
+    func readFloat(_ name: String,_ defaultValue: Float = 0) -> Float
     {
-        var rc = Float(0)
+        var rc = Float(defaultValue)
         if let x = values[name] { rc = x }
         return rc
     }

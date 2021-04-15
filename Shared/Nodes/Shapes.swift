@@ -43,14 +43,20 @@ class ShapeDisk : TileNode {
         try super.encode(to: superdecoder)
     }
     
-    override func render(ctx: TileContext, prevColor: float4) -> float4
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let d = length(ctx.uv) - readFloat("Radius")
+        var d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius")
         var rc = float4(0,0,0,0)
-        if d <= 0 {
-            let d = abs(d)
-            rc = float4(d,d,d,1)
+        let color = float4(1,1,1,1)
+
+        if d <= 0.0 {//&& d >= -1.0 / tileCtx.pixelSize {
+            d = 1.0
+        } else {
+            d = 0.0
         }
+
+        rc = simd_mix(prevColor, color, float4(d,d,d,d))
+
         return rc
     }
 }

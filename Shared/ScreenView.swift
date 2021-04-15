@@ -42,10 +42,15 @@ class ScreenView
         
         //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
         
+        var tileSize : Float = 64
+        
+        if let layer = core.project.currentLayer {
+            tileSize = layer.getTileSize()
+        }
+
         if let texture = core.renderer.texture {
-            
-            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * 64 * graphZoom + graphOffset.x
-            let y = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * 64 * graphZoom + graphOffset.y
+            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
+            let y = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
 
             drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
         }
@@ -65,7 +70,7 @@ class ScreenView
             }
             drawables.drawLine(startPos: float2(0, center.y + yOffset), endPos: float2(drawables.viewSize.x, center.y + yOffset), radius: r, fillColor: gridColor)
             drawables.drawLine(startPos: float2(0, center.y - yOffset), endPos: float2(drawables.viewSize.x, center.y - yOffset), radius: r, fillColor: gridColor)
-            yOffset += 64 * graphZoom
+            yOffset += tileSize * graphZoom
         }
         
         while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x {
@@ -75,7 +80,7 @@ class ScreenView
             }
             drawables.drawLine(startPos: float2(center.x + xOffset, 0), endPos: float2(center.x + xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
             drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
-            xOffset += 64 * graphZoom
+            xOffset += tileSize * graphZoom
         }
 
         drawables.encodeEnd()
@@ -83,15 +88,18 @@ class ScreenView
     
     func touchDown(_ pos: float2)
     {
-        let size = drawables.viewSize
-        let center = size / 2 + graphOffset
-        
-        let p = pos - center
-        let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / 64.0 / graphZoom)), Int(floor(p.y / 64.0 / graphZoom)))
-        
-        print("touch at", tileId.x, tileId.y)
-        
         if let layer = core.project.currentLayer {
+
+            let tileSize = layer.getTileSize()
+
+            let size = drawables.viewSize
+            let center = size / 2 + graphOffset
+            
+            let p = pos - center
+            let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
+        
+            print("touch at", tileId.x, tileId.y)
+        
             if let currentTileSet = core.project.currentTileSet {
                 if let currentTile = currentTileSet.currentTile {
                     layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)

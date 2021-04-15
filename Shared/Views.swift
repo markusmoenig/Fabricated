@@ -109,16 +109,71 @@ struct ProjectSettingsView: View {
 struct ScreenLayerSettingsView: View {
     @State var document                     : FabricatedDocument
     @Binding var updateView                 : Bool
+    
+    @State var tileSizeText                 : String = "Tile Size: 64x64"
+    
+    @State var pixelationValue              : Double = 10
+    @State var pixelationText               : String = "10"
 
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
             if let currentLayer = document.core.project.currentLayer {
+                Text("\(currentLayer.name) Settings")
+                    .padding(2)
+                Divider()
                 
+                Menu(tileSizeText) {
+                    Button("16x16", action: {
+                        currentLayer.writeFloat("tileSize", value: 16)
+                        tileSizeText = getTileSizeText(currentLayer)
+                        document.core.renderer.render()
+                    })
+                    Button("32x32", action: {
+                        currentLayer.writeFloat("tileSize", value: 32)
+                        tileSizeText = getTileSizeText(currentLayer)
+                        document.core.renderer.render()
+                    })
+                    Button("64x64", action: {
+                        currentLayer.writeFloat("tileSize", value: 64)
+                        tileSizeText = getTileSizeText(currentLayer)
+                        document.core.renderer.render()
+                    })
+                }
+                .padding(4)
+
+                Text("Pixel Size")
+
+                HStack {
+                    Slider(value: Binding<Double>(get: {pixelationValue}, set: { v in
+                        pixelationValue = v
+                        pixelationText = String(format: "%.02f", v)
+
+                        currentLayer.writeFloat("pixelSize", value: Float(pixelationValue))
+                        document.core.renderer.render()
+                    }), in: 1...64)//, step: Double(5))
+                    Text(pixelationText)
+                        .frame(maxWidth: 40)
+                }
+                .padding(4)
+                
+                Spacer()
+                Divider()
             } else {
                 ProjectSettingsView(document: document, updateView: $updateView)
             }
         }
         .frame(maxWidth: 200)
+        
+        .onAppear(perform: {
+            if let currentLayer = document.core.project.currentLayer {
+                tileSizeText = getTileSizeText(currentLayer)
+            }
+        })
+    }
+    
+    func getTileSizeText(_ layer: Layer) -> String {
+        let size = Int(layer.readFloat("tileSize"))
+        return "Tile Size: \(size)x\(size)"
     }
 }
 

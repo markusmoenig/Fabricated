@@ -32,7 +32,7 @@ class TileRect
     }
 }
 
-class TileContext
+class TilePixelContext
 {
     let texOffset   : float2    // The offset into the texture
     let texUV       : float2    // The global texture UV
@@ -63,6 +63,22 @@ class TileContext
     }
 }
 
+class TileContext
+{
+    var tile        : Tile!     // The current tile
+    var layer       : Layer!    // The current layer
+
+    var pixelSize   : Float!
+    
+    /// Pixelizes the UV coordinate based on the pixelSize
+    func getPixelUV(_ uv: float2) -> float2
+    {
+        var rc = floor(uv * pixelSize) / pixelSize
+        rc += 1.0 / (pixelSize * 2.0)
+        return rc
+    }
+}
+
 class Renderer
 {
     enum RenderDimensions {
@@ -90,30 +106,42 @@ class Renderer
     {
         //let texSize = SIMD2<Int>(Int(core.screenView.drawables.viewSize.x), Int(core.screenView.drawables.viewSize.y))
         
-        let dims = calculateTextureSizeForScreen()
-        let texSize = dims.0
-        
-        checkIfTextureIsValid(size: texSize)
-        
         if let layer = core.project.currentLayer {
+            
+            let tileSize = layer.getTileSize()
+
+            let dims = calculateTextureSizeForScreen()
+            let texSize = SIMD2<Int>(dims.0.x * Int(tileSize), dims.0.y * Int(tileSize))
+            
+            checkIfTextureIsValid(size: texSize)
+            
+            let tileContext = TileContext()
+            tileContext.layer = layer
+            tileContext.pixelSize = layer.getPixelSize()
             
             for (index, instance) in layer.tileInstances {
                                 
                 if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
                     
-                    let x : Float = Float(abs(dims.1.x - index.x)) * 64
-                    let y : Float = Float(abs(dims.1.y - index.y)) * 64
+                    tileContext.tile = tile
                     
-                    let rect = TileRect(Int(x), Int(y), 64, 64)
-                    renderTile(tile, rect)
+                    let x : Float = Float(abs(dims.1.x - index.x)) * tileSize
+                    let y : Float = Float(abs(dims.1.y - index.y)) * tileSize
+                    
+                    let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
+                    renderTile(tileContext, rect)
                 }
             }
+            
+            screenDim = dims.1
+            
+            if layer.tileInstances.isEmpty {
+                core.updatePreviewOnce()
+            }
         }
-        
-        screenDim = dims.1
     }
     
-    func renderTile(_ tile: Tile,_ tileRect: TileRect)
+    func renderTile(_ tileContext: TileContext,_ tileRect: TileRect)
     {
         guard let texture = texture else {
             return
@@ -123,6 +151,8 @@ class Renderer
 
         let width: Float = Float(texture.width)
         let height: Float = Float(texture.height)
+        
+        let tile = tileContext.tile!
                         
         for h in tileRect.y..<tileRect.bottom {
 
@@ -132,13 +162,13 @@ class Renderer
                     //break
                 }
                 
-                let pixelContext = TileContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
                 
                 var color = float4(0, 0, 0, 0)
                 
                 var node = tile.getNextInChain(tile.nodes[0], .Shape)
                 while node !== nil {
-                    color = node!.render(ctx: pixelContext, prevColor: color)
+                    color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
                     node = tile.getNextInChain(node!, .Shape)
                 }
 
@@ -200,8 +230,8 @@ class Renderer
         }
                 
         if tilesInScreen > 0 {
-            width = (abs(maxX - minX) + 1) * 64
-            height = (abs(maxY - minY) + 1) * 64
+            width = (abs(maxX - minX) + 1)
+            height = (abs(maxY - minY) + 1)
         }
         
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))

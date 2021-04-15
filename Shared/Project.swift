@@ -113,7 +113,7 @@ class Screen        : Codable, Equatable
     }
 }
 
-class Layer             : Codable, Equatable
+class Layer             : MMValues, Codable, Equatable
 {
     var layers          : [Layer] = []
     var id              = UUID()
@@ -125,19 +125,25 @@ class Layer             : Codable, Equatable
         case id
         case name
         case tileInstances
+        case values
     }
     
     init(_ name: String = "Unnamed")
     {
         self.name = name
+        super.init()
+        writeFloat("tileSize", value: 64)
+        writeFloat("pixelSize", value: 10)
     }
     
     required init(from decoder: Decoder) throws
     {
+        super.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         tileInstances = try container.decode([SIMD2<Int>: TileInstance].self, forKey: .tileInstances)
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -146,10 +152,19 @@ class Layer             : Codable, Equatable
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(tileInstances, forKey: .tileInstances)
+        try container.encode(values, forKey: .values)
     }
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
+    }
+    
+    func getTileSize() -> Float {
+        return readFloat("tileSize", 64)
+    }
+    
+    func getPixelSize() -> Float {
+        return readFloat("pixelSize", 10)
     }
 }
 

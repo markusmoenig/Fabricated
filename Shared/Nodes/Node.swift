@@ -100,7 +100,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Renders the node
-    func render(ctx: TileContext, prevColor: float4) -> float4
+    func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
         return float4()
     }
