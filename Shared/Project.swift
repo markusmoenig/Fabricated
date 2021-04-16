@@ -14,7 +14,9 @@ class Project           : Codable
 
     var currentLayer    : Layer? = nil
     var currentTileSet  : TileSet? = nil
-    
+
+    var selectedRect    : SIMD4<Int>? = nil
+
     init()
     {
         
@@ -274,7 +276,7 @@ class Tile         : Codable, Equatable
     }
 }
 
-class TileInstance : Codable, Equatable
+class TileInstance : MMValues, Codable, Equatable
 {
     var id          = UUID()
 
@@ -285,12 +287,14 @@ class TileInstance : Codable, Equatable
         case id
         case tileSetId
         case tileId
+        case values
     }
     
     init(_ tileSetId: UUID,_ tileId: UUID)
     {
         self.tileSetId = tileSetId
         self.tileId = tileId
+        super.init()
     }
     
     required init(from decoder: Decoder) throws
@@ -299,6 +303,8 @@ class TileInstance : Codable, Equatable
         id = try container.decode(UUID.self, forKey: .id)
         tileSetId = try container.decode(UUID.self, forKey: .tileSetId)
         tileId = try container.decode(UUID.self, forKey: .tileId)
+        super.init()
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -307,6 +313,7 @@ class TileInstance : Codable, Equatable
         try container.encode(id, forKey: .id)
         try container.encode(tileSetId, forKey: .tileSetId)
         try container.encode(tileId, forKey: .tileId)
+        try container.encode(values, forKey: .values)
     }
     
     static func ==(lhs:TileInstance, rhs:TileInstance) -> Bool { // Implement Equatable

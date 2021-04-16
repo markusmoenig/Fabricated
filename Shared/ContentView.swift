@@ -31,7 +31,10 @@ struct ContentView: View {
                 
                 VStack(spacing: 2) {
                     HStack {
-                        MetalView(document.core, .Preview)
+                        ZStack(alignment: .topLeading) {
+                            MetalView(document.core, .Preview)
+                            ToolsView(document: document, updateView: $updateView)
+                        }
                         ScreenLayerSettingsView(document: document, updateView: $updateView)
                     }
                     HStack {

@@ -177,6 +177,75 @@ struct ScreenLayerSettingsView: View {
     }
 }
 
+/// ToolsView
+struct ToolsView: View {
+    @State var document                     : FabricatedDocument
+    @Binding var updateView                 : Bool
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Button(action: {
+                document.core.currentTool = .Select
+                updateView.toggle()
+            })
+            {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(document.core.currentTool == .Select ? Color.primary : Color.secondary, lineWidth: 2)
+                        .frame(width: 30, height: 30)
+                    Image(systemName: "cursorarrow")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(minWidth: 22, maxWidth: 22, minHeight: 22, maxHeight: 22)
+                        .foregroundColor(document.core.currentTool == .Select ? Color.primary : Color.secondary)
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            
+            Button(action: {
+                document.core.currentTool = .Apply
+                updateView.toggle()
+            })
+            {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(document.core.currentTool == .Apply ? Color.primary : Color.secondary, lineWidth: 2)
+                        .frame(width: 30, height: 30)
+                    Image(systemName: "cursorarrow.rays")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(minWidth: 22, maxWidth: 22, minHeight: 22, maxHeight: 22)
+                        .foregroundColor(document.core.currentTool == .Apply ? Color.primary : Color.secondary)
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .padding(.top, 0)
+
+            Button(action: {
+                document.core.currentTool = .Clear
+                updateView.toggle()
+            })
+            {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(document.core.currentTool == .Clear ? Color.primary : Color.secondary, lineWidth: 2)
+                        .frame(width: 30, height: 30)
+                    Image(systemName: "delete.left")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(minWidth: 22, maxWidth: 22, minHeight: 22, maxHeight: 22)
+                        .foregroundColor(document.core.currentTool == .Clear ? Color.primary : Color.secondary)
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .padding(.top, 0)
+        }
+        .padding(4)
+        
+        //.frame(minHeight: 30)
+    }
+}
+
 /// NodeToolbar
 struct NodeToolbar: View {
     @State var document                     : FabricatedDocument
@@ -186,6 +255,12 @@ struct NodeToolbar: View {
         HStack {
             Menu {
                 Menu("Shapes") {
+                    Button("Box", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(ShapeBox())
+                            document.core.nodeView.update()
+                        }
+                    })
                     Button("Disk", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeDisk())
@@ -246,6 +321,9 @@ struct NodeSettingsView: View {
                         ForEach(currentNode.options, id: \.id) { option in
                             if option.type == .Float {
                                 ParamFloatView(document.core, option)
+                            } else
+                            if option.type == .Switch {
+                                ParamSwitchView(document.core, option)
                             }
                         }
                     }
@@ -308,6 +386,37 @@ struct ParamFloatView: View {
                 Text(valueText)
                     .frame(maxWidth: 40)
             }
+        }
+    }
+}
+
+struct ParamSwitchView: View {
+    
+    let core                                : Core
+    let option                              : TileNodeOption
+    
+    @State var toggleValue                  : Bool = false
+
+    init(_ core: Core, _ option: TileNodeOption)
+    {
+        self.core = core
+        self.option = option
+        
+        let value = option.node.readOptionalFloatInstance(core, option.name)
+        _toggleValue = State(initialValue: Bool(value == 0 ? false : true))
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading) {
+            Toggle(isOn: $toggleValue) {
+                Text(option.name)
+            }
+        }
+        
+        .onChange(of: toggleValue) { value in
+            option.node.writeOptionalFloatInstance(core, option.name, value: value == false ? 0 : 1)
+            core.renderer.render()
         }
     }
 }

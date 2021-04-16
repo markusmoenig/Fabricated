@@ -10,7 +10,7 @@ import Foundation
 class TileNodeOption
 {
     enum OptionType {
-        case Float
+        case Float, Switch
     }
     
     var id                  = UUID()

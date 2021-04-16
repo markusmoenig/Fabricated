@@ -71,6 +71,47 @@ class MMValues
         values[name + "_z"] = value.z
         values[name + "_w"] = value.w
     }
+    
+    // These functions read / write to either itself or the currently selected instance if .Select tool is active
+    
+    func readOptionalFloatInstance(_ core: Core,_ name: String,_ defaultValue: Float = 0) -> Float
+    {
+        if let selection = core.project.selectedRect, core.currentTool == .Select, let layer = core.project.currentLayer {
+            // Read values from the instances
+            if let instance = layer.tileInstances[SIMD2<Int>(selection.x, selection.y)] {
+                return instance.readFloat(name, defaultValue)
+            } else {
+                return defaultValue
+            }
+        } else {
+            // Write value to self
+            return readFloat(name, defaultValue)
+        }
+    }
+
+    func writeOptionalFloatInstance(_ core: Core, _ name: String, value: Float)
+    {
+        if let selection = core.project.selectedRect, core.currentTool == .Select, let layer = core.project.currentLayer {
+            // Write values into the instances
+            if let instance = layer.tileInstances[SIMD2<Int>(selection.x, selection.y)] {
+                instance.writeFloat(name, value: value)
+            }
+        } else {
+            // Write value to self
+            writeFloat(name, value: value)
+        }
+    }
+    
+    // These functions read / write to either itself or the currently selected instance if .Select tool is active
+    func readFloatFromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: Float = 0) -> Float
+    {
+        if let value = instance.values[name] {
+            return value
+        } else {
+            // Read from self
+            return readFloat(name, defaultValue)
+        }
+    }
 }
 
 /// MMRect class

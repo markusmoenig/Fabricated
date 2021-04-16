@@ -11,6 +11,12 @@ import AVFoundation
 
 class Core
 {
+    enum DrawingTool {
+        case Select, Apply, Clear
+    }
+    
+    var currentTool     : DrawingTool = .Select
+    
     var view            : DMTKView!
     var device          : MTLDevice!
 

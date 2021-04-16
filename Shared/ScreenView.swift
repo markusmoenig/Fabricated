@@ -48,6 +48,7 @@ class ScreenView
             tileSize = layer.getTileSize()
         }
 
+        // Render Texture
         if let texture = core.renderer.texture {
             let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
@@ -55,9 +56,17 @@ class ScreenView
             drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
         }
         
+        // Selection
+        if let selection = core.project.selectedRect, core.currentTool == .Select {
+            let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
+            let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
+            
+            drawables.drawBox(position: float2(x,y), size: float2(tileSize, tileSize) * graphZoom, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+        }
+            
         let center = drawables.viewSize / 2.0 + graphOffset
         
-        // Draw Grid
+        // Grid
         var xOffset    : Float = 0
         var yOffset    : Float = 0
         let radius     : Float = 0.5
@@ -99,13 +108,22 @@ class ScreenView
             let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
         
             print("touch at", tileId.x, tileId.y)
-        
-            if let currentTileSet = core.project.currentTileSet {
-                if let currentTile = currentTileSet.currentTile {
-                    layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
-                    core.renderer.render()
+
+            if core.currentTool == .Apply {
+                if let currentTileSet = core.project.currentTileSet {
+                    if let currentTile = currentTileSet.currentTile {
+                        layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
+                    }
                 }
+            } else
+            if core.currentTool == .Select {
+                core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+            } else
+            if core.currentTool == .Clear {
+                layer.tileInstances[tileId] = nil
             }
+
+            core.renderer.render()
         }
         
         update()

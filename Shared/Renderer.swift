@@ -65,10 +65,11 @@ class TilePixelContext
 
 class TileContext
 {
-    var tile        : Tile!     // The current tile
-    var layer       : Layer!    // The current layer
+    var tile            : Tile!         // The current tile
+    var tileInstance    : TileInstance! // The instance of the tile
+    var layer           : Layer!        // The current layer
 
-    var pixelSize   : Float!
+    var pixelSize       : Float!
     
     /// Pixelizes the UV coordinate based on the pixelSize
     func getPixelUV(_ uv: float2) -> float2
@@ -124,7 +125,8 @@ class Renderer
                 if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
                     
                     tileContext.tile = tile
-                    
+                    tileContext.tileInstance = instance
+
                     let x : Float = Float(abs(dims.1.x - index.x)) * tileSize
                     let y : Float = Float(abs(dims.1.y - index.y)) * tileSize
                     
