@@ -113,17 +113,32 @@ class ScreenView
                 if let currentTileSet = core.project.currentTileSet {
                     if let currentTile = currentTileSet.currentTile {
                         layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
+                        core.renderer.render()
                     }
                 }
             } else
             if core.currentTool == .Select {
                 core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+                if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
+                    if let tileSet = core.project.getTileSet(instance.tileSetId) {
+                        if let newTile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
+                            if tileSet.currentTile !== newTile {
+                                tileSet.currentTile = newTile
+                                if tileSet.openTile != nil {
+                                    tileSet.openTile = newTile
+                                }
+                                core.tileSetChanged.send(tileSet)
+                            }
+                        }
+                        core.nodeView.setCurrentNode(nil)
+                        core.nodeView.update()
+                    }
+                }
             } else
             if core.currentTool == .Clear {
                 layer.tileInstances[tileId] = nil
+                core.renderer.render()
             }
-
-            core.renderer.render()
         }
         
         update()

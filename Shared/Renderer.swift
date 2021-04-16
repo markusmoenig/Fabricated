@@ -80,6 +80,18 @@ class TileContext
     }
 }
 
+class TileJob
+{
+    var tileContext     : TileContext
+    var tileRect        : TileRect
+
+    init(_ tileContext: TileContext,_ tileRect: TileRect)
+    {
+        self.tileContext = tileContext
+        self.tileRect = tileRect
+    }
+}
+
 class Renderer
 {
     enum RenderDimensions {
@@ -89,23 +101,40 @@ class Renderer
     let core            : Core
     
     var texture         : MTLTexture? = nil
-    var stopRunning     : Bool = false
     
     var commandQueue    : MTLCommandQueue? = nil
     var commandBuffer   : MTLCommandBuffer? = nil
     
     var screenDim       = SIMD4<Int>(0,0,0,0)
+    
+    var semaphore       : DispatchSemaphore!
+    var dispatchGroup   : DispatchGroup!
+    
+    var startTime       : Double = 0
+    var totalTime       : Double = 0
+    var coresActive     : Int = 0
+    
+    var isRunning       : Bool = false
+    var stopRunning     : Bool = false
+
+    
+    var tileJobs        : [TileJob] = []
 
     init(_ core: Core)
     {
         self.core = core
         
         texture = allocateTexture(core.device, width: 800, height: 600)
+        
+        semaphore = DispatchSemaphore(value: 1)
+        dispatchGroup = DispatchGroup()
     }
     
     func render()
     {
-        //let texSize = SIMD2<Int>(Int(core.screenView.drawables.viewSize.x), Int(core.screenView.drawables.viewSize.y))
+        stop()
+        
+        tileJobs = []
         
         if let layer = core.project.currentLayer {
             
@@ -116,14 +145,13 @@ class Renderer
             
             checkIfTextureIsValid(size: texSize)
             
-            let tileContext = TileContext()
-            tileContext.layer = layer
-            tileContext.pixelSize = layer.getPixelSize()
-            
             for (index, instance) in layer.tileInstances {
                                 
                 if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
                     
+                    let tileContext = TileContext()
+                    tileContext.layer = layer
+                    tileContext.pixelSize = layer.getPixelSize()
                     tileContext.tile = tile
                     tileContext.tileInstance = instance
 
@@ -131,7 +159,8 @@ class Renderer
                     let y : Float = Float(abs(dims.1.y - index.y)) * tileSize
                     
                     let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
-                    renderTile(tileContext, rect)
+                    //renderTile(tileContext, rect)
+                    tileJobs.append(TileJob(tileContext, rect))
                 }
             }
             
@@ -139,57 +168,140 @@ class Renderer
             
             if layer.tileInstances.isEmpty {
                 core.updatePreviewOnce()
+            } else {
+                let cores = ProcessInfo().activeProcessorCount// + 1
+                
+
+                startTime = Double(Date().timeIntervalSince1970)
+                totalTime = 0
+                coresActive = 0
+                        
+                isRunning = true
+                stopRunning = false
+                
+                func startThread() {
+                    coresActive += 1
+                    dispatchGroup.enter()
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        self.renderTile()
+                    }
+                }
+
+                for i in 0..<cores {
+                    if i < tileJobs.count {
+                        startThread()
+                    }
+                }
+                print("Cores", cores, "Jobs", tileJobs.count, "Core started:", coresActive)
             }
         }
     }
     
-    func renderTile(_ tileContext: TileContext,_ tileRect: TileRect)
+    /// Returns the next tile to render inside one of the threads
+    func getNextTile() -> TileJob?
     {
-        guard let texture = texture else {
-            return
+        semaphore.wait()
+        var tileJob : TileJob? = nil
+        if tileJobs.isEmpty == false {
+            tileJob = tileJobs.removeFirst()
+        }
+        semaphore.signal()
+        return tileJob
+    }
+    
+    func stop()
+    {
+        stopRunning = true
+        dispatchGroup.wait()
+    }
+    
+    func renderTile()
+    {
+        var inProgressArray : Array<SIMD4<Float>>? = nil
+
+        while let tileJob = getNextTile() {
+            
+            guard let texture = texture else {
+                return
+            }
+            
+            func updateTexture(_ a: Array<SIMD4<Float>>)
+            {
+                var array = a
+                
+                semaphore.wait()
+                let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
+                
+                array.withUnsafeMutableBytes { texArrayPtr in
+                    texture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
+                }
+                
+                DispatchQueue.main.async {
+                    self.core.updatePreviewOnce()
+                }
+                
+                semaphore.signal()
+            }
+            
+            let tileContext = tileJob.tileContext
+            let tileRect = tileJob.tileRect
+            
+            var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
+            if inProgressArray == nil {
+                inProgressArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(1, 0, 0, 1), count: tileRect.size)
+            }
+            
+            updateTexture(inProgressArray!)
+
+            let width: Float = Float(texture.width)
+            let height: Float = Float(texture.height)
+            
+            let tile = tileContext.tile!
+                            
+            for h in tileRect.y..<tileRect.bottom {
+
+                for w in tileRect.x..<tileRect.right {
+                    
+                    if stopRunning {
+                        break
+                    }
+                    
+                    let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                    
+                    var color = float4(0, 0, 0, 0)
+                    
+                    var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                    while node !== nil {
+                        color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
+                        node = tile.getNextInChain(node!, .Shape)
+                    }
+
+                    texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+                }
+            }
+            
+            if stopRunning {
+                break
+            }
+            
+            updateTexture(texArray)
         }
         
-        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
-
-        let width: Float = Float(texture.width)
-        let height: Float = Float(texture.height)
-        
-        let tile = tileContext.tile!
-                        
-        for h in tileRect.y..<tileRect.bottom {
-
-            for w in tileRect.x..<tileRect.right {
-                
-                if stopRunning {
-                    //break
-                }
-                
-                let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
-                
-                var color = float4(0, 0, 0, 0)
-                
-                var node = tile.getNextInChain(tile.nodes[0], .Shape)
-                while node !== nil {
-                    color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
-                    node = tile.getNextInChain(node!, .Shape)
-                }
-
-                texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+        coresActive -= 1
+        if coresActive == 0 && stopRunning == false {
+            
+            let myTime = Double(Date().timeIntervalSince1970) - startTime
+            totalTime += myTime
+            
+            isRunning = false
+            print(totalTime)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
+                self.core.updatePreviewOnce()
             }
         }
         
-        if stopRunning {
-            //return
-        }
-        
-        //semaphore.wait()
-        let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
-        
-        texArray.withUnsafeMutableBytes { texArrayPtr in
-            texture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
-        }
-        
-        core.updatePreviewOnce()
+        dispatchGroup.leave()
     }
     
     func calculateTextureSizeForScreen() -> (SIMD2<Int>, SIMD4<Int>) {
@@ -258,6 +370,12 @@ class Renderer
             return false
         }
         
+        func clear() {
+            startDrawing(core.device)
+            clearTexture(texture!, float4(0,0,0,0))
+            stopDrawing(syncTexture: texture!, waitUntilCompleted: true)
+        }
+        
         // Make sure texture is of size size
         if texture == nil || texture!.width != size.x || texture!.height != size.y {
             
@@ -270,13 +388,11 @@ class Renderer
             
             texture = allocateTexture(core.device, width: size.x, height: size.y)
             
-            startDrawing(core.device)
-            clearTexture(texture!, float4(1,0,0,1))
-            stopDrawing(syncTexture: texture!, waitUntilCompleted: true)
-                        
+            clear()
             return true
         }
         
+        clear()
         return false
     }
     
