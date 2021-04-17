@@ -31,7 +31,7 @@ class TileNodeOption
 class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
-        case Tile, Pattern, Shape
+        case Tile, Pattern, Shape, Modifier
     }
     
     var id                  = UUID()
@@ -99,10 +99,27 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         try container.encode(terminalIn, forKey: .terminalIn)
     }
     
-    /// Renders the node
+    /// Renders the output color of the node
     func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
         return float4()
+    }
+    
+    /// Renders the output value
+    func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
+    {
+        return 0
+    }
+    
+    /// Modifies the distance (only available for shape nodes)
+    func modifyDistance(pixelCtx: TilePixelContext, tileCtx: TileContext, distance: Float) ->Float {
+        var dist = distance
+        if role == .Shape {
+            if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+                dist -= modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            }
+        }
+        return dist
     }
     
     /// Gets  the next optional id in the chain
@@ -118,6 +135,11 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         if role == .Shape {
             if connectedRole == .Shape || connectedRole == .Pattern {
                 if let id = terminalsOut[2] {
+                    return id
+                }
+            } else
+            if connectedRole == .Modifier {
+                if let id = terminalsOut[0] {
                     return id
                 }
             }

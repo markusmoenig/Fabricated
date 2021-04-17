@@ -138,6 +138,11 @@ struct ScreenLayerSettingsView: View {
                         tileSizeText = getTileSizeText(currentLayer)
                         document.core.renderer.render()
                     })
+                    Button("128x128", action: {
+                        currentLayer.writeFloat("tileSize", value: 128)
+                        tileSizeText = getTileSizeText(currentLayer)
+                        document.core.renderer.render()
+                    })
                 }
                 .padding(4)
 
@@ -255,6 +260,12 @@ struct NodeToolbar: View {
         HStack {
             Menu {
                 Menu("Shapes") {
+                    Button("Half", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(ShapeHalf())
+                            document.core.nodeView.update()
+                        }
+                    })
                     Button("Box", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeBox())
@@ -264,6 +275,14 @@ struct NodeToolbar: View {
                     Button("Disk", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeDisk())
+                            document.core.nodeView.update()
+                        }
+                    })
+                }
+                Menu("Modifiers") {
+                    Button("Noise", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(ModifierNoise())
                             document.core.nodeView.update()
                         }
                     })

@@ -45,7 +45,8 @@ class ShapeDisk : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius")
+        var d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius")
+        d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
         var rc = float4(0,0,0,0)
         let color = float4(1,1,1,1)
 
@@ -122,7 +123,61 @@ class ShapeBox : TileNode {
         let bottomLeftRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Bottom Left") == 0 ? 0.0 : 0.5
         let bottomRightRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Bottom Right") == 0 ? 0.0 : 0.5
 
-        let d = sdRoundedBox(tileCtx.getPixelUV(pixelCtx.uv), float2(0.5, 0.5), float4(bottomRightRounding,upperRightRounding,bottomLeftRounding,upperLeftRounding))
+        let uv = tileCtx.getPixelUV(pixelCtx.uv)
+        let d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdRoundedBox(uv, float2(0.5, 0.5), float4(bottomRightRounding,upperRightRounding,bottomLeftRounding,upperLeftRounding)))
+
+        var rc = float4(0,0,0,0)
+        let color = float4(1,1,1,1)
+        
+        let step = simd_smoothstep(0, -0.02, d)
+        rc = simd_mix(prevColor, color, float4(step, step, step, step))
+
+        return rc
+    }
+}
+
+class ShapeHalf : TileNode {
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    required init()
+    {
+        super.init(.Shape, "Half")
+    }
+    
+    override func setup()
+    {
+        type = "ShapeHalf"
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    func sdHalf(_ p: float2) -> Float
+    {
+        return 0.5 - p.y - 0.5
+    }
+    
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        let uv = tileCtx.getPixelUV((pixelCtx.uv))
+        let d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(uv))
         var rc = float4(0,0,0,0)
         let color = float4(1,1,1,1)
         

@@ -152,7 +152,7 @@ class Renderer
                     let tileContext = TileContext()
                     tileContext.layer = layer
                     tileContext.pixelSize = layer.getPixelSize()
-                    tileContext.tile = tile
+                    tileContext.tile = copyTile(tile)
                     tileContext.tileInstance = instance
 
                     let x : Float = Float(abs(dims.1.x - index.x)) * tileSize
@@ -304,6 +304,17 @@ class Renderer
         dispatchGroup.leave()
     }
     
+    /// Copiea a tile. Each thread during rendering gets a copy of the original tile to prevent race conditions
+    func copyTile(_ tile: Tile) -> Tile {
+        if let data = try? JSONEncoder().encode(tile) {
+            if let copiedTile = try? JSONDecoder().decode(Tile.self, from: data) {
+                return copiedTile
+            }
+        }
+        return tile
+    }
+    
+    /// Calculates the dimensions of the current screen
     func calculateTextureSizeForScreen() -> (SIMD2<Int>, SIMD4<Int>) {
         var width   : Int = 0
         var height  : Int = 0

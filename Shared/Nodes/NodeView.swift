@@ -154,9 +154,9 @@ class NodeView
             color = skin.renderColor
         } else
         if node.role == .Shape {
-            color = skin.objectColor
+            color = skin.variablesColor
         } else
-        if node.role == .Shape {
+        if node.role == .Modifier {
             color = skin.objectColor
         }
         return color
@@ -283,6 +283,9 @@ class NodeView
             drawOutTerminal(1, y)
             y += 30 * graphZoom
             drawOutTerminal(2, y)
+        } else
+        if node.role == .Modifier {
+            drawInTerminal()
         }
     }
     
