@@ -42,9 +42,13 @@ class TilePixelContext
 
     let offset      : float2    // The local tile offset
     let uv          : float2    // The local tile UV
-    
+    var pUV         : float2    // The local pixelized tile UV
+
     let width       : Float     // Tile Width
     let height      : Float     // Tile Height
+    
+    var localDist   : Float
+    var totalDist   : Float
     
     init(texOffset: float2, texWidth: Float, texHeight: Float, tileRect: TileRect)
     {
@@ -60,6 +64,9 @@ class TilePixelContext
         height = Float(tileRect.height)
         
         uv = offset / float2(width, height) - float2(0.5, 0.5)
+        pUV = float2(0,0)
+        localDist = 0
+        totalDist = 0
     }
 }
 
@@ -117,7 +124,6 @@ class Renderer
     var isRunning       : Bool = false
     var stopRunning     : Bool = false
 
-    
     var tileJobs        : [TileJob] = []
 
     init(_ core: Core)
@@ -267,6 +273,7 @@ class Renderer
                     }
                     
                     let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                    pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
                     
                     var color = float4(0, 0, 0, 0)
                     

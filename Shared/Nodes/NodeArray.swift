@@ -30,6 +30,8 @@ enum NodeFamily: String, NodeClassFamily {
 
     case modifierNoise = "ModifierNoise"
 
+    case decoratorColor = "DecoratorColor"
+
     static var discriminator: NodeDiscriminator = .type
     
     func getType() -> AnyObject.Type
@@ -48,6 +50,9 @@ enum NodeFamily: String, NodeClassFamily {
                 
             case .modifierNoise:
                 return ModifierNoise.self
+                
+            case .decoratorColor:
+                return DecoratorColor.self
         }
     }
 }

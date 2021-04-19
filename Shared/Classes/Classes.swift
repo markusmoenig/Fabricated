@@ -102,6 +102,24 @@ class MMValues
         }
     }
     
+    func readOptionalFloat4Instance(_ core: Core,_ name: String,_ defaultValue: float4 = float4(0,0,0,0)) -> float4
+    {
+        var value = float4()
+        value.x = readOptionalFloatInstance(core, name + "_x", defaultValue.x)
+        value.y = readOptionalFloatInstance(core, name + "_y", defaultValue.y)
+        value.z = readOptionalFloatInstance(core, name + "_z", defaultValue.z)
+        value.w = readOptionalFloatInstance(core, name + "_w", defaultValue.w)
+        return value
+    }
+    
+    func writeOptionalFloat4Instance(_ core: Core, _ name: String, value: float4)
+    {
+        writeOptionalFloatInstance(core, name + "_x", value: value.x)
+        writeOptionalFloatInstance(core, name + "_y", value: value.y)
+        writeOptionalFloatInstance(core, name + "_z", value: value.z)
+        writeOptionalFloatInstance(core, name + "_w", value: value.w)
+    }
+    
     // These functions read / write to either itself or the currently selected instance if .Select tool is active
     func readFloatFromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: Float = 0) -> Float
     {
@@ -111,6 +129,16 @@ class MMValues
             // Read from self
             return readFloat(name, defaultValue)
         }
+    }
+    
+    func readFloat4FromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
+    {
+        var value = float4()
+        value.x = readFloatFromInstanceIfExists(instance, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceIfExists(instance, name + "_y", defaultValue.y)
+        value.z = readFloatFromInstanceIfExists(instance, name + "_z", defaultValue.z)
+        value.w = readFloatFromInstanceIfExists(instance, name + "_w", defaultValue.w)
+        return value
     }
 }
 

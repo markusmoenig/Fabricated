@@ -10,7 +10,7 @@ import Foundation
 class TileNodeOption
 {
     enum OptionType {
-        case Float, Switch
+        case Float, Switch, Color
     }
     
     var id                  = UUID()
@@ -31,7 +31,7 @@ class TileNodeOption
 class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
-        case Tile, Pattern, Shape, Modifier
+        case Tile, Shape, Modifier, Decorator
     }
     
     var id                  = UUID()
@@ -112,7 +112,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Modifies the distance (only available for shape nodes)
-    func modifyDistance(pixelCtx: TilePixelContext, tileCtx: TileContext, distance: Float) ->Float {
+    func modifyDistance(pixelCtx: TilePixelContext, tileCtx: TileContext, distance: Float) -> Float {
         var dist = distance
         if role == .Shape {
             if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
@@ -122,23 +122,58 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return dist
     }
     
+    /// Renders the chain of Decorators
+    func renderDecorators(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        var color = prevColor
+        
+        if role == .Shape {
+            if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
+                color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                
+                while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
+                    color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                    decoNode = nextDecoNode
+                }                
+            } else {
+                
+                let step = simd_smoothstep(0, -0.02, pixelCtx.localDist)
+                color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
+            }
+        }
+        
+        return color
+    }
+    
     /// Gets  the next optional id in the chain
     func getChainedNodeIdForRole(_ connectedRole: TileNodeRole) -> UUID?
     {
         if role == .Tile {
-            if connectedRole == .Shape || connectedRole == .Pattern {
+            if connectedRole == .Shape {
                 if let id = terminalsOut[0] {
                     return id
                 }
             }
         } else
         if role == .Shape {
-            if connectedRole == .Shape || connectedRole == .Pattern {
+            if connectedRole == .Shape {
                 if let id = terminalsOut[2] {
                     return id
                 }
             } else
             if connectedRole == .Modifier {
+                if let id = terminalsOut[0] {
+                    return id
+                }
+            } else
+            if connectedRole == .Decorator {
+                if let id = terminalsOut[1] {
+                    return id
+                }
+            }
+        } else
+        if role == .Decorator {
+            if connectedRole == .Decorator {
                 if let id = terminalsOut[0] {
                     return id
                 }

@@ -176,14 +176,7 @@ class ShapeHalf : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let uv = tileCtx.getPixelUV((pixelCtx.uv))
-        let d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(uv))
-        var rc = float4(0,0,0,0)
-        let color = float4(1,1,1,1)
-        
-        let step = simd_smoothstep(0, -0.02, d)
-        rc = simd_mix(prevColor, color, float4(step, step, step, step))
-
-        return rc
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(pixelCtx.pUV))        
+        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }

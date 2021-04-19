@@ -53,6 +53,8 @@
 		2B7D0766261EA3AA0097212F /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B7D0762261EA3AA0097212F /* OpenSans.json */; };
 		2B7D076B261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
 		2B7D076C261EA44A0097212F /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7D076A261EA44A0097212F /* Node.swift */; };
+		2B81CBE4262D0AC0001EFB61 /* Decorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B81CBE3262D0AC0001EFB61 /* Decorator.swift */; };
+		2B81CBE5262D0AC0001EFB61 /* Decorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B81CBE3262D0AC0001EFB61 /* Decorator.swift */; };
 		2B9D93002625319500A18D2A /* TileGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9D92FF2625319500A18D2A /* TileGridView.swift */; };
 		2B9D93012625319500A18D2A /* TileGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9D92FF2625319500A18D2A /* TileGridView.swift */; };
 		2B9D93052625807200A18D2A /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9D93042625807200A18D2A /* ScreenView.swift */; };
@@ -89,6 +91,7 @@
 		2B7D0761261EA3AA0097212F /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B7D0762261EA3AA0097212F /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2B7D076A261EA44A0097212F /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
+		2B81CBE3262D0AC0001EFB61 /* Decorator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decorator.swift; sourceTree = "<group>"; };
 		2B9D92FF2625319500A18D2A /* TileGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileGridView.swift; sourceTree = "<group>"; };
 		2B9D93042625807200A18D2A /* ScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -197,6 +200,7 @@
 				2B7D076A261EA44A0097212F /* Node.swift */,
 				2B1A6FC326214078005F65E6 /* Shapes.swift */,
 				2B70505B262A95DA00E7E4A1 /* Modifier.swift */,
+				2B81CBE3262D0AC0001EFB61 /* Decorator.swift */,
 				2B1A6FCC262189A7005F65E6 /* NodeView.swift */,
 				2B1A6FBE26213F60005F65E6 /* NodeArray.swift */,
 				2B705056262A6ADB00E7E4A1 /* Noise.swift */,
@@ -323,6 +327,7 @@
 				2B9D93052625807200A18D2A /* ScreenView.swift in Sources */,
 				2B7B194F261D4DC70027C905 /* ContentView.swift in Sources */,
 				2B1A6FCD262189A7005F65E6 /* NodeView.swift in Sources */,
+				2B81CBE4262D0AC0001EFB61 /* Decorator.swift in Sources */,
 				2B70505C262A95DA00E7E4A1 /* Modifier.swift in Sources */,
 				2B1A6FAD2621239C005F65E6 /* Renderer.swift in Sources */,
 				2B7D074D261E9E850097212F /* MetalDrawables.swift in Sources */,
@@ -352,6 +357,7 @@
 				2B9D93062625807200A18D2A /* ScreenView.swift in Sources */,
 				2B7B1950261D4DC70027C905 /* ContentView.swift in Sources */,
 				2B1A6FCE262189A7005F65E6 /* NodeView.swift in Sources */,
+				2B81CBE5262D0AC0001EFB61 /* Decorator.swift in Sources */,
 				2B70505D262A95DA00E7E4A1 /* Modifier.swift in Sources */,
 				2B1A6FAE2621239C005F65E6 /* Renderer.swift in Sources */,
 				2B7D074E261E9E850097212F /* MetalDrawables.swift in Sources */,

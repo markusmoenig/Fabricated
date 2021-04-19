@@ -23,6 +23,11 @@ class NodeSkin {
     let normalTerminalColor     = SIMD4<Float>(0.835, 0.773, 0.525, 1)
     let selectedTerminalColor   = SIMD4<Float>(0.835, 0.773, 0.525, 1.000)
     
+    let tileColor               = SIMD4<Float>(0.714, 0.349, 0.271, 1.000)
+    let shapeColor              = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
+    let modifierColor           = SIMD4<Float>(0.631, 0.278, 0.506, 1.000)
+    let decoratorColor          = SIMD4<Float>(0.765, 0.600, 0.365, 1.000)
+
     let renderColor             = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
     let worldColor              = SIMD4<Float>(0.396, 0.749, 0.282, 1.000)
     let groundColor             = SIMD4<Float>(0.631, 0.278, 0.506, 1.000)
@@ -127,7 +132,8 @@ class NodeView
                     let sRect = getTerminal(node, id: index)
                     
                     if sRect.x != 0.0 && sRect.y != 0.0 {
-                        drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 0.6, fillColor: skin.selectedTerminalColor)
+                        let color = terminalOutColor(node, index, skin, false).0
+                        drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 0.6, fillColor: color)
                     }
                 }
             }
@@ -151,15 +157,58 @@ class NodeView
         var color = skin.normalInteriorColor
         
         if node.role == .Tile {
-            color = skin.renderColor
+            color = skin.tileColor
         } else
         if node.role == .Shape {
-            color = skin.variablesColor
+            color = skin.shapeColor
         } else
         if node.role == .Modifier {
-            color = skin.objectColor
+            color = skin.modifierColor
+        } else
+        if node.role == .Decorator {
+            color = skin.decoratorColor
         }
         return color
+    }
+    
+    /// Get the colors for an out terminal
+    func terminalOutColor(_ node: TileNode,_ terminalId: Int, _ skin: NodeSkin,_ selected: Bool) -> (float4, float4)
+    {
+        var fillColor = skin.normalInteriorColor
+        var borderColor = skin.normalBorderColor
+        
+        if node === currentNode && currentTerminalId == terminalId {
+            // Currently pressed
+            borderColor = skin.selectedBorderColor
+        }
+        
+        if node.role == .Tile {
+            if terminalId == 0 {
+                fillColor = skin.shapeColor
+            }
+        } else
+        if node.role == .Shape {
+            if terminalId == 0 {
+                fillColor = skin.modifierColor
+            } else
+            if terminalId == 1 {
+                fillColor = skin.decoratorColor
+            } else
+            if terminalId == 2 {
+                fillColor = skin.shapeColor
+            }
+        } else
+        if node.role == .Decorator {
+            if terminalId == 0 {
+                fillColor = skin.decoratorColor
+            }
+        }
+        
+        if selected {
+            borderColor = skin.selectedBorderColor
+        }
+        
+        return (fillColor, borderColor)
     }
     
     func drawNode(_ node: TileNode,_ selected: Bool,_ skin: NodeSkin)
@@ -192,59 +241,15 @@ class NodeView
 
         //drawables.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalInteriorColor)
         drawables.drawBox(position: rect.position(), size: rect.size(), rounding: 8 * graphZoom, borderSize: 1, fillColor: nodeColor, borderColor: selected ? skin.selectedBorderColor : skin.normalInteriorColor)
-        drawables.drawText(position: rect.position() + float2(9, 5) * graphZoom, text: node.name, size: 15 * graphZoom, color: skin.selectedTextColor)
+        drawables.drawText(position: rect.position() + float2(9, 5) * graphZoom, text: node.name, size: 15 * graphZoom, color: skin.normalTextColor)
         
-        drawables.drawLine(startPos: rect.position() + float2(6,24) * graphZoom, endPos: rect.position() + float2(rect.width - 8 * graphZoom, 24 * graphZoom), radius: 0.6, fillColor: skin.selectedTextColor)
+        drawables.drawLine(startPos: rect.position() + float2(6,24) * graphZoom, endPos: rect.position() + float2(rect.width - 8 * graphZoom, 24 * graphZoom), radius: 0.6, fillColor: skin.normalTextColor)
         
         /// Get the colors for a terminal
         func terminalInColor() -> (float4, float4)
         {
-            let fillColor = skin.normalInteriorColor
+            let fillColor = getNodeColor(node, skin)
             var borderColor = skin.normalBorderColor
-            
-            if selected {
-                borderColor = skin.selectedBorderColor
-            }
-            
-            return (fillColor, borderColor)
-        }
-        
-        /// Get the colors for an out terminal
-        func terminalOutColor(_ terminalId: Int) -> (float4, float4)
-        {
-            let fillColor = skin.normalInteriorColor
-            var borderColor = skin.normalBorderColor
-            
-            /*
-            if node === currentNode && currentTerminalId == terminalId {
-                // Currently pressed
-                fillColor = skin.selectedTerminalColor
-            } else
-            if connectingNode === node && terminalId == connectingTerminalId {
-                // Connecting to this terminal
-                fillColor = skin.selectedTerminalColor
-            } else
-            if terminalId != -1 && node.slots[terminalId] != nil {
-                // This slot is connected
-                fillColor = skin.selectedTerminalColor
-            } else
-            if terminalId == -1 {
-                // Test last possibility, this is an outgoing slot, see if it connects to somewhere
-                
-                if let assets = core.assetFolder?.assets {
-                    for asset in assets {
-
-                        if asset !== node {
-                            for (_, nodeUUID) in asset.slots {
-                                if nodeUUID == node.id {
-                                    fillColor = skin.selectedTerminalColor
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
-            }*/
             
             if selected {
                 borderColor = skin.selectedBorderColor
@@ -265,7 +270,7 @@ class NodeView
         
         func drawOutTerminal(_ index: Int,_ y: Float)
         {
-            let tColors = terminalOutColor(index)
+            let tColors = terminalOutColor(node, index, skin, selected )
             let x = rect.x + rect.width - 7 * graphZoom
             drawables.drawDisk(position: float2(x, y), radius: 7 * graphZoom, borderSize: 1, fillColor: tColors.0, borderColor: tColors.1)
             node.terminalsOutRect[index].set(x, y, 14 * graphZoom, 14 * graphZoom)
@@ -286,6 +291,10 @@ class NodeView
         } else
         if node.role == .Modifier {
             drawInTerminal()
+        } else
+        if node.role == .Decorator {
+            drawInTerminal()
+            drawOutTerminal(0, y)
         }
     }
     
@@ -375,8 +384,12 @@ class NodeView
                     if let t = checkForNodeTerminal(node, at: pos) {
                         if currentNode !== node {
                             if (t == -1 && currentTerminalId != -1) || (currentTerminalId == -1 && t != -1) {
-                                connectingNode = node
-                                connectingTerminalId = t
+                                if canConnect(currentNode!, currentTerminalId!, node, t) {
+                                    connectingNode = node
+                                    connectingTerminalId = t
+                                    
+                                    mouseMovedPos = getTerminal(node, id: t).middle()
+                                }
                             }
                         }
                         break
@@ -385,6 +398,52 @@ class NodeView
             }
 
             update()
+        }
+    }
+    
+    /// Returns true if the two terminals can connect
+    func canConnect(_ node1: TileNode,_ terminal1: Int,_ node2: TileNode,_ terminal2: Int) -> Bool
+    {
+        func canTerminalsConnect(_ outNode: TileNode,_ outIndex: Int,_ inNode: TileNode,_ inIndex: Int) -> Bool
+        {
+            if outNode.role == .Tile {
+                if inNode.role == .Shape {
+                    if outIndex == 0 {
+                        return true
+                    }
+                }
+            } else
+            if outNode.role == .Shape {
+                if inNode.role == .Modifier {
+                    if outIndex == 0 {
+                        return true
+                    }
+                } else
+                if inNode.role == .Decorator {
+                    if outIndex == 1 {
+                        return true
+                    }
+                } else
+                if inNode.role == .Shape {
+                    if outIndex == 2 {
+                        return true
+                    }
+                }
+            } else
+            if outNode.role == .Decorator {
+                if inNode.role == .Decorator {
+                    if outIndex == 0 {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+        
+        if terminal1 == -1 {
+            return canTerminalsConnect(node2, terminal2, node1, terminal1)
+        } else {
+            return canTerminalsConnect(node1, terminal1, node2, terminal2)
         }
     }
 

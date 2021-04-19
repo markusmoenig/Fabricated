@@ -287,6 +287,14 @@ struct NodeToolbar: View {
                         }
                     })
                 }
+                Menu("Decorators") {
+                    Button("Color", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(DecoratorColor())
+                            document.core.nodeView.update()
+                        }
+                    })
+                }
             }
             label: {
                 Label("Add Node", systemImage: "plus")
@@ -343,6 +351,9 @@ struct NodeSettingsView: View {
                             } else
                             if option.type == .Switch {
                                 ParamSwitchView(document.core, option)
+                            }
+                            if option.type == .Color {
+                                ParamColorView(document.core, option)
                             }
                         }
                     }
@@ -439,3 +450,44 @@ struct ParamSwitchView: View {
         }
     }
 }
+
+struct ParamColorView: View {
+    
+    let core                                : Core
+    let option                              : TileNodeOption
+    
+    @State var colorValue                   : Color
+
+    init(_ core: Core, _ option: TileNodeOption)
+    {
+        self.core = core
+        self.option = option
+        
+        let value = option.node.readOptionalFloat4Instance(core, option.name)
+        _colorValue = State(initialValue: Color(.sRGB, red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w)))
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading) {
+            Text(option.name)
+            ColorPicker("", selection: $colorValue, supportsOpacity: true)
+                .onChange(of: colorValue) { color in
+                    
+                    //let x = String(format: "%.03g", color.cgColor!.components![0])
+                    //let y = String(format: "%.03g", color.cgColor!.components![1])
+                    //let z = String(format: "%.03g", color.cgColor!.components![2])
+                    //let w = String(format: "%.03g", color.cgColor!.components![3])
+
+                    //let colorText = "\(x), \(y), \(z)"
+                    
+                    let newValue = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
+                    
+                    option.node.writeOptionalFloat4Instance(core, option.name, value: newValue)
+                    core.renderer.render()
+                }
+
+        }
+    }
+}
+
