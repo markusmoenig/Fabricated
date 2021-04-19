@@ -351,9 +351,12 @@ struct NodeSettingsView: View {
                             } else
                             if option.type == .Switch {
                                 ParamSwitchView(document.core, option)
-                            }
+                            } else
                             if option.type == .Color {
                                 ParamColorView(document.core, option)
+                            } else
+                            if option.type == .Menu {
+                                ParamMenuView(document.core, option)
                             }
                         }
                     }
@@ -474,20 +477,51 @@ struct ParamColorView: View {
             ColorPicker("", selection: $colorValue, supportsOpacity: true)
                 .onChange(of: colorValue) { color in
                     
-                    //let x = String(format: "%.03g", color.cgColor!.components![0])
-                    //let y = String(format: "%.03g", color.cgColor!.components![1])
-                    //let z = String(format: "%.03g", color.cgColor!.components![2])
-                    //let w = String(format: "%.03g", color.cgColor!.components![3])
-
-                    //let colorText = "\(x), \(y), \(z)"
-                    
                     let newValue = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
                     
                     option.node.writeOptionalFloat4Instance(core, option.name, value: newValue)
                     core.renderer.render()
                 }
-
         }
+    }
+}
+
+struct ParamMenuView: View {
+    
+    let core                                : Core
+    let option                              : TileNodeOption
+    
+    @State var menuIndex                    : Int
+
+    init(_ core: Core, _ option: TileNodeOption)
+    {
+        self.core = core
+        self.option = option
+        
+        _menuIndex = State(initialValue: Int(option.node.readOptionalFloatInstance(core, option.name)))
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading) {
+            Menu {
+                ForEach(Array(option.menuEntries!.enumerated()), id: \.offset) { index, optionName in
+                    Button(optionName, action: {
+                        menuIndex = index
+                        option.node.writeOptionalFloatInstance(core, option.name, value: Float(index))
+                        core.renderer.render()
+                    })
+                }
+            }
+            
+            label: {
+                Text(createMenuText())
+            }
+        }
+    }
+    
+    func createMenuText() -> String {
+        return "\(option.name) : \(option.menuEntries![menuIndex])"
     }
 }
 

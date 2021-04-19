@@ -10,7 +10,7 @@ import Foundation
 class TileNodeOption
 {
     enum OptionType {
-        case Float, Switch, Color
+        case Float, Switch, Color, Menu
     }
     
     var id                  = UUID()
@@ -20,11 +20,14 @@ class TileNodeOption
     
     let node                : TileNode
     
-    init(_ node: TileNode,_ name: String,_ type: OptionType)
+    let menuEntries         : [String]?
+    
+    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil)
     {
         self.node = node
         self.name = name
         self.type = type
+        self.menuEntries = menuEntries
     }
 }
 
@@ -127,9 +130,24 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     {
         var color = prevColor
         
+        func appyModifier(_ node: TileNode, prevColor: float4) -> float4 {
+            var color = prevColor
+            if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
+                let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+
+                color.x += value
+                color.y += value
+                color.z += value
+                
+                color.clamp(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+            }
+            return color
+        }
+        
         if role == .Shape {
             if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
                 color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                color = appyModifier(decoNode, prevColor: color)
                 
                 while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
                     color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
@@ -173,8 +191,13 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             }
         } else
         if role == .Decorator {
-            if connectedRole == .Decorator {
+            if connectedRole == .Modifier {
                 if let id = terminalsOut[0] {
+                    return id
+                }
+            } else
+            if connectedRole == .Decorator {
+                if let id = terminalsOut[1] {
                     return id
                 }
             }

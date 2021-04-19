@@ -16,11 +16,13 @@ class ModifierNoise : TileNode {
     required init()
     {
         super.init(.Modifier, "Noise")
+        writeFloat("Noise", value: 1)
     }
     
     override func setup()
     {
         type = "ModifierNoise"
+        options.append(TileNodeOption(self, "Noise", .Menu, menuEntries: ["Pixel", "Value"]))
     }
     
     required init(from decoder: Decoder) throws

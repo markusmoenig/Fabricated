@@ -118,7 +118,7 @@ class NodeView
                 let rect = getTerminal(currentNode!, id: id)
                 
                 if let mousePos = mouseMovedPos {
-                    drawables.drawLine(startPos: rect.middle(), endPos: mousePos, radius: 0.6, fillColor: skin.selectedTerminalColor)
+                    drawables.drawLine(startPos: rect.middle(), endPos: mousePos, radius: 1, fillColor: skin.selectedTerminalColor)
                 }
             }
         }
@@ -133,7 +133,7 @@ class NodeView
                     
                     if sRect.x != 0.0 && sRect.y != 0.0 {
                         let color = terminalOutColor(node, index, skin, false).0
-                        drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 0.6, fillColor: color)
+                        drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 1, fillColor: color)
                     }
                 }
             }
@@ -200,6 +200,9 @@ class NodeView
         } else
         if node.role == .Decorator {
             if terminalId == 0 {
+                fillColor = skin.modifierColor
+            } else
+            if terminalId == 1 {
                 fillColor = skin.decoratorColor
             }
         }
@@ -295,6 +298,8 @@ class NodeView
         if node.role == .Decorator {
             drawInTerminal()
             drawOutTerminal(0, y)
+            y += 24 * graphZoom
+            drawOutTerminal(1, y)
         }
     }
     
@@ -400,6 +405,57 @@ class NodeView
             update()
         }
     }
+
+    func touchUp(_ pos: float2)
+    {
+        if action == .Connecting {
+            // Create Connection
+            if let currentNode = currentNode {
+                if let connectingNode = connectingNode {
+
+                    if currentTerminalId != -1 {
+                        currentNode.terminalsOut[currentTerminalId!] = connectingNode.id
+                    } else {
+                        connectingNode.terminalsOut[connectingTerminalId!] = currentNode.id
+                    }
+                
+                    //core.contentChanged.send()
+                    core.renderer.render()
+                }
+            }
+        }
+
+        action = .None
+        currentTerminalId = nil
+        mouseMovedPos = nil
+        update()
+    }
+    
+    func scrollWheel(_ delta: float3)
+    {
+        if view.commandIsDown == false {
+            graphOffset.x += delta.x
+            graphOffset.y += delta.y
+        } else {
+            graphZoom += delta.y * 0.003
+            graphZoom = max(0.2, graphZoom)
+            graphZoom = min(1, graphZoom)
+        }
+        
+        update()
+    }
+    
+    var scaleBuffer : Float = 0
+    func pinchGesture(_ scale: Float,_ firstTouch: Bool)
+    {
+        if firstTouch == true {
+            scaleBuffer = graphZoom
+        }
+        
+        graphZoom = max(0.2, scaleBuffer * scale)
+        graphZoom = min(1, graphZoom)
+        update()
+    }
     
     /// Returns true if the two terminals can connect
     func canConnect(_ node1: TileNode,_ terminal1: Int,_ node2: TileNode,_ terminal2: Int) -> Bool
@@ -431,8 +487,13 @@ class NodeView
                 }
             } else
             if outNode.role == .Decorator {
-                if inNode.role == .Decorator {
+                if inNode.role == .Modifier {
                     if outIndex == 0 {
+                        return true
+                    }
+                }
+                if inNode.role == .Decorator {
+                    if outIndex == 1 {
                         return true
                     }
                 }
@@ -445,58 +506,6 @@ class NodeView
         } else {
             return canTerminalsConnect(node1, terminal1, node2, terminal2)
         }
-    }
-
-    func touchUp(_ pos: float2)
-    {
-        if action == .Connecting {
-            // Create Connection
-            if let currentNode = currentNode {
-                if let connectingNode = connectingNode {
-
-                    if currentTerminalId != -1 {
-                        currentNode.terminalsOut[currentTerminalId!] = connectingNode.id
-                    } else {
-                        connectingNode.terminalsOut[connectingTerminalId!] = currentNode.id
-                    }
-                
-                    //core.contentChanged.send()
-                    core.renderer.render()
-                }
-            }
-        }
-
-        action = .None
-        currentTerminalId = nil
-        mouseMovedPos = nil
-        update()
-    }
-    
-    
-    func scrollWheel(_ delta: float3)
-    {
-        if view.commandIsDown == false {
-            graphOffset.x += delta.x
-            graphOffset.y += delta.y
-        } else {
-            graphZoom += delta.y * 0.003
-            graphZoom = max(0.2, graphZoom)
-            graphZoom = min(1, graphZoom)
-        }
-        
-        update()
-    }
-    
-    var scaleBuffer : Float = 0
-    func pinchGesture(_ scale: Float,_ firstTouch: Bool)
-    {
-        if firstTouch == true {
-            scaleBuffer = graphZoom
-        }
-        
-        graphZoom = max(0.2, scaleBuffer * scale)
-        graphZoom = min(1, graphZoom)
-        update()
     }
     
     func update() {
