@@ -144,7 +144,7 @@ class Renderer
         
         if let layer = core.project.currentLayer {
             
-            let tileSize = layer.getTileSize()
+            let tileSize = core.project.getTileSize()
 
             let dims = calculateTextureSizeForScreen()
             let texSize = SIMD2<Int>(dims.0.x * Int(tileSize), dims.0.y * Int(tileSize))
@@ -157,7 +157,7 @@ class Renderer
                     
                     let tileContext = TileContext()
                     tileContext.layer = layer
-                    tileContext.pixelSize = layer.getPixelSize()
+                    tileContext.pixelSize = core.project.getPixelSize()
                     tileContext.tile = copyTile(tile)
                     tileContext.tileInstance = instance
 

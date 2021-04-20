@@ -12,8 +12,9 @@ struct ProjectView: View {
     @State      var document                    : FabricatedDocument
     @Binding    var updateView                  : Bool
     
-    @State     var currentLayer                 : Screen? = nil
-
+    @State      var currentLayer                : Layer? = nil
+    @State      var currentTileSet              : TileSet? = nil
+    
     var body: some View {
         VStack {
             List() {
@@ -26,6 +27,7 @@ struct ProjectView: View {
                                 } ) {
                         ForEach(screen.layers, id: \.id) { layer in
                             Button(action: {
+                                currentLayer = layer
                                 document.core.project.currentLayer = layer
                                 document.core.layerChanged.send(layer)
                                 document.core.renderer.render()
@@ -34,7 +36,7 @@ struct ProjectView: View {
                                 Label(layer.name, systemImage: "camera")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
-                                    .foregroundColor(layer === document.core.project.currentLayer ? Color.accentColor : Color.primary)
+                                    .foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
                             }
                                 .buttonStyle(PlainButtonStyle())
                                 .contextMenu {
@@ -47,6 +49,7 @@ struct ProjectView: View {
                 Section(header: Text("Tile Sets")) {
                     ForEach(document.core.project.tileSets, id: \.id) { tileSet in
                         Button(action: {
+                            currentTileSet = tileSet
                             document.core.project.currentTileSet = tileSet
                             tileSet.openTile = nil
                             document.core.tileSetChanged.send(tileSet)
@@ -55,7 +58,7 @@ struct ProjectView: View {
                             Label(tileSet.name, systemImage: "camera")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
-                                .foregroundColor(tileSet === document.core.project.currentTileSet ? Color.accentColor : Color.primary)
+                                .foregroundColor(tileSet === currentTileSet ? Color.accentColor : Color.primary)
                         }
                             .buttonStyle(PlainButtonStyle())
                             .contextMenu {
@@ -67,118 +70,15 @@ struct ProjectView: View {
                 #if os(macOS)
                 Divider()
                 #endif
-                
-                Button(action: {
-                })
-                {
-                    Label("Settings", systemImage: "gearshape")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(PlainButtonStyle())
-                .listRowBackground(Group {
-                    //if selection == cameraNode.id {
-    //                        Color.gray.mask(RoundedRectangle(cornerRadius: 4))
-    //                    } else { Color.clear }
-                    
-                    Color.clear
-                })
             }
             
             //.listStyle(InsetGroupedListStyle()) // ENABLE_IOS
+            
+            .onAppear(perform: {
+                currentLayer = document.core.project.currentLayer
+                currentTileSet = document.core.project.currentTileSet
+            })
         }
-    }
-}
-
-/// ProjectSettingsView
-struct ProjectSettingsView: View {
-    @State var document                     : FabricatedDocument
-    @Binding var updateView                 : Bool
-
-    var body: some View {
-        VStack {
-            List() {
-
-            }
-        }
-        .frame(maxWidth: 200)
-    }
-}
-
-/// ScreenLayerSettingsView on the top right
-struct ScreenLayerSettingsView: View {
-    @State var document                     : FabricatedDocument
-    @Binding var updateView                 : Bool
-    
-    @State var tileSizeText                 : String = "Tile Size: 64x64"
-    
-    @State var pixelationValue              : Double = 10
-    @State var pixelationText               : String = "10"
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            if let currentLayer = document.core.project.currentLayer {
-                Text("\(currentLayer.name) Settings")
-                    .padding(2)
-                Divider()
-                
-                Menu(tileSizeText) {
-                    Button("16x16", action: {
-                        currentLayer.writeFloat("tileSize", value: 16)
-                        tileSizeText = getTileSizeText(currentLayer)
-                        document.core.renderer.render()
-                    })
-                    Button("32x32", action: {
-                        currentLayer.writeFloat("tileSize", value: 32)
-                        tileSizeText = getTileSizeText(currentLayer)
-                        document.core.renderer.render()
-                    })
-                    Button("64x64", action: {
-                        currentLayer.writeFloat("tileSize", value: 64)
-                        tileSizeText = getTileSizeText(currentLayer)
-                        document.core.renderer.render()
-                    })
-                    Button("128x128", action: {
-                        currentLayer.writeFloat("tileSize", value: 128)
-                        tileSizeText = getTileSizeText(currentLayer)
-                        document.core.renderer.render()
-                    })
-                }
-                .padding(4)
-
-                Text("Pixel Size")
-
-                HStack {
-                    Slider(value: Binding<Double>(get: {pixelationValue}, set: { v in
-                        pixelationValue = v
-                        pixelationText = String(format: "%.02f", v)
-
-                        currentLayer.writeFloat("pixelSize", value: Float(pixelationValue))
-                        document.core.renderer.render()
-                    }), in: 1...64)//, step: Double(5))
-                    Text(pixelationText)
-                        .frame(maxWidth: 40)
-                }
-                .padding(4)
-                
-                Spacer()
-                Divider()
-            } else {
-                ProjectSettingsView(document: document, updateView: $updateView)
-            }
-        }
-        .frame(maxWidth: 200)
-        
-        .onAppear(perform: {
-            if let currentLayer = document.core.project.currentLayer {
-                tileSizeText = getTileSizeText(currentLayer)
-            }
-        })
-    }
-    
-    func getTileSizeText(_ layer: Layer) -> String {
-        let size = Int(layer.readFloat("tileSize"))
-        return "Tile Size: \(size)x\(size)"
     }
 }
 

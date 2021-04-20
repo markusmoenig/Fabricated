@@ -7,31 +7,38 @@
 
 import Foundation
 
-class Project           : Codable
+class Project           : MMValues, Codable
 {
     var screens         : [Screen] = []
     var tileSets        : [TileSet] = []
 
     var currentLayer    : Layer? = nil
     var currentTileSet  : TileSet? = nil
+    
+    var projectSettings : Bool = false
 
     var selectedRect    : SIMD4<Int>? = nil
 
-    init()
+    override init()
     {
-        
+        super.init()
+        writeFloat("tileSize", value: 64)
+        writeFloat("pixelSize", value: 10)
     }
     
     private enum CodingKeys: String, CodingKey {
         case screens
         case tileSets
+        case values
     }
     
     required init(from decoder: Decoder) throws
     {
+        super.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
         screens = try container.decode([Screen].self, forKey: .screens)
         tileSets = try container.decode([TileSet].self, forKey: .tileSets)
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -39,6 +46,7 @@ class Project           : Codable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(screens, forKey: .screens)
         try container.encode(tileSets, forKey: .tileSets)
+        try container.encode(values, forKey: .values)
     }
     
     /// Returns the screen which contains the layer identified by its id
@@ -73,6 +81,16 @@ class Project           : Codable
             }
         }
         return nil
+    }
+    
+    /// Get the tile size of the project
+    func getTileSize() -> Float {
+        return readFloat("tileSize", 64)
+    }
+    
+    /// Get the pixel size of the project
+    func getPixelSize() -> Float {
+        return readFloat("pixelSize", 10)
     }
 }
 
@@ -134,8 +152,6 @@ class Layer             : MMValues, Codable, Equatable
     {
         self.name = name
         super.init()
-        writeFloat("tileSize", value: 64)
-        writeFloat("pixelSize", value: 10)
     }
     
     required init(from decoder: Decoder) throws
@@ -159,14 +175,6 @@ class Layer             : MMValues, Codable, Equatable
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
-    }
-    
-    func getTileSize() -> Float {
-        return readFloat("tileSize", 64)
-    }
-    
-    func getPixelSize() -> Float {
-        return readFloat("pixelSize", 10)
     }
 }
 

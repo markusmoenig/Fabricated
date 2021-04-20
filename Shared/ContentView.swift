@@ -13,6 +13,13 @@ struct ContentView: View {
 
     @State private var updateView           : Bool = false
     @State var currentTileSet               : TileSet? = nil
+    
+    @State private var showSettingsPopover  : Bool = false
+
+    @State var tileSizeText                 : String = "Tile Size: 64x64"
+    
+    @State var pixelationValue              : Double = 10
+    @State var pixelationText               : String = "10"
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
 
@@ -30,12 +37,9 @@ struct ContentView: View {
                     .frame(minWidth: leftPanelWidth, idealWidth: leftPanelWidth, maxWidth: leftPanelWidth)
                 
                 VStack(spacing: 2) {
-                    HStack {
-                        ZStack(alignment: .topLeading) {
-                            MetalView(document.core, .Preview)
-                            ToolsView(document: document, updateView: $updateView)
-                        }
-                        ScreenLayerSettingsView(document: document, updateView: $updateView)
+                    ZStack(alignment: .topLeading) {
+                        MetalView(document.core, .Preview)
+                        ToolsView(document: document, updateView: $updateView)
                     }
                     HStack {
                         ZStack(alignment: .topLeading) {
@@ -54,6 +58,63 @@ struct ContentView: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItemGroup(placement: .automatic) {
+                
+                Button(action: {
+                    showSettingsPopover = true
+                }) {
+                    Label("Settings", systemImage: "gear")
+                }
+                .popover(isPresented: self.$showSettingsPopover,
+                         arrowEdge: .top
+                ) {
+                    VStack(alignment: .leading) {
+                        Menu(tileSizeText) {
+                            Button("16x16", action: {
+                                document.core.project.writeFloat("tileSize", value: 16)
+                                tileSizeText = getTileSizeText()
+                                document.core.renderer.render()
+                            })
+                            Button("32x32", action: {
+                                document.core.project.writeFloat("tileSize", value: 32)
+                                tileSizeText = getTileSizeText()
+                                document.core.renderer.render()
+                            })
+                            Button("64x64", action: {
+                                document.core.project.writeFloat("tileSize", value: 64)
+                                tileSizeText = getTileSizeText()
+                                document.core.renderer.render()
+                            })
+                            Button("128x128", action: {
+                                document.core.project.writeFloat("tileSize", value: 128)
+                                tileSizeText = getTileSizeText()
+                                document.core.renderer.render()
+                            })
+                        }
+                        .padding(4)
+                        .frame(minWidth: 200)
+
+                        Text("Pixel Size")
+
+                        HStack {
+                            Slider(value: Binding<Double>(get: {pixelationValue}, set: { v in
+                                pixelationValue = v
+                                pixelationText = String(format: "%.02f", v)
+
+                                document.core.project.writeFloat("pixelSize", value: Float(pixelationValue))
+                                document.core.renderer.render()
+                            }), in: 1...64)//, step: Double(5))
+                            Text(pixelationText)
+                                .frame(maxWidth: 40)
+                        }
+                        .padding(4)
+                    }
+                    .padding()
+                }
+            }
+        }
+        
         .onAppear(perform: {
             currentTileSet = document.core.project.currentTileSet
             document.core.tileSetChanged.send(currentTileSet)
@@ -65,6 +126,11 @@ struct ContentView: View {
             currentTileSet = nil
             currentTileSet = tileSet
         }
+    }
+    
+    func getTileSizeText() -> String {
+        let size = Int(document.core.project.readFloat("tileSize"))
+        return "Tile Size: \(size)x\(size)"
     }
 }
 

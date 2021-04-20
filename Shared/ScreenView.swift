@@ -42,11 +42,7 @@ class ScreenView
         
         //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
         
-        var tileSize : Float = 64
-        
-        if let layer = core.project.currentLayer {
-            tileSize = layer.getTileSize()
-        }
+        let tileSize = core.project.getTileSize()
 
         // Render Texture
         if let texture = core.renderer.texture {
@@ -99,7 +95,7 @@ class ScreenView
     {
         if let layer = core.project.currentLayer {
 
-            let tileSize = layer.getTileSize()
+            let tileSize = core.project.getTileSize()
 
             let size = drawables.viewSize
             let center = size / 2 + graphOffset
