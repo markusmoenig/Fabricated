@@ -17,13 +17,12 @@ class ShapeDisk : TileNode {
     required init()
     {
         super.init(.Shape, "Disk")
-        writeFloat("Radius", value: 0.5)
     }
     
     override func setup()
     {
         type = "ShapeDisk"
-        options.append(TileNodeOption(self, "Radius", .Float))
+        options.append(TileNodeOption(self, "Radius", .Float, defaultFloat: 1))
     }
     
     required init(from decoder: Decoder) throws
@@ -45,7 +44,7 @@ class ShapeDisk : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        var d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius")
+        var d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius") / 2.0
         d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
         var rc = float4(0,0,0,0)
         let color = float4(1,1,1,1)
@@ -66,19 +65,15 @@ class ShapeBox : TileNode {
     required init()
     {
         super.init(.Shape, "Box")
-        writeFloat("Round Top Left", value: 0.0)
-        writeFloat("Round Top Right", value: 0.0)
-        writeFloat("Round Bottom Left", value: 0.0)
-        writeFloat("Round Bottom Right", value: 0.0)
     }
     
     override func setup()
     {
         type = "ShapeBox"
-        options.append(TileNodeOption(self, "Round Top Left", .Switch))
-        options.append(TileNodeOption(self, "Round Top Right", .Switch))
-        options.append(TileNodeOption(self, "Round Bottom Left", .Switch))
-        options.append(TileNodeOption(self, "Round Bottom Right", .Switch))
+        options.append(TileNodeOption(self, "Round Top Left", .Switch, defaultFloat: 0))
+        options.append(TileNodeOption(self, "Round Top Right", .Switch, defaultFloat: 0))
+        options.append(TileNodeOption(self, "Round Bottom Left", .Switch, defaultFloat: 0))
+        options.append(TileNodeOption(self, "Round Bottom Right", .Switch, defaultFloat: 0))
     }
     
     required init(from decoder: Decoder) throws

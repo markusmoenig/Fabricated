@@ -16,13 +16,16 @@ class ModifierNoise : TileNode {
     required init()
     {
         super.init(.Modifier, "Noise")
-        writeFloat("Noise", value: 1)
     }
     
     override func setup()
     {
         type = "ModifierNoise"
-        options.append(TileNodeOption(self, "Noise", .Menu, menuEntries: ["Pixel", "Value"]))
+        options.append(TileNodeOption(self, "Noise", .Menu, menuEntries: ["Pixel", "Value"], defaultFloat: 1))
+        options.append(TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0))
+        options.append(TileNodeOption(self, "Seed", .Int, defaultFloat: 1))
+        options.append(TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5))
+        options.append(TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0))
     }
     
     required init(from decoder: Decoder) throws
@@ -44,9 +47,14 @@ class ModifierNoise : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let uv = tileCtx.getPixelUV((pixelCtx.uv))
-        let n = noise(pos: uv, scale: float2(4,4), seed: 1) * 0.1
-        //print(n)
+        let seed : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Seed")
+        let uvType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "UV")
+        let scale : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Scale")
+        let subDivisions : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Sub Divisions") + 2
+
+        var uv = uvType == 0 ? tileCtx.getPixelUV(pixelCtx.uv) : tileCtx.getPixelUV(pixelCtx.texUV)
+        uv += 0.5
+        let n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
         return n
     }
 }

@@ -16,13 +16,12 @@ class DecoratorColor : TileNode {
     required init()
     {
         super.init(.Decorator, "Color")
-        writeFloat4("Color", value: float4(0, 0, 0, 1))
     }
     
     override func setup()
     {
         type = "DecoratorColor"
-        options.append(TileNodeOption(self, "Color", .Color))
+        options.append(TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0,0,0,1)))
     }
     
     required init(from decoder: Decoder) throws

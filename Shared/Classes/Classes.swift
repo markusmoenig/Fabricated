@@ -12,6 +12,14 @@ class MMValues
 {
     var values    : [String:Float] = [:]
 
+    func doesFloatExist(_ name: String) -> Bool {
+        if values[name] == nil {
+            return false
+        } else {
+            return true
+        }
+    }
+    
     func readFloat(_ name: String,_ defaultValue: Float = 0) -> Float
     {
         var rc = Float(defaultValue)

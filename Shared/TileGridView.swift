@@ -18,6 +18,28 @@ struct TileGridView: View {
         VStack {
             
             HStack {
+                
+                Button(action: {
+                    if let currentTileSet = document.core.project.currentTileSet {
+                        
+                        let tile = Tile("Tile")
+                        let tiledNode = TiledNode()
+                        
+                        currentTileSet.tiles.append(tile)
+                        tile.nodes.append(tiledNode)
+                        
+                        currentTileSet.currentTile = tile
+                        currentTileSet.openTile = tile
+                        document.core.tileSetChanged.send(currentTileSet)
+                    }
+                })
+                {
+                    Label("New Tile", systemImage: "plus")
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .padding(.leading, 10)
+                .disabled(currentTile === nil)
+                
                 Button(action: {
                     if let currentTileSet = document.core.project.currentTileSet {
                         currentTileSet.currentTile = currentTile
@@ -57,7 +79,7 @@ struct TileGridView: View {
                             
                             if tile === currentTile {
                                 Rectangle()
-                                    .stroke(Color(.white), lineWidth: 5)
+                                    .stroke(Color.primary, lineWidth: 2)
                                     .frame(width: 60, height: 60)
                             }
                         }

@@ -10,7 +10,7 @@ import Foundation
 class TileNodeOption
 {
     enum OptionType {
-        case Float, Switch, Color, Menu
+        case Int, Float, Switch, Color, Menu
     }
     
     var id                  = UUID()
@@ -21,13 +21,24 @@ class TileNodeOption
     let node                : TileNode
     
     let menuEntries         : [String]?
-    
-    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil)
+        
+    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
     {
         self.node = node
         self.name = name
         self.type = type
         self.menuEntries = menuEntries
+        
+        if type == .Color {
+            if node.doesFloatExist(name + "_x") == false {
+                node.writeFloat4(name, value: defaultFloat4)
+            }
+        } else {
+            // Float based
+            if node.doesFloatExist(name) == false {
+                node.writeFloat(name, value: defaultFloat)
+            }
+        }
     }
 }
 

@@ -53,7 +53,7 @@ class Core
         screen.layers.append(layer)
         
         let tileSet = TileSet("Tiles #1")
-        let tile = Tile("Test")
+        let tile = Tile("Tile")
         let tiledNode = TiledNode()
         
         tileSet.tiles.append(tile)

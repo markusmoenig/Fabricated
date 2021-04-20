@@ -346,6 +346,9 @@ struct NodeSettingsView: View {
                 
                     List() {
                         ForEach(currentNode.options, id: \.id) { option in
+                            if option.type == .Int {
+                                ParamIntView(document.core, option)
+                            } else
                             if option.type == .Float {
                                 ParamFloatView(document.core, option)
                             } else
@@ -395,27 +398,51 @@ struct ParamFloatView: View {
         
         VStack(alignment: .leading) {
             Text(option.name)
-            /*
-            TextField(option.name, text: $valueText, onEditingChanged: { (changed) in
-                //option.raw = valueText
-            },
-            onCommit: {
-                //core.scriptProcessor.replaceOptionInLine(option, useRaw: true)
-                if let floatValue = Float(valueText) {
-                    option.node.writeFloat(option.name, value: floatValue)
-                    core.renderer.render()
-                }
-            } )
-            */
             HStack {
                 Slider(value: Binding<Double>(get: {value}, set: { v in
                     value = v
                     valueText = String(format: "%.02f", v)
 
-                    option.node.writeFloat(option.name, value: Float(v / 2.0))
+                    option.node.writeFloat(option.name, value: Float(v))
                     core.renderer.render()
                     
                 }), in: 0...1)//, step: Double(parameter.step))
+                Text(valueText)
+                    .frame(maxWidth: 40)
+            }
+        }
+    }
+}
+
+struct ParamIntView: View {
+    
+    let core                                : Core
+    let option                              : TileNodeOption
+    
+    @State var value                        : Double = 0
+    @State var valueText                    : String = ""
+
+    init(_ core: Core, _ option: TileNodeOption)
+    {
+        self.core = core
+        self.option = option
+        
+        _value = State(initialValue: Double(option.node.readFloat(option.name)))
+        _valueText = State(initialValue: String(Int(option.node.readFloat(option.name))))
+    }
+    
+    var body: some View {
+        
+        VStack(alignment: .leading) {
+            Text(option.name)
+            HStack {
+                Slider(value: Binding<Double>(get: {value}, set: { v in
+                    value = v
+                    valueText = String(Int(v))
+
+                    option.node.writeFloat(option.name, value: Float(v))
+                    core.renderer.render()
+                }), in: 0...10, step: 1)
                 Text(valueText)
                     .frame(maxWidth: 40)
             }
