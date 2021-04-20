@@ -21,12 +21,14 @@ class ModifierNoise : TileNode {
     override func setup()
     {
         type = "ModifierNoise"
-        options.append(TileNodeOption(self, "Noise", .Menu, menuEntries: ["Pixel", "Value"], defaultFloat: 1))
-        options.append(TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0))
-        options.append(TileNodeOption(self, "Seed", .Int, defaultFloat: 1))
-        options.append(TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5))
-        options.append(TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0))
-    }
+        optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
+            TileNodeOption(self, "Noise", .Menu, menuEntries: ["Pixel", "Value"], defaultFloat: 1),
+            TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0),
+            TileNodeOption(self, "Seed", .Int, defaultFloat: 1),
+            TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5),
+            TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0)
+        ]))
+     }
     
     required init(from decoder: Decoder) throws
     {

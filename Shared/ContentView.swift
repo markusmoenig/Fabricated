@@ -96,6 +96,9 @@ struct ContentView: View {
                         .frame(minWidth: 200)
 
                         Text("Pixel Size")
+                            .padding(.leading, 4)
+                            .padding(.top, 4)
+                            .padding(.bottom, 0)
 
                         HStack {
                             Slider(value: Binding<Double>(get: {pixelationValue}, set: { v in

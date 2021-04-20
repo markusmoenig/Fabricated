@@ -22,7 +22,10 @@ class ShapeDisk : TileNode {
     override func setup()
     {
         type = "ShapeDisk"
-        options.append(TileNodeOption(self, "Radius", .Float, defaultFloat: 1))
+        optionGroups.append(TileNodeOptionsGroup("Disk Shape Options", [
+            TileNodeOption(self, "Radius", .Float, defaultFloat: 1)
+        ]))
+        optionGroups.append(createShapeTransformGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -70,10 +73,13 @@ class ShapeBox : TileNode {
     override func setup()
     {
         type = "ShapeBox"
-        options.append(TileNodeOption(self, "Round Top Left", .Switch, defaultFloat: 0))
-        options.append(TileNodeOption(self, "Round Top Right", .Switch, defaultFloat: 0))
-        options.append(TileNodeOption(self, "Round Bottom Left", .Switch, defaultFloat: 0))
-        options.append(TileNodeOption(self, "Round Bottom Right", .Switch, defaultFloat: 0))
+        optionGroups.append(TileNodeOptionsGroup("Box Shape Options", [
+            TileNodeOption(self, "Round Top Left", .Switch, defaultFloat: 0),
+            TileNodeOption(self, "Round Top Right", .Switch, defaultFloat: 0),
+            TileNodeOption(self, "Round Bottom Left", .Switch, defaultFloat: 0),
+            TileNodeOption(self, "Round Bottom Right", .Switch, defaultFloat: 0)
+        ]))
+        optionGroups.append(createShapeTransformGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -145,6 +151,7 @@ class ShapeHalf : TileNode {
     override func setup()
     {
         type = "ShapeHalf"
+        optionGroups.append(createShapeTransformGroup())
     }
     
     required init(from decoder: Decoder) throws

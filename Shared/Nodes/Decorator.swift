@@ -21,7 +21,10 @@ class DecoratorColor : TileNode {
     override func setup()
     {
         type = "DecoratorColor"
-        options.append(TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0,0,0,1)))
+        
+        optionGroups.append(TileNodeOptionsGroup("Color Decorator Options", [
+            TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0,0,0,1))
+        ]))
     }
     
     required init(from decoder: Decoder) throws

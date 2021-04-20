@@ -7,6 +7,21 @@
 
 import Foundation
 
+class TileNodeOptionsGroup
+{
+    
+    var id                  = UUID()
+    var name                = ""
+        
+    var options             : [TileNodeOption]
+
+    init(_ name: String,_ options: [TileNodeOption] = [])
+    {
+        self.name = name
+        self.options = options
+    }
+}
+
 class TileNodeOption
 {
     enum OptionType {
@@ -57,7 +72,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     
     var nodeRect            = MMRect()
     
-    var options             : [TileNodeOption] = []
+    var optionGroups        : [TileNodeOptionsGroup] = []
     
     // --- The terminals, nodes can have multiple outputs but only one input
     var terminalsOut        : [Int: UUID] = [:]
@@ -214,6 +229,12 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             }
         }
         return nil
+    }
+    
+    func createShapeTransformGroup() -> TileNodeOptionsGroup {
+        return TileNodeOptionsGroup("Transform Options", [
+            TileNodeOption(self, "Rotation", .Float, defaultFloat: 0)
+        ])
     }
         
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable

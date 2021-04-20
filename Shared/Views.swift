@@ -33,7 +33,7 @@ struct ProjectView: View {
                                 document.core.renderer.render()
                             })
                             {
-                                Label(layer.name, systemImage: "camera")
+                                Label(layer.name, systemImage: "rectangle.split.3x3")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .contentShape(Rectangle())
                                     .foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
@@ -55,7 +55,7 @@ struct ProjectView: View {
                             document.core.tileSetChanged.send(tileSet)
                         })
                         {
-                            Label(tileSet.name, systemImage: "camera")
+                            Label(tileSet.name, systemImage: "rectangle.grid.2x2")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
                                 .foregroundColor(tileSet === currentTileSet ? Color.accentColor : Color.primary)
@@ -159,7 +159,7 @@ struct NodeToolbar: View {
     var body: some View {
         HStack {
             Menu {
-                Menu("Shapes") {
+                Menu {
                     Button("Half", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeHalf())
@@ -179,7 +179,11 @@ struct NodeToolbar: View {
                         }
                     })
                 }
-                Menu("Modifiers") {
+                label: {
+                    Text("Shapes")
+                        .foregroundColor(Color(.sRGB, red: 0.325, green: 0.576, blue: 0.761, opacity: 1))
+                }
+                Menu {
                     Button("Noise", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ModifierNoise())
@@ -187,13 +191,21 @@ struct NodeToolbar: View {
                         }
                     })
                 }
-                Menu("Decorators") {
+                label: {
+                    Text("Modifiers")
+                        .foregroundColor(Color(.sRGB, red: 0.631, green: 0.278, blue: 0.506, opacity: 1))
+                }
+                Menu {
                     Button("Color", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(DecoratorColor())
                             document.core.nodeView.update()
                         }
                     })
+                }
+                label: {
+                    Text("Decorators")
+                        .foregroundColor(Color(.sRGB, red: 0.765, green: 0.600, blue: 0.365, opacity: 1))
                 }
             }
             label: {
@@ -237,36 +249,37 @@ struct NodeSettingsView: View {
     
     var body: some View {
         VStack {
-            //if let currentTile = document.core.project.currentTileSet?.currentTile {
-                
-                //Text(currentTile.name)
-                //Divider()
-                
-                if let currentNode = currentNode {
-                
-                    List() {
-                        ForEach(currentNode.options, id: \.id) { option in
-                            if option.type == .Int {
-                                ParamIntView(document.core, option)
-                            } else
-                            if option.type == .Float {
-                                ParamFloatView(document.core, option)
-                            } else
-                            if option.type == .Switch {
-                                ParamSwitchView(document.core, option)
-                            } else
-                            if option.type == .Color {
-                                ParamColorView(document.core, option)
-                            } else
-                            if option.type == .Menu {
-                                ParamMenuView(document.core, option)
+            if let currentNode = currentNode {
+                List() {
+                    ForEach(currentNode.optionGroups, id: \.id) { group in
+                        Section(header:
+                                    HStack {
+                                        //Image("viewfinder")
+                                        Text(group.name)
+                                    } ) {
+                            ForEach(group.options, id: \.id) { option in
+                                if option.type == .Int {
+                                    ParamIntView(document.core, option)
+                                } else
+                                if option.type == .Float {
+                                    ParamFloatView(document.core, option)
+                                } else
+                                if option.type == .Switch {
+                                    ParamSwitchView(document.core, option)
+                                } else
+                                if option.type == .Color {
+                                    ParamColorView(document.core, option)
+                                } else
+                                if option.type == .Menu {
+                                    ParamMenuView(document.core, option)
+                                }
                             }
                         }
                     }
                 }
-                
-                Spacer()
-            //}
+            }
+            
+            Spacer()
         }
         .frame(maxWidth: 200)
         
