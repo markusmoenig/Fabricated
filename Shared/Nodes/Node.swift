@@ -150,7 +150,56 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         }
         return dist
     }
+
+    /// Pixelizes the UV coordinate based on the pixelSize
+    func getPixelUV(_ uv: float2,_ pixelSize: Float) -> float2
+    {
+        var rc = floor(uv * pixelSize) / pixelSize
+        rc += 1.0 / (pixelSize * 2.0)
+        return rc
+    }
     
+    /// Transforms the UV
+    func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true) -> float2
+    {
+        var uv = pixelCtx.uv
+        
+        let positionX = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Position X")
+        let positionY = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Position Y")
+
+        if positionX == 1 {
+            // Center
+            uv.x -= 0.5
+        } else
+        if positionX == 2 {
+            // Right
+            uv.x -= 1.0
+        }
+        
+        if positionY == 1 {
+            // Center
+            uv.y -= 0.5
+        } else
+        if positionY == 2 {
+            // Bottom
+            uv.y -= 1.0
+        }
+        
+        var tUV = pixelise == true ? getPixelUV(uv, tileCtx.pixelSize) : uv
+        
+        func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
+        {
+            let ca : Float = cos(angle), sa = sin(angle)
+            return pos * float2x2(float2(ca, sa), float2(-sa, ca))
+        }
+        
+        let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0
+        
+        tUV = rotateCW(tUV, angle: rotation.degreesToRadians)
+        
+        return tUV
+    }
+
     /// Renders the chain of Decorators
     func renderDecorators(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
@@ -233,6 +282,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     
     func createShapeTransformGroup() -> TileNodeOptionsGroup {
         return TileNodeOptionsGroup("Transform Options", [
+            TileNodeOption(self, "Position X", .Menu, menuEntries: ["Left", "Center", "Right"], defaultFloat: 1),
+            TileNodeOption(self, "Position Y", .Menu, menuEntries: ["Top", "Center", "Bottom"], defaultFloat: 1),
             TileNodeOption(self, "Rotation", .Float, defaultFloat: 0)
         ])
     }

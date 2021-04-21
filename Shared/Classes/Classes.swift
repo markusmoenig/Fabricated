@@ -87,9 +87,9 @@ class MMValues
         if let selection = core.project.selectedRect, core.currentTool == .Select, let layer = core.project.currentLayer {
             // Read values from the instances
             if let instance = layer.tileInstances[SIMD2<Int>(selection.x, selection.y)] {
-                return instance.readFloat(name, defaultValue)
+                return readFloatFromInstanceIfExists(instance, name, defaultValue)
             } else {
-                return defaultValue
+                return readFloat(name, defaultValue)
             }
         } else {
             // Write value to self

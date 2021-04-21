@@ -160,12 +160,6 @@ struct NodeToolbar: View {
         HStack {
             Menu {
                 Menu {
-                    Button("Half", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(ShapeHalf())
-                            document.core.nodeView.update()
-                        }
-                    })
                     Button("Box", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeBox())
@@ -303,8 +297,8 @@ struct ParamFloatView: View {
         self.core = core
         self.option = option
         
-        _value = State(initialValue: Double(option.node.readFloat(option.name)))
-        _valueText = State(initialValue: String(format: "%.02f", option.node.readFloat(option.name)))
+        _value = State(initialValue: Double(option.node.readOptionalFloatInstance(core, option.name)))
+        _valueText = State(initialValue: String(format: "%.02f", option.node.readOptionalFloatInstance(core, option.name)))
     }
     
     var body: some View {
@@ -316,7 +310,7 @@ struct ParamFloatView: View {
                     value = v
                     valueText = String(format: "%.02f", v)
 
-                    option.node.writeFloat(option.name, value: Float(v))
+                    option.node.writeOptionalFloatInstance(core, option.name, value: Float(v))
                     core.renderer.render()
                     
                 }), in: 0...1)//, step: Double(parameter.step))
@@ -340,8 +334,8 @@ struct ParamIntView: View {
         self.core = core
         self.option = option
         
-        _value = State(initialValue: Double(option.node.readFloat(option.name)))
-        _valueText = State(initialValue: String(Int(option.node.readFloat(option.name))))
+        _value = State(initialValue: Double(option.node.readOptionalFloatInstance(core, option.name)))
+        _valueText = State(initialValue: String(Int(option.node.readOptionalFloatInstance(core, option.name))))
     }
     
     var body: some View {
@@ -353,7 +347,7 @@ struct ParamIntView: View {
                     value = v
                     valueText = String(Int(v))
 
-                    option.node.writeFloat(option.name, value: Float(v))
+                    option.node.writeOptionalFloatInstance(core, option.name, value: Float(v))
                     core.renderer.render()
                 }), in: 0...10, step: 1)
                 Text(valueText)

@@ -56,14 +56,14 @@ class TilePixelContext
         self.texWidth = texWidth
         self.texHeight = texHeight
         
-        texUV = texOffset / float2(texWidth, texHeight) - float2(0.5, 0.5)
+        texUV = texOffset / float2(texWidth, texHeight)// - float2(0.5, 0.5)
         
         offset = float2(texOffset.x - Float(tileRect.x), texOffset.y - Float(tileRect.y))
         
         width = Float(tileRect.width)
         height = Float(tileRect.height)
         
-        uv = offset / float2(width, height) - float2(0.5, 0.5)
+        uv = offset / float2(width, height)// - float2(0.5, 0.5)
         pUV = float2(0,0)
         localDist = 0
         totalDist = 0
@@ -84,7 +84,7 @@ class TileContext
         var rc = floor(uv * pixelSize) / pixelSize
         rc += 1.0 / (pixelSize * 2.0)
         return rc
-    }
+    }    
 }
 
 class TileJob

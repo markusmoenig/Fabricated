@@ -26,7 +26,6 @@ enum NodeFamily: String, NodeClassFamily {
     
     case shapeDisk = "ShapeDisk"
     case shapeBox = "ShapeBox"
-    case shapeHalf = "ShapeHalf"
 
     case modifierNoise = "ModifierNoise"
 
@@ -45,8 +44,6 @@ enum NodeFamily: String, NodeClassFamily {
                 return ShapeDisk.self
             case .shapeBox:
                 return ShapeBox.self
-            case .shapeHalf:
-                return ShapeHalf.self
                 
             case .modifierNoise:
                 return ModifierNoise.self

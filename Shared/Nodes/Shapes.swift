@@ -47,15 +47,10 @@ class ShapeDisk : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        var d = length(tileCtx.getPixelUV(pixelCtx.uv)) - readFloat("Radius") / 2.0
-        d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
-        var rc = float4(0,0,0,0)
-        let color = float4(1,1,1,1)
-
-        let step = simd_smoothstep(0, -0.02, d)
-        rc = simd_mix(prevColor, color, float4(step, step, step, step))
-
-        return rc
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: length(uv) - readFloat("Radius") / 2.0)
+        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }
 
@@ -74,10 +69,9 @@ class ShapeBox : TileNode {
     {
         type = "ShapeBox"
         optionGroups.append(TileNodeOptionsGroup("Box Shape Options", [
-            TileNodeOption(self, "Round Top Left", .Switch, defaultFloat: 0),
-            TileNodeOption(self, "Round Top Right", .Switch, defaultFloat: 0),
-            TileNodeOption(self, "Round Bottom Left", .Switch, defaultFloat: 0),
-            TileNodeOption(self, "Round Bottom Right", .Switch, defaultFloat: 0)
+            TileNodeOption(self, "Width", .Float, defaultFloat: 1),
+            TileNodeOption(self, "Height", .Float, defaultFloat: 1),
+            TileNodeOption(self, "Rounding", .Float, defaultFloat: 0),
         ]))
         optionGroups.append(createShapeTransformGroup())
     }
@@ -111,74 +105,20 @@ class ShapeBox : TileNode {
         return min(max(q.x,q.y),0.0) + length(max(q, 0.0)) - r.x
     }
     
-    func sdBox(_ p: float2,_ size: float2) -> Float
+    func sdBox(_ p: float2,_ size: float2,_ rounding: Float) -> Float
     {
-        let d = abs(p) - size
-        return length(max(d,0.0)) + min(max(d.x,d.y),0.0)
+        let d = abs(p) - size + rounding
+        return length(max(d,0.0)) + min(max(d.x,d.y),0.0) - rounding
     }
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let upperLeftRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Top Left") == 0 ? 0.0 : 0.5
-        let upperRightRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Top Right") == 0 ? 0.0 : 0.5
-        let bottomLeftRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Bottom Left") == 0 ? 0.0 : 0.5
-        let bottomRightRounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Round Bottom Right") == 0 ? 0.0 : 0.5
-
-        let uv = tileCtx.getPixelUV(pixelCtx.uv)
-        let d = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdRoundedBox(uv, float2(0.5, 0.5), float4(bottomRightRounding,upperRightRounding,bottomLeftRounding,upperLeftRounding)))
-
-        var rc = float4(0,0,0,0)
-        let color = float4(1,1,1,1)
+        let width : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Width") / 2
+        let height : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Height") / 2
+        let rounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rounding") / 2.0
         
-        let step = simd_smoothstep(0, -0.02, d)
-        rc = simd_mix(prevColor, color, float4(step, step, step, step))
-
-        return rc
-    }
-}
-
-class ShapeHalf : TileNode {
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-    
-    required init()
-    {
-        super.init(.Shape, "Half")
-    }
-    
-    override func setup()
-    {
-        type = "ShapeHalf"
-        optionGroups.append(createShapeTransformGroup())
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    func sdHalf(_ p: float2) -> Float
-    {
-        return 0.5 - p.y - 0.5
-    }
-    
-    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
-    {
-        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(pixelCtx.pUV))        
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox(uv, float2(width, height), rounding))
         return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }
