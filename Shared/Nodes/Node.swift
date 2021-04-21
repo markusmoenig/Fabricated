@@ -229,13 +229,20 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
                     decoNode = nextDecoNode
                 }                
             } else {
-                
-                let step = simd_smoothstep(0, -0.02, pixelCtx.localDist)
+                let step = simd_smoothstep(0, -1.0 / pixelCtx.width, pixelCtx.localDist)
                 color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
             }
         }
         
         return color
+    }
+    
+    /// Computes the decorator mask
+    func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
+    {
+        let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask Start", 0)
+        let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask End", 1)
+        return simd_smoothstep(-maskEnd, -maskStart, pixelCtx.localDist)
     }
     
     /// Gets  the next optional id in the chain
@@ -280,11 +287,20 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return nil
     }
     
+    /// Creates the shape transform options
     func createShapeTransformGroup() -> TileNodeOptionsGroup {
         return TileNodeOptionsGroup("Transform Options", [
             TileNodeOption(self, "Position X", .Menu, menuEntries: ["Left", "Center", "Right"], defaultFloat: 1),
             TileNodeOption(self, "Position Y", .Menu, menuEntries: ["Top", "Center", "Bottom"], defaultFloat: 1),
             TileNodeOption(self, "Rotation", .Float, defaultFloat: 0)
+        ])
+    }
+    
+    /// Creates  the decorator mask options
+    func createDecoratorMaskGroup() -> TileNodeOptionsGroup {
+        return TileNodeOptionsGroup("Mask Options", [
+            TileNodeOption(self, "Mask Start", .Float, defaultFloat: 0),
+            TileNodeOption(self, "Mask End", .Float, defaultFloat: 1)
         ])
     }
         
