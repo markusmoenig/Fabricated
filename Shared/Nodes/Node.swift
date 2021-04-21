@@ -240,6 +240,19 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     /// Computes the decorator mask
     func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
+        /*
+        float innerBorderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
+
+        float outerBorderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist, 0.0, 1.0) - clamp(dist - width, 0.0, 1.0);
+        }*/
+        
         let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask Start", 0)
         let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask End", 1)
         return simd_smoothstep(-maskEnd, -maskStart, pixelCtx.localDist)
