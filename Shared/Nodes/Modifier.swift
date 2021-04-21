@@ -54,7 +54,8 @@ class ModifierNoise : TileNode {
         let scale : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Scale")
         let subDivisions : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Sub Divisions") + 2
 
-        var uv = uvType == 0 ? tileCtx.getPixelUV(pixelCtx.uv) : tileCtx.getPixelUV(pixelCtx.texUV)
+        var uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.texUV)
+        //var uv = uvType == 0 ? pixelCtx.uv : pixelCtx.texUV
         uv += 0.5
         let n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
         return n

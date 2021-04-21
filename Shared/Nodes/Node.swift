@@ -152,8 +152,10 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
 
     /// Pixelizes the UV coordinate based on the pixelSize
-    func getPixelUV(_ uv: float2,_ pixelSize: Float) -> float2
+    func getPixelUV(pixelCtx: TilePixelContext, tileCtx: TileContext, uv: float2) -> float2
     {
+        let pixelSize = pixelCtx.width / tileCtx.pixelSize
+        
         var rc = floor(uv * pixelSize) / pixelSize
         rc += 1.0 / (pixelSize * 2.0)
         return rc
@@ -185,7 +187,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             uv.y -= 1.0
         }
         
-        var tUV = pixelise == true ? getPixelUV(uv, tileCtx.pixelSize) : uv
+        var tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
         
         func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
         {
@@ -251,11 +253,38 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         {
             //dist += 1.0;
             return clamp(dist, 0.0, 1.0) - clamp(dist - width, 0.0, 1.0);
-        }*/
+        }
+         
+         float fillMask(float dist)
+         {
+             return clamp(-dist, 0.0, 1.0);
+         }
+         
+         func innerBorderMask(_ dist: Float,_ width: Float) -> Float
+         {
+             //dist += 1.0;
+             return simd_clamp(dist + width, 0.0, 1.0) - simd_clamp(dist, 0.0, 1.0)
+         }
+         
+         func fillMask(_ dist: Float) -> Float
+         {
+             return simd_clamp(-dist, 0.0, 1.0)
+         }
+         
+         */
         
         let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask Start", 0)
         let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask End", 1)
-        return simd_smoothstep(-maskEnd, -maskStart, pixelCtx.localDist)
+        
+        let d = pixelCtx.localDist
+        
+        if d <= -maskStart && d >= -(maskStart + maskEnd) {
+            return 1
+        } else {
+            return 0
+        }
+        
+        //return innerBorderMask(pixelCtx.localDist - maskStart, maskEnd - maskStart) //simd_smoothstep(-maskEnd, -maskStart, pixelCtx.localDist)
     }
     
     /// Gets  the next optional id in the chain

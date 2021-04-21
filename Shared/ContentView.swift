@@ -18,8 +18,8 @@ struct ContentView: View {
 
     @State var tileSizeText                 : String = "Tile Size: 64x64"
     
-    @State var pixelationValue              : Double = 10
-    @State var pixelationText               : String = "10"
+    @State var pixelationValue              : Double = 4
+    @State var pixelationText               : String = "4"
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
 
@@ -103,11 +103,11 @@ struct ContentView: View {
                         HStack {
                             Slider(value: Binding<Double>(get: {pixelationValue}, set: { v in
                                 pixelationValue = v
-                                pixelationText = String(format: "%.02f", v)
+                                pixelationText = String(Int(v))//String(format: "%.02f", v)
 
                                 document.core.project.writeFloat("pixelSize", value: Float(pixelationValue))
                                 document.core.renderer.render()
-                            }), in: 1...64)//, step: Double(5))
+                            }), in: 1...12, step: Double(1))
                             Text(pixelationText)
                                 .frame(maxWidth: 40)
                         }

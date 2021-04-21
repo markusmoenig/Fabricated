@@ -23,7 +23,7 @@ class Project           : MMValues, Codable
     {
         super.init()
         writeFloat("tileSize", value: 64)
-        writeFloat("pixelSize", value: 10)
+        writeFloat("pixelSize", value: 4)
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -90,7 +90,7 @@ class Project           : MMValues, Codable
     
     /// Get the pixel size of the project
     func getPixelSize() -> Float {
-        return readFloat("pixelSize", 10)
+        return readFloat("pixelSize", 4)
     }
 }
 

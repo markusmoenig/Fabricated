@@ -42,7 +42,6 @@ class TilePixelContext
 
     let offset      : float2    // The local tile offset
     let uv          : float2    // The local tile UV
-    var pUV         : float2    // The local pixelized tile UV
 
     let width       : Float     // Tile Width
     let height      : Float     // Tile Height
@@ -64,7 +63,6 @@ class TilePixelContext
         height = Float(tileRect.height)
         
         uv = offset / float2(width, height)// - float2(0.5, 0.5)
-        pUV = float2(0,0)
         localDist = 0
         totalDist = 0
     }
@@ -76,15 +74,7 @@ class TileContext
     var tileInstance    : TileInstance! // The instance of the tile
     var layer           : Layer!        // The current layer
 
-    var pixelSize       : Float!
-    
-    /// Pixelizes the UV coordinate based on the pixelSize
-    func getPixelUV(_ uv: float2) -> float2
-    {
-        var rc = floor(uv * pixelSize) / pixelSize
-        rc += 1.0 / (pixelSize * 2.0)
-        return rc
-    }    
+    var pixelSize       : Float = 1
 }
 
 class TileJob
@@ -273,7 +263,7 @@ class Renderer
                     }
                     
                     let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
-                    pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
+                    //pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
                     
                     var color = float4(0, 0, 0, 0)
                     
