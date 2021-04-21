@@ -122,3 +122,50 @@ class ShapeBox : TileNode {
         return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }
+
+class ShapeGround : TileNode {
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    required init()
+    {
+        super.init(.Shape, "Ground")
+    }
+    
+    override func setup()
+    {
+        type = "ShapeGround"
+        optionGroups.append(createShapeTransformGroup())
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    func sdHalf(_ p: float2) -> Float
+    {
+        return 0.5 - p.y - 0.5
+    }
+    
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(uv))
+        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+    }
+}

@@ -172,6 +172,12 @@ struct NodeToolbar: View {
                             document.core.nodeView.update()
                         }
                     })
+                    Button("Ground", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(ShapeGround())
+                            document.core.nodeView.update()
+                        }
+                    })
                 }
                 label: {
                     Text("Shapes")

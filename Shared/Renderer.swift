@@ -56,7 +56,7 @@ class TilePixelContext
         self.texWidth = texWidth
         self.texHeight = texHeight
         
-        texUV = texOffset / float2(texWidth, texHeight)// - float2(0.5, 0.5)
+        texUV = texOffset / float2(texWidth, texHeight) - float2(0.5, 0.5)
         
         offset = float2(texOffset.x - Float(tileRect.x), texOffset.y - Float(tileRect.y))
         

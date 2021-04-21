@@ -24,8 +24,9 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case tiledNode = "TiledNode"
     
-    case shapeDisk = "ShapeDisk"
     case shapeBox = "ShapeBox"
+    case shapeDisk = "ShapeDisk"
+    case shapeGround = "ShapeGround"
 
     case modifierNoise = "ModifierNoise"
 
@@ -40,10 +41,12 @@ enum NodeFamily: String, NodeClassFamily {
             case .tiledNode:
                 return TiledNode.self
                 
-            case .shapeDisk:
-                return ShapeDisk.self
             case .shapeBox:
                 return ShapeBox.self
+            case .shapeDisk:
+                return ShapeDisk.self
+            case .shapeGround:
+                return ShapeGround.self
                 
             case .modifierNoise:
                 return ModifierNoise.self
