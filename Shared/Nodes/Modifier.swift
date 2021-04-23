@@ -22,8 +22,9 @@ class ModifierNoise : TileNode {
     {
         type = "ModifierNoise"
         optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
-            TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Perlin"], defaultFloat: 0),
+            TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
             TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0),
+            TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 0),
             TileNodeOption(self, "Seed", .Int, defaultFloat: 1),
             TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5),
             TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0)
@@ -51,17 +52,26 @@ class ModifierNoise : TileNode {
     {
         let seed : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Seed")
         let uvType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "UV")
+        let pixelize : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Pixelise")
         let scale : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Scale")
         let subDivisions : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Sub Divisions") + 2
-
-        let uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.texUV)
-        //var uv = uvType == 0 ? pixelCtx.uv : pixelCtx.texUV
         
+        let uv : float2
+        
+        if pixelize == 1 {
+            uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.texUV)
+        } else {
+            uv = uvType == 0 ? pixelCtx.uv : pixelCtx.texUV
+        }
+            
         let noiseType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Noise")
 
         let n : Float
         if noiseType == 1 {
-            n = perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
+            n = gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
+        } else
+        if noiseType == 2 {
+                n = perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
         } else {
             n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
         }

@@ -108,6 +108,60 @@ func noise(pos: float2, scale: float2, seed: Float) -> Float
     return value * 2.0 - 1.0
 }
 
+// 2D Gradient noise.
+// @param scale Number of tiles, must be  integer for tileable results, range: [2, inf]
+// @param seed Seed to randomize result, range: [0, inf], default: 0.0
+// @return Value of the noise, range: [-1, 1]
+func gradientNoise(pos: float2, scale: float2, seed: Float) -> Float
+{
+    let _pos = pos * scale
+
+    // based on Modifications to Classic Perlin Noise by Brian Sharpe: https://archive.is/cJtlS
+    //vec4 i = floor(pos).xyxy + vec2(0.0, 1.0).xxyy;
+    let _pos_floor = floor(_pos)
+    var i : float4 = float4( _pos_floor.x + 0,
+                             _pos_floor.y + 0,
+                             _pos_floor.x + 1,
+                             _pos_floor.y + 1)
+
+    //vec4 f = (pos.xyxy - i.xyxy) - vec2(0.0, 1.0).xxyy;
+
+    let f : float4 = float4((_pos.x - i.x),
+                            (_pos.y - i.y),
+                            (_pos.x - i.x) - 1,
+                            (_pos.y - i.y) - 1)
+
+    
+    //i = mod(i, scale.xyxy) + seed
+    i.x = i.x.truncatingRemainder(dividingBy: scale.x) + seed
+    i.y = i.y.truncatingRemainder(dividingBy: scale.y) + seed
+    i.z = i.z.truncatingRemainder(dividingBy: scale.x) + seed
+    i.w = i.w.truncatingRemainder(dividingBy: scale.y) + seed
+    
+    // grid gradients
+    var hashX: float4 = float4(0,0,0,0)
+    var hashY: float4 = float4(0,0,0,0)
+    
+    permuteHash2D(i, &hashX, &hashY)
+    
+    //vec4 gradients = hashX * f.xzxz + hashY * f.yyww;
+    let gradients : float4 = float4(
+        (hashX .x * f.x + hashY.x * f.y),
+        (hashX .y * f.z + hashY.y * f.y),
+        (hashX .z * f.x + hashY.z * f.w),
+        (hashX .w * f.z + hashY.w * f.w)
+        )
+    
+    let u = noiseInterpolate(float2(f.x, f.y))
+    //vec2 g = mix(gradients.xz, gradients.yw, u.x);
+    let g = float2(
+        simd_mix(gradients.x, gradients.y, u.x),
+        simd_mix(gradients.z, gradients.w, u.x)
+    )
+    return 1.4142135623730950 * simd_mix(g.x, g.y, u.y);
+}
+
+
 // 2D Perlin noise.
 // @param scale Number of tiles, must be  integer for tileable results, range: [2, inf]
 // @param seed Seed to randomize result, range: [0, inf], default: 0.0
@@ -131,7 +185,6 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
                             (_pos.x - i.x) - 1,
                             (_pos.y - i.y) - 1)
 
-    
     //i = mod(i, scale.xyxy) + seed
     i.x = i.x.truncatingRemainder(dividingBy: scale.x) + seed
     i.y = i.y.truncatingRemainder(dividingBy: scale.y) + seed
@@ -164,5 +217,5 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
     lengthSq.w = lengthSq.z + lengthSq.w
     var xSq = 1.0 - min(float4(1.0, 1.0, 1.0, 1.0), lengthSq)
     xSq = xSq * xSq * xSq
-    return dot(xSq, gradients)
+    return simd_dot(xSq, gradients)
 }
