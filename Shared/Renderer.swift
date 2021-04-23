@@ -48,7 +48,7 @@ class TilePixelContext
     
     var localDist   : Float
     var totalDist   : Float
-    
+        
     init(texOffset: float2, texWidth: Float, texHeight: Float, tileRect: TileRect)
     {
         self.texOffset = texOffset
@@ -75,6 +75,7 @@ class TileContext
     var layer           : Layer!        // The current layer
 
     var pixelSize       : Float = 1
+    var antiAliasing    : Float = 2
 }
 
 class TileJob
@@ -148,6 +149,7 @@ class Renderer
                     let tileContext = TileContext()
                     tileContext.layer = layer
                     tileContext.pixelSize = core.project.getPixelSize()
+                    tileContext.antiAliasing = core.project.getAntiAliasing()
                     tileContext.tile = copyTile(tile)
                     tileContext.tileInstance = instance
 

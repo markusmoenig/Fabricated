@@ -310,7 +310,17 @@ struct ParamFloatView: View {
     var body: some View {
         
         VStack(alignment: .leading) {
-            Text(option.name)
+            HStack {
+                Text(option.name)
+                /*
+                Spacer()
+                Button(action: {
+                })
+                {
+                    Image(systemName: "questionmark")
+                }
+                .buttonStyle(PlainButtonStyle())*/
+            }
             HStack {
                 Slider(value: Binding<Double>(get: {value}, set: { v in
                     value = v

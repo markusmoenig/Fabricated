@@ -23,9 +23,9 @@ class DecoratorColor : TileNode {
         type = "DecoratorColor"
         
         optionGroups.append(TileNodeOptionsGroup("Color Decorator Options", [
-            TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0,0,0,1))
+            TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.765, 0.600, 0.365, 1))
         ]))
-        optionGroups.append(createDecoratorMaskGroup())
+        optionGroups.append(createDefaultDecoratorOptionsGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -47,7 +47,7 @@ class DecoratorColor : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let step = simd_smoothstep(0, -1.0 / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx)
         return simd_mix(prevColor, readFloat4FromInstanceIfExists(tileCtx.tileInstance, "Color"), float4(step, step, step, step))
     }
 }

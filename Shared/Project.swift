@@ -24,6 +24,7 @@ class Project           : MMValues, Codable
         super.init()
         writeFloat("tileSize", value: 64)
         writeFloat("pixelSize", value: 4)
+        writeFloat("antiAliasing", value: 2)
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -91,6 +92,11 @@ class Project           : MMValues, Codable
     /// Get the pixel size of the project
     func getPixelSize() -> Float {
         return readFloat("pixelSize", 4)
+    }
+    
+    /// Get the anti-aliasing of the project
+    func getAntiAliasing() -> Float {
+        return readFloat("antiAliasing", 2)
     }
 }
 

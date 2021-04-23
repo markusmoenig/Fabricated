@@ -20,6 +20,9 @@ struct ContentView: View {
     
     @State var pixelationValue              : Double = 4
     @State var pixelationText               : String = "4"
+    
+    @State var antiAliasingValue            : Double = 2
+    @State var antiAliasingText             : String = "2"
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
 
@@ -54,7 +57,7 @@ struct ContentView: View {
                         }
                         NodeSettingsView(document: document, updateView: $updateView)
                     }
-                    .animation(.easeInOut)
+                    .animation(.default)
                 }
             }
         }
@@ -109,6 +112,24 @@ struct ContentView: View {
                                 document.core.renderer.render()
                             }), in: 1...12, step: Double(1))
                             Text(pixelationText)
+                                .frame(maxWidth: 40)
+                        }
+                        .padding(4)
+                        
+                        Text("Anti-Aliasing")
+                            .padding(.leading, 4)
+                            .padding(.top, 4)
+                            .padding(.bottom, 0)
+                        
+                        HStack {
+                            Slider(value: Binding<Double>(get: {antiAliasingValue}, set: { v in
+                                antiAliasingValue = v
+                                antiAliasingText = String(Int(v))//String(format: "%.02f", v)
+
+                                document.core.project.writeFloat("antiAliasing", value: Float(antiAliasingValue))
+                                document.core.renderer.render()
+                            }), in: 0...5, step: Double(1))
+                            Text(antiAliasingText)
                                 .frame(maxWidth: 40)
                         }
                         .padding(4)

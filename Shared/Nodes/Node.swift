@@ -212,9 +212,18 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
                 let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
 
-                color.x += value
-                color.y += value
-                color.z += value
+                let modifierMode = node.readFloatFromInstanceIfExists(tileCtx.tileInstance, "Modifier")
+
+                if modifierMode == 0 {
+                    color.x += value
+                    color.y += value
+                    color.z += value
+                } else {
+                    let v = (value + 1) / 2
+                    color.x *= v
+                    color.y *= v
+                    color.z *= v
+                }
                 
                 color.clamp(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
             }
@@ -231,7 +240,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
                     decoNode = nextDecoNode
                 }                
             } else {
-                let step = simd_smoothstep(0, -1.0 / pixelCtx.width, pixelCtx.localDist)
+                let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist)
                 color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
             }
         }
@@ -273,8 +282,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
          
          */
         
-        let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask Start", 0)
-        let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mask End", 1)
+        let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth Start", 0)
+        let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth End", 1)
         
         let d = pixelCtx.localDist
         
@@ -283,8 +292,6 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         } else {
             return 0
         }
-        
-        //return innerBorderMask(pixelCtx.localDist - maskStart, maskEnd - maskStart) //simd_smoothstep(-maskEnd, -maskStart, pixelCtx.localDist)
     }
     
     /// Gets  the next optional id in the chain
@@ -339,10 +346,11 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Creates  the decorator mask options
-    func createDecoratorMaskGroup() -> TileNodeOptionsGroup {
-        return TileNodeOptionsGroup("Mask Options", [
-            TileNodeOption(self, "Mask Start", .Float, defaultFloat: 0),
-            TileNodeOption(self, "Mask End", .Float, defaultFloat: 1)
+    func createDefaultDecoratorOptionsGroup() -> TileNodeOptionsGroup {
+        return TileNodeOptionsGroup("Default Options", [
+            TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Multiply"], defaultFloat: 0),
+            TileNodeOption(self, "Depth Start", .Float, defaultFloat: 0),
+            TileNodeOption(self, "Depth End", .Float, defaultFloat: 1)
         ])
     }
         
