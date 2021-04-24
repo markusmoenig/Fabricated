@@ -58,35 +58,47 @@ struct TileGridView: View {
             }
             
             let columns = [
-                GridItem(.adaptive(minimum: 60))
+                GridItem(.adaptive(minimum: 90))
             ]
             
-            LazyVGrid(columns: columns, spacing: 10) {
+            LazyVGrid(columns: columns, spacing: 0) {
                 if let currentTileSet = currentTileSet {
                     ForEach(currentTileSet.tiles, id: \.id) { tile in
                         ZStack {
                         //Text(tile.name)
-                        
-                            Rectangle()
-                                .fill(Color(.blue))
-                                .frame(width: 50, height: 50)
-                                .onTapGesture(perform: {
-                                    currentTile = tile
-                                    currentTileSet.currentTile = tile
-                                })
-                                .padding(10)
+                            
+                            if let tiled = tile.nodes[0] as? TiledNode {
+                                if let image = tiled.cgiImage {
+                                    Image(image, scale: 1.0, label: Text(tile.name))
+                                        .onTapGesture(perform: {
+                                            currentTile = tile
+                                            currentTileSet.currentTile = tile
+                                        })
+                                        .frame(width: 80, height: 80)
+                                        .padding(10)
+                                } else {
+                                    Rectangle()
+                                        .fill(Color.secondary)
+                                        .frame(width: 80, height: 80)
+                                        .onTapGesture(perform: {
+                                            currentTile = tile
+                                            currentTileSet.currentTile = tile
+                                        })
+                                        .padding(10)
+                                }
+                            }
                         
                             
                             if tile === currentTile {
                                 Rectangle()
                                     .stroke(Color.primary, lineWidth: 2)
-                                    .frame(width: 60, height: 60)
+                                    .frame(width: 90, height: 90)
                             }
                         }
                     }
                 }
             }
-            .padding(10)
+            .padding(4)
             
             Spacer()
         }
@@ -103,6 +115,10 @@ struct TileGridView: View {
             currentTileSet = tileSet
             if let tileSet = tileSet {
                 currentTile = tileSet.currentTile
+            }
+            if let nodeView = document.core.nodeView {
+                print("here")
+                nodeView.updateTilePreviews()
             }
         }
     }

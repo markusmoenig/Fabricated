@@ -24,7 +24,7 @@ class ModifierNoise : TileNode {
         optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
             TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
             TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0),
-            TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 0),
+            TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
             TileNodeOption(self, "Seed", .Int, defaultFloat: 1),
             TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5),
             TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0)
@@ -76,5 +76,13 @@ class ModifierNoise : TileNode {
             n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
         }
         return n
+    }
+    
+    // Only called for node preview
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        var value : Float = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        value = (value + 1) / 2
+        return float4(value, value, value, 1.0)
     }
 }

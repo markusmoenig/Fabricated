@@ -328,6 +328,9 @@ struct ParamFloatView: View {
 
                     option.node.writeOptionalFloatInstance(core, option.name, value: Float(v))
                     core.renderer.render()
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.nodeView.updateTilePreviews(tile)
+                    }
                     
                 }), in: 0...1)//, step: Double(parameter.step))
                 Text(valueText)
@@ -365,6 +368,9 @@ struct ParamIntView: View {
 
                     option.node.writeOptionalFloatInstance(core, option.name, value: Float(v))
                     core.renderer.render()
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.nodeView.updateTilePreviews(tile)
+                    }
                 }), in: 0...10, step: 1)
                 Text(valueText)
                     .frame(maxWidth: 40)
@@ -400,6 +406,9 @@ struct ParamSwitchView: View {
         .onChange(of: toggleValue) { value in
             option.node.writeOptionalFloatInstance(core, option.name, value: value == false ? 0 : 1)
             core.renderer.render()
+            if let tile = core.project.currentTileSet?.openTile {
+                core.nodeView.updateTilePreviews(tile)
+            }
         }
     }
 }
@@ -431,6 +440,9 @@ struct ParamColorView: View {
                     
                     option.node.writeOptionalFloat4Instance(core, option.name, value: newValue)
                     core.renderer.render()
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.nodeView.updateTilePreviews(tile)
+                    }
                 }
         }
     }
@@ -460,6 +472,9 @@ struct ParamMenuView: View {
                         menuIndex = index
                         option.node.writeOptionalFloatInstance(core, option.name, value: Float(index))
                         core.renderer.render()
+                        if let tile = core.project.currentTileSet?.openTile {
+                            core.nodeView.updateTilePreviews(tile)
+                        }
                     })
                 }
             }

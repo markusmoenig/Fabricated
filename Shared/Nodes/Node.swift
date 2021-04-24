@@ -5,7 +5,7 @@
 //  Created by Markus Moenig on 8/4/21.
 //
 
-import Foundation
+import MetalKit
 
 class TileNodeOptionsGroup
 {
@@ -73,6 +73,9 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var nodeRect            = MMRect()
     
     var optionGroups        : [TileNodeOptionsGroup] = []
+    
+    // For node preview, always fixed size of ?
+    var texture             : MTLTexture? = nil
     
     // --- The terminals, nodes can have multiple outputs but only one input
     var terminalsOut        : [Int: UUID] = [:]
@@ -361,6 +364,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
 
 /// For JSON storage we need a derived version of TileNode
 class TiledNode : TileNode {
+    
+    var cgiImage        : CGImage? = nil
     
     private enum CodingKeys: String, CodingKey {
         case type
