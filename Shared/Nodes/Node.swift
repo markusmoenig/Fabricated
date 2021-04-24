@@ -116,6 +116,13 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         setup()
     }
     
+    deinit {
+        if let texture = texture {
+            texture.setPurgeableState(.empty)
+        }
+        texture = nil
+    }
+    
     func setup()
     {
     }
@@ -374,6 +381,14 @@ class TiledNode : TileNode {
     required init()
     {
         super.init(.Tile, "Tile")
+    }
+    
+    deinit {
+        cgiImage = nil
+        if let texture = texture {
+            texture.setPurgeableState(.empty)
+        }
+        texture = nil
     }
     
     override func setup()

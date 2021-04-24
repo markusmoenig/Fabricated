@@ -216,12 +216,26 @@ struct NodeToolbar: View {
             .frame(maxWidth: 120)
                         
             Button(action: {
+                if let node = document.core.nodeView.currentNode, node.role != .Tile {
+                    document.core.nodeView.nodeIsAboutToBeDeleted(node)
+                    
+                    if let tile = document.core.project.currentTileSet?.openTile {
+                        if let index = tile.nodes.firstIndex(of: node) {
+                            tile.nodes.remove(at: index)
+                        }
+                    }
+                    
+                    document.core.nodeView.update()
+                    document.core.renderer.render()
+                    document.core.updateTilePreviews()
+                }
             })
             {
                 Text("Remove")
             }
             .buttonStyle(BorderlessButtonStyle())
             .padding(.leading, 10)
+            //.disabled(document.core.nodeView.currentNode?.role != .Tile)
             
             Spacer()
             

@@ -60,7 +60,7 @@ class NodeSkin {
 class NodeView
 {
     enum Action {
-        case None, DragNode, Connecting
+        case None, DragNode
     }
     
     var action              : Action = .None
@@ -83,6 +83,8 @@ class NodeView
 
     var dragStart           = float2(0, 0)
     var mouseMovedPos       : float2? = nil
+    
+    var lastTouchTime       : Double = 0
     
     var firstDraw           = true
         
@@ -111,16 +113,6 @@ class NodeView
 
         for node in tile.nodes {
             drawNode(node, node === currentNode, skin)
-        }
-        
-        if action == .Connecting {
-            if let id = currentTerminalId {
-                let rect = getTerminal(currentNode!, id: id)
-                
-                if let mousePos = mouseMovedPos {
-                    drawables.drawLine(startPos: rect.middle(), endPos: mousePos, radius: 1, fillColor: skin.selectedTerminalColor)
-                }
-            }
         }
         
         // Draw Connections
@@ -288,7 +280,7 @@ class NodeView
             drawOutTerminal(0, y)
             y += 24 * graphZoom
             drawOutTerminal(1, y)
-            y += 30 * graphZoom
+            y += 36 * graphZoom
             drawOutTerminal(2, y)
         } else
         if node.role == .Modifier {
@@ -309,7 +301,7 @@ class NodeView
         }
     }
     
-    /// Check if there is a terminal the given position
+    /// Check if there is a terminal at the given position
     func checkForNodeTerminal(_ node: TileNode, at: float2) -> Int?
     {
         for (index, slot) in node.terminalsOutRect.enumerated() {
@@ -325,43 +317,101 @@ class NodeView
         return nil
     }
     
+    /// Called before nodes get deleted, make sure to break its connections
+    func nodeIsAboutToBeDeleted(_ node: TileNode)
+    {
+        guard let tile = getCurrentTile() else {
+            return
+        }
+        
+        for n in tile.nodes {
+            if n !== node {
+                for (index, nodeUUID) in n.terminalsOut {
+                    if nodeUUID == node.id {
+                        n.terminalsOut[index] = nil
+                    }
+                }
+            }
+        }
+    }
+    
     func touchDown(_ pos: float2)
     {
         if let tile = getCurrentTile() {
             for node in tile.nodes {
-                
-                if let t = checkForNodeTerminal(node, at: pos) {
+                var freshlySelectedNode : TileNode? = nil
+                if node.nodeRect.contains(pos.x, pos.y) {
+                    action = .DragNode
+                    dragStart = pos
                     
-                    if currentNode !== node {
-                        setCurrentNode(node)
-                    }
+                    freshlySelectedNode = node
+
+                    let timestamp = NSDate().timeIntervalSince1970
                     
-                    
-                    let canConnect = true
-                    /*
-                    if t != -1 && asset.slots[t] != nil {
-                        //canConnect = false
-                        asset.slots[t] = nil
-                        // Disconnect instead of not allowing to connect when slot is already taken
-                        core.contentChanged.send()
-                    }*/
-                    
-                    if canConnect {
-                        currentTerminalId = t
-                        action = .Connecting
-                    }
-                } else
-                {
-                    var freshlySelectedNode : TileNode? = nil
-                    if node.nodeRect.contains(pos.x, pos.y) {
-                        action = .DragNode
-                        dragStart = pos
+                    if timestamp - lastTouchTime < 2 && freshlySelectedNode !== currentNode && currentNode != nil {
                         
-                        freshlySelectedNode = node
+                        // Connect or disconnect the two nodes if selection speed was under 2 second
+                        
+                        let from = currentNode!
+                        let to = freshlySelectedNode!
+                        
+                        if from.role == .Tile {
+                            if to.role == .Shape {
+                                if from.terminalsOut[0] == to.id {
+                                    from.terminalsOut[0] = nil
+                                } else {
+                                    from.terminalsOut[0] = to.id
+                                }
+                            }
+                        } else
+                        if from.role == .Shape {
+                            if to.role == .Modifier {
+                                if from.terminalsOut[0] == to.id {
+                                    from.terminalsOut[0] = nil
+                                } else {
+                                    from.terminalsOut[0] = to.id
+                                }
+                            } else
+                            if to.role == .Decorator {
+                                if from.terminalsOut[1] == to.id {
+                                    from.terminalsOut[1] = nil
+                                } else {
+                                    from.terminalsOut[1] = to.id
+                                }
+                            } else
+                            if to.role == .Shape {
+                                if from.terminalsOut[2] == to.id {
+                                    from.terminalsOut[2] = nil
+                                } else {
+                                    from.terminalsOut[2] = to.id
+                                }
+                            }
+                        } else
+                        if from.role == .Decorator {
+                            if to.role == .Modifier {
+                                if from.terminalsOut[0] == to.id {
+                                    from.terminalsOut[0] = nil
+                                } else {
+                                    from.terminalsOut[0] = to.id
+                                }
+                            } else
+                            if to.role == .Decorator {
+                                if from.terminalsOut[1] == to.id {
+                                    from.terminalsOut[1] = nil
+                                } else {
+                                    from.terminalsOut[1] = to.id
+                                }
+                            }
+                        }
+                        
+                        core.updateTilePreviews()
+                        update()
                     }
-                    if freshlySelectedNode != nil && currentNode !== freshlySelectedNode {
-                        setCurrentNode(freshlySelectedNode!)
-                    }
+                    lastTouchTime = timestamp
+                }
+                
+                if freshlySelectedNode != nil && currentNode !== freshlySelectedNode {
+                    setCurrentNode(freshlySelectedNode!)
                 }
             }
         }
@@ -379,52 +429,10 @@ class NodeView
                 update()
             }
         }
-        if action == .Connecting {
-            connectingNode = nil
-            connectingTerminalId = nil
-            
-            if let tile = getCurrentTile() {
-                for node in tile.nodes {
-                    if let t = checkForNodeTerminal(node, at: pos) {
-                        if currentNode !== node {
-                            if (t == -1 && currentTerminalId != -1) || (currentTerminalId == -1 && t != -1) {
-                                if canConnect(currentNode!, currentTerminalId!, node, t) {
-                                    connectingNode = node
-                                    connectingTerminalId = t
-                                    
-                                    mouseMovedPos = getTerminal(node, id: t).middle()
-                                }
-                            }
-                        }
-                        break
-                    }
-                }
-            }
-
-            update()
-        }
     }
 
     func touchUp(_ pos: float2)
     {
-        if action == .Connecting {
-            // Create Connection
-            if let currentNode = currentNode {
-                if let connectingNode = connectingNode {
-
-                    if currentTerminalId != -1 {
-                        currentNode.terminalsOut[currentTerminalId!] = connectingNode.id
-                    } else {
-                        connectingNode.terminalsOut[connectingTerminalId!] = currentNode.id
-                    }
-                
-                    //core.contentChanged.send()
-                    core.renderer.render()
-                    core.updateTilePreviews()
-                }
-            }
-        }
-
         action = .None
         currentTerminalId = nil
         mouseMovedPos = nil
