@@ -107,6 +107,7 @@ struct TileGridView: View {
             currentTileSet = document.core.project.currentTileSet
             if let currentTileSet = currentTileSet {
                 currentTile = currentTileSet.currentTile
+                document.core.updateTilePreviews()
             }
         })
         
@@ -116,10 +117,7 @@ struct TileGridView: View {
             if let tileSet = tileSet {
                 currentTile = tileSet.currentTile
             }
-            if let nodeView = document.core.nodeView {
-                print("here")
-                nodeView.updateTilePreviews()
-            }
+            document.core.updateTilePreviews()
         }
     }
 }
