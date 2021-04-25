@@ -352,6 +352,8 @@ class NodeView
                         
                         // Connect or disconnect the two nodes if selection speed was under 2 second
                         
+                        action = .None
+
                         let from = currentNode!
                         let to = freshlySelectedNode!
                         
@@ -406,7 +408,9 @@ class NodeView
                         
                         core.updateTilePreviews()
                         update()
+                        
                     }
+                        
                     lastTouchTime = timestamp
                 }
                 
@@ -415,6 +419,7 @@ class NodeView
                 }
             }
         }
+        
         drawables.update()
     }
     

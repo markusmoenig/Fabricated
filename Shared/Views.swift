@@ -164,18 +164,21 @@ struct NodeToolbar: View {
                     Button("Box", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeBox())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
                             document.core.nodeView.update()
                         }
                     })
                     Button("Disk", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeDisk())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
                             document.core.nodeView.update()
                         }
                     })
                     Button("Ground", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ShapeGround())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
                             document.core.nodeView.update()
                         }
                     })
@@ -188,6 +191,7 @@ struct NodeToolbar: View {
                     Button("Noise", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(ModifierNoise())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
                             document.core.nodeView.update()
                         }
                     })
@@ -200,6 +204,7 @@ struct NodeToolbar: View {
                     Button("Color", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(DecoratorColor())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
                             document.core.nodeView.update()
                         }
                     })

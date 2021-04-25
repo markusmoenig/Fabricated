@@ -222,7 +222,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
                 let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
 
-                let modifierMode = node.readFloatFromInstanceIfExists(tileCtx.tileInstance, "Modifier")
+                let modifierMode = node.readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mode")
 
                 if modifierMode == 0 {
                     color.x += value
@@ -243,7 +243,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         if role == .Shape {
             if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
                 color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
-                color = appyModifier(decoNode, prevColor: color)
+                //color = appyModifier(decoNode, prevColor: color)
                 
                 while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
                     color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
@@ -259,7 +259,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Computes the decorator mask
-    func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
+    func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext, inside: Bool) -> Float
     {
         /*
         float innerBorderMask(float dist, float width)
@@ -297,10 +297,18 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         
         let d = pixelCtx.localDist
         
-        if d <= -maskStart && d >= -(maskStart + maskEnd) {
-            return 1
+        if inside {
+            if d <= -maskStart && d >= -(maskStart + maskEnd) {
+                return 1
+            } else {
+                return 0
+            }
         } else {
-            return 0
+            if d >= maskStart && d <= (maskStart + maskEnd) {
+                return 1
+            } else {
+                return 0
+            }
         }
     }
     
@@ -358,7 +366,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     /// Creates  the decorator mask options
     func createDefaultDecoratorOptionsGroup() -> TileNodeOptionsGroup {
         return TileNodeOptionsGroup("Default Options", [
-            TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Multiply"], defaultFloat: 0),
+            TileNodeOption(self, "Shape", .Menu, menuEntries: ["Inside", "Outside"], defaultFloat: 0),
+            TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Mask"], defaultFloat: 0),
             TileNodeOption(self, "Depth Start", .Float, defaultFloat: 0),
             TileNodeOption(self, "Depth End", .Float, defaultFloat: 1)
         ])

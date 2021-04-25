@@ -47,8 +47,31 @@ class DecoratorColor : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        return simd_mix(prevColor, readFloat4FromInstanceIfExists(tileCtx.tileInstance, "Color"), float4(step, step, step, step))
+        let shapeMode = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Shape")
+        let modifierMode = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Modifier")
+        let sign : Float = shapeMode == 0 ? -1 : 1
+        
+        var modifierValue : Float = 0
+        if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+            modifierValue = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        }
+        
+        let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
+        var patternColor = simd_mix(prevColor, readFloat4FromInstanceIfExists(tileCtx.tileInstance, "Color"), float4(step, step, step, step))
+        
+        if modifierMode == 0 {
+            patternColor.x += modifierValue
+            patternColor.y += modifierValue
+            patternColor.z += modifierValue
+        } else {
+            let v = (modifierValue + 1.0) / 2.0
+            patternColor.w *= v
+        }
+        
+        //patternColor.w *= computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
+        patternColor = simd_mix(prevColor, patternColor, float4(step, step, step, step))
+
+        return patternColor
     }
 }
 
