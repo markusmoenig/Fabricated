@@ -102,8 +102,19 @@ class ScreenView
             
             let p = pos - center
             let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
-        
-            print("touch at", tileId.x, tileId.y)
+            
+            // Calculate the tilePos, the normalized offset from the upper left tile corner
+            var tilePos = SIMD2<Float>(fmod(p.x / graphZoom, tileSize), fmod(p.y / graphZoom, tileSize))
+            if tilePos.x < 0 {
+                tilePos.x = tileSize + tilePos.x
+            }
+            if tilePos.y < 0 {
+                tilePos.y = tileSize + tilePos.y
+            }
+            tilePos /= tileSize
+            // -
+
+            print("touch at", tileId.x, tileId.y, "offset", tilePos.x, tilePos.y)
 
             if core.currentTool == .Apply {
                 if let currentTileSet = core.project.currentTileSet {

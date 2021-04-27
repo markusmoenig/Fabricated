@@ -246,7 +246,7 @@ class Renderer
             
             var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
             if inProgressArray == nil {
-                inProgressArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(1, 0, 0, 1), count: tileRect.size)
+                inProgressArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0.5, 0.5, 0.5, 1), count: tileRect.size)
             }
             
             updateTexture(inProgressArray!)

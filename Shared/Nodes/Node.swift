@@ -376,6 +376,21 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
+    
+    // Tools API, needs to return true to indicate event is consumed and to receive further messages
+    // Coordinates are relative to tile
+    func touchDown(_ pos: float2) -> Bool
+    {
+        return false
+    }
+    
+    func touchMoved(_ pos: float2)
+    {
+    }
+    
+    func touchUp(_ pos: float2)
+    {
+    }
 }
 
 /// For JSON storage we need a derived version of TileNode

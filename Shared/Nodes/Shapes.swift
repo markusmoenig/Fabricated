@@ -157,6 +157,65 @@ class ShapeGround : TileNode {
         try super.encode(to: superdecoder)
     }
     
+    // sdBezier
+    
+    func dot2(_ v: float2 ) -> Float { return simd_dot(v,v) }
+    func cross2(_ a: float2,_ b: float2 ) -> Float { return a.x*b.y - a.y*b.x }
+    
+    // signed distance to a quadratic bezier
+    func sdBezier(_ pos: float2,_ A: float2,_ B: float2,_ C: float2 ) -> Float
+    {
+        let a = B - A
+        let b = A - 2.0*B + C
+        let c = a * 2.0
+        let d = A - pos
+
+        let kk = 1.0/dot(b,b)
+        let kx = kk * dot(a,b)
+        let ky = kk * (2.0*dot(a,a)+dot(d,b))/3.0
+        let kz = kk * dot(d,a)
+
+        var res : Float = 0.0
+        var sgn : Float = 0.0
+
+        let p = ky - kx*kx
+        let p3 = p*p*p
+        let q = kx*(2.0*kx*kx - 3.0*ky) + kz
+        var h = q*q + 4.0*p3
+
+        if( h>=0.0 )
+        {   // 1 root
+            h = sqrt(h)
+            let x : float2 = (float2(h,-h)-q)/2.0
+            let uv : float2 = float2(sign(x.x) * pow(abs(x.x), 1.0/3.0),
+                                     sign(x.y) * pow(abs(x.y), 1.0/3.0))
+            let t = simd_clamp(uv.x+uv.y-kx, 0.0, 1.0)
+            let  q = d+(c+b*t)*t
+            res = dot2(q)
+            sgn = cross2(c+2.0*b*t,q)
+        }
+        else
+        {   // 3 roots
+            let z = sqrt(-p)
+            let v = acos(q/(p*z*2.0))/3.0
+            let m = cos(v)
+            let n = sin(v)*1.732050808
+            let t = simd_clamp( float3(m + m,-n - m,n - m) * z - float3(kx, kx, kx), float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0))
+            let  qx = d+(c+b*t.x)*t.x; let dx = dot2(qx), sx = cross2(c+2.0*b*t.x,qx)
+            let  qy = d+(c+b*t.y)*t.y; let dy = dot2(qy), sy = cross2(c+2.0*b*t.y,qy)
+            if( dx < dy ) { res = dx; sgn = sx } else { res=dy; sgn=sy; }
+        }
+        
+        return sqrt( res )*sign(sgn);
+    }
+    
+    //
+    func sdSpline(_ p: float2) -> Float
+    {
+        return sdBezier(p, float2(-0.5, -0.0), float2(0.3,-0.2), float2(0.2,0.5))
+    }
+    
+    //
     func sdHalf(_ p: float2) -> Float
     {
         return 0.5 - p.y - 0.5
