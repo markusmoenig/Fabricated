@@ -67,6 +67,16 @@ typedef struct
 
 typedef struct
 {
+    vector_float2   size;
+    vector_float2   p1, p2, p3;
+    float           width, borderSize;
+    vector_float4   fillColor;
+    vector_float4   borderColor;
+    
+} BezierUniform;
+
+typedef struct
+{
     vector_float2   atlasSize;
     vector_float2   fontPos;
     vector_float2   fontSize;

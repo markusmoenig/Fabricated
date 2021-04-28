@@ -10,7 +10,7 @@ import MetalKit
 class MetalStates {
     
     enum States : Int {
-        case DrawDisc, CopyTexture, DrawTexture, DrawBox, DrawBoxExt, DrawTextChar, DrawBackPattern, DrawLine
+        case DrawDisc, CopyTexture, DrawTexture, DrawBox, DrawBoxExt, DrawTextChar, DrawBackPattern, DrawLine, DrawBezier
     }
     
     enum ComputeStates : Int {
@@ -55,6 +55,7 @@ class MetalStates {
         states[States.DrawTextChar.rawValue] = createQuadState(name: "m4mTextDrawable")
         states[States.DrawBackPattern.rawValue] = createQuadState(name: "m4mBoxPatternDrawable")
         states[States.DrawLine.rawValue] = createQuadState(name: "m4mLineDrawable")
+        states[States.DrawBezier.rawValue] = createQuadState(name: "m4mBezierDrawable")
 
         computeStates[ComputeStates.MakeCGIImage.rawValue] = createComputeState(name: "makeCGIImage")
     }

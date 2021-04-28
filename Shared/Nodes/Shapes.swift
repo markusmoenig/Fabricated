@@ -137,6 +137,7 @@ class ShapeGround : TileNode {
     override func setup()
     {
         type = "ShapeGround"
+        toolShape = .QuadraticSpline
         optionGroups.append(createShapeTransformGroup())
     }
     

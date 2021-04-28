@@ -203,7 +203,7 @@ class MetalDrawables
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     
-    /// Draws a box
+    /// Draws a line
     func drawLine(startPos: float2, endPos: float2, radius: Float, borderSize: Float = 0, fillColor: float4 = float4(1,1,1,1), borderColor: float4 = float4(0,0,0,0))
     {
         let sx = startPos.x
@@ -239,6 +239,48 @@ class MetalDrawables
         
         renderEncoder.setFragmentBytes(&data, length: MemoryLayout<LineUniform>.stride, index: 0)
         renderEncoder.setRenderPipelineState(metalView.core.metalStates.getState(state: .DrawLine))
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+    
+    /// Draws a bezier
+    func drawBezier(p1: float2, p2: float2, p3: float2, radius: Float, borderSize: Float = 0, fillColor: float4 = float4(1,1,1,1), borderColor: float4 = float4(0,0,0,0))
+    {
+        let sx = p1.x
+        let sy = p1.y
+        let mx = p2.x
+        let my = p2.y
+        let ex = p3.x
+        let ey = p3.y
+        
+        let minX = min(sx, mx, ex)
+        let maxX = max(sx, mx, ex)
+        let minY = min(sy, my, ey)
+        let maxY = max(sy, my, ey)
+        
+        let areaWidth : Float = maxX - minX + borderSize + radius * 2
+        let areaHeight : Float = maxY - minY + borderSize + radius * 2
+                
+        let middleX : Float = (sx + ex) / 2
+        let middleY : Float = (sy + ey) / 2
+        
+        var data = BezierUniform()
+        data.size = float2(areaWidth, areaHeight)
+        data.width = radius
+        data.borderSize = borderSize
+        data.fillColor = fillColor
+        data.borderColor = borderColor
+        data.p1 = float2(sx - middleX, middleY - sy)
+        data.p2 = float2(mx - middleX, middleY - my)
+        data.p3 = float2(ex - middleX, middleY - ey)
+
+        let rect = MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: 1)
+        let vertexData = createVertexData(rect)
+        
+        renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
+        renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+        
+        renderEncoder.setFragmentBytes(&data, length: MemoryLayout<BezierUniform>.stride, index: 0)
+        renderEncoder.setRenderPipelineState(metalView.core.metalStates.getState(state: .DrawBezier))
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     

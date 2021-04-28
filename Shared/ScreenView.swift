@@ -52,12 +52,15 @@ class ScreenView
             drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
         }
         
+        var selectedTilePos : float2? = nil
+        
         // Selection
         if let selection = core.project.selectedRect, core.currentTool == .Select {
             let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
-            drawables.drawBox(position: float2(x,y), size: float2(tileSize, tileSize) * graphZoom, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+            selectedTilePos = float2(x,y)
+            drawables.drawBox(position: float2(x,y), size: float2(tileSize, tileSize) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
         }
             
         let center = drawables.viewSize / 2.0 + graphOffset
@@ -88,7 +91,69 @@ class ScreenView
             xOffset += tileSize * graphZoom
         }
 
+        // Draw tool shape(s)
+        if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil, selectedTilePos != nil {
+            if currentNode.role == .Shape {
+
+                if let instance = getInstanceAt(selectedTilePos!) {
+
+                    drawToolShapes(true, currentNode, instance, selectedTilePos!)
+                }
+            }
+        }
+        
         drawables.encodeEnd()
+    }
+    
+    /// Draw the current tool shape of the currently selected shape node
+    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ instance: TileInstance,_ pos: float2)
+    {
+        let tileSize = core.project.getTileSize()
+
+        func convertPos(_ p: float2) -> float2 {
+            return pos + p * tileSize * graphZoom
+        }
+        
+        func convertFloat(_ v: Float) -> Float {
+            return v * tileSize * graphZoom
+        }
+        
+        if node.toolShape == .QuadraticSpline {
+            
+            let p1 = convertPos(instance.readFloat2("_control1", float2(0.0, 0.5)))
+            let p2 = convertPos(instance.readFloat2("_control2", float2(0.5, 0.5)))
+            let p3 = convertPos(instance.readFloat2("_control3", float2(1.0, 0.5)))
+            
+            if editable {
+                let r = convertFloat(0.08)
+                
+                let off = r / 2 + r / 3
+                drawables.drawDisk(position: p1 - off, radius: r)
+                drawables.drawDisk(position: p2 - off, radius: r)
+                drawables.drawDisk(position: p3 - off, radius: r)
+            }
+            
+            let r = convertFloat(0.04)
+            drawables.drawBezier(p1: p1, p2: p2, p3: p3, radius: r)
+        }
+    }
+    
+    /// Returns the tile instance at the given position
+    func getInstanceAt(_ pos: float2) -> TileInstance?
+    {
+        let size = drawables.viewSize
+        let center = size / 2 + graphOffset
+        let p = pos - center
+
+        let tileSize = core.project.getTileSize()
+        let tileId : SIMD2<Int> = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
+        
+        if let layer = core.project.currentLayer {
+            if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
+                return instance
+            }
+        }
+        return nil
     }
     
     func touchDown(_ pos: float2)
@@ -137,8 +202,8 @@ class ScreenView
                                 core.tileSetChanged.send(tileSet)
                             }
                         }
-                        core.nodeView.setCurrentNode(nil)
-                        core.nodeView.update()
+                        //core.nodeView.setCurrentNode(nil)
+                        //core.nodeView.update()
                     }
                 }
             } else

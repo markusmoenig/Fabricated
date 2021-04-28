@@ -196,7 +196,9 @@ class Core
             self.dispatchGroup.leave()
             //DispatchQueue.main.async {
             print("finished")
-            self.tileSetChanged.send(tileSet)
+            DispatchQueue.main.async {
+                self.tileSetChanged.send(tileSet)
+            }
         }
     }
     

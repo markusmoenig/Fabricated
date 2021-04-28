@@ -32,9 +32,9 @@ class MMValues
         values[name] = value
     }
     
-    func readFloat2(_ name: String) -> float2
+    func readFloat2(_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
     {
-        var rc = float2(0,0)
+        var rc = defaultValue
         if let x = values[name + "_x"] { rc.x = x }
         if let y = values[name + "_y"] { rc.y = y }
         return rc

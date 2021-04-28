@@ -72,6 +72,55 @@ float2 m4mRotateCWPivot(float2 pos, float angle, float2 pivot)
     return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
 }
 
+float dot2( float2 v ) { return dot(v,v); }
+float cross2( float2 a, float2 b ) { return a.x*b.y - a.y*b.x; }
+
+// signed distance to a quadratic bezier, https://www.shadertoy.com/view/MlKcDD
+float sdBezier(float2 pos, float2 A, float2 B, float2 C )
+{
+    float2 a = B - A;
+    float2 b = A - 2.0*B + C;
+    float2 c = a * 2.0;
+    float2 d = A - pos;
+
+    float kk = 1.0/dot(b,b);
+    float kx = kk * dot(a,b);
+    float ky = kk * (2.0*dot(a,a)+dot(d,b))/3.0;
+    float kz = kk * dot(d,a);
+
+    float res = 0.0;
+    float sgn = 0.0;
+
+    float p = ky - kx*kx;
+    float p3 = p*p*p;
+    float q = kx*(2.0*kx*kx - 3.0*ky) + kz;
+    float h = q*q + 4.0*p3;
+
+    if( h>=0.0 )
+    {   // 1 root
+        h = sqrt(h);
+        float2 x = (float2(h,-h)-q)/2.0;
+        float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0));
+        float t = clamp( uv.x+uv.y-kx, 0.0, 1.0 );
+        float2  q = d+(c+b*t)*t;
+        res = dot2(q);
+        sgn = cross2(c+2.0*b*t,q);
+    }
+    else
+    {   // 3 roots
+        float z = sqrt(-p);
+        float v = acos(q/(p*z*2.0))/3.0;
+        float m = cos(v);
+        float n = sin(v)*1.732050808;
+        float3  t = clamp( float3(m+m,-n-m,n-m)*z-kx, 0.0, 1.0 );
+        float2  qx=d+(c+b*t.x)*t.x; float dx=dot2(qx), sx = cross2(c+2.0*b*t.x,qx);
+        float2  qy=d+(c+b*t.y)*t.y; float dy=dot2(qy), sy = cross2(c+2.0*b*t.y,qy);
+        if( dx<dy ) { res=dx; sgn=sx; } else {res=dy; sgn=sy; }
+    }
+    
+    return sqrt( res )*sign(sgn);
+}
+
 // Disc
 fragment float4 m4mDiscDrawable(RasterizerData in [[stage_in]],
                                constant DiscUniform *data [[ buffer(0) ]],
@@ -116,7 +165,7 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
 {
     float2 uv = in.textureCoordinate * ( data->size );
     uv -= float2( data->size / 2.0 );
-    
+        
     float2 d = abs( uv ) - data->size / 2 + data->onion + data->round;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
     
@@ -148,7 +197,7 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
-// Box
+// Line
 fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
                                constant LineUniform *data [[ buffer(0) ]])
 {
@@ -161,6 +210,25 @@ fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
     float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
     float dist = -(data->width-distance(o,l*h));
     
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    
+    return col;
+}
+
+// Bezier
+fragment float4 m4mBezierDrawable(RasterizerData in [[stage_in]],
+                               constant BezierUniform *data [[ buffer(0) ]])
+{
+    float2 uv = in.textureCoordinate * ( data->size + data->borderSize / 2.0);
+    uv -= float2(data->size / 2.0 + data->borderSize / 2.0);
+    
+    float2 p1 = data->p1;
+    float2 p2 = data->p2;
+    float2 p3 = data->p3;
+
+    float dist = sdBezier(uv, p1, p2, p3);
+
     float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
     col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
     

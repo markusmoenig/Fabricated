@@ -63,13 +63,18 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         case Tile, Shape, Modifier, Decorator
     }
     
+    enum TileNodeToolShape {
+        case None, Disc, Box, QuadraticSpline
+    }
+    
     var id                  = UUID()
     var name                = "" // User defined
     
     var type                : String = "" // To identify the node when loading via JSON
     
     var role                : TileNodeRole = .Tile
-    
+    var toolShape           : TileNodeToolShape = .None
+
     var nodeRect            = MMRect()
     
     var optionGroups        : [TileNodeOptionsGroup] = []
@@ -377,19 +382,9 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return lhs.id == rhs.id
     }
     
-    // Tools API, needs to return true to indicate event is consumed and to receive further messages
-    // Coordinates are relative to tile
-    func touchDown(_ pos: float2) -> Bool
-    {
-        return false
-    }
-    
-    func touchMoved(_ pos: float2)
-    {
-    }
-    
-    func touchUp(_ pos: float2)
-    {
+    ///
+    func getToolShapes() -> [TileNodeToolShape] {
+        return []
     }
 }
 
