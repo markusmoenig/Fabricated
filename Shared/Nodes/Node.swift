@@ -177,29 +177,12 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Transforms the UV
-    func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true) -> float2
+    func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true, centered: Bool = true) -> float2
     {
         var uv = pixelCtx.uv
-        
-        let positionX = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Position X")
-        let positionY = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Position Y")
 
-        if positionX == 1 {
-            // Center
-            uv.x -= 0.5
-        } else
-        if positionX == 2 {
-            // Right
-            uv.x -= 1.0
-        }
-        
-        if positionY == 1 {
-            // Center
-            uv.y -= 0.5
-        } else
-        if positionY == 2 {
-            // Bottom
-            uv.y -= 1.0
+        if centered {
+            uv -= 0.5
         }
         
         var tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
@@ -362,8 +345,6 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     /// Creates the shape transform options
     func createShapeTransformGroup() -> TileNodeOptionsGroup {
         return TileNodeOptionsGroup("Transform Options", [
-            TileNodeOption(self, "Position X", .Menu, menuEntries: ["Left", "Center", "Right"], defaultFloat: 1),
-            TileNodeOption(self, "Position Y", .Menu, menuEntries: ["Top", "Center", "Bottom"], defaultFloat: 1),
             TileNodeOption(self, "Rotation", .Float, defaultFloat: 0)
         ])
     }

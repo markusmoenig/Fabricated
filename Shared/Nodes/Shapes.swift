@@ -211,21 +211,29 @@ class ShapeGround : TileNode {
     }
     
     //
-    func sdSpline(_ p: float2) -> Float
+    func sdSpline(_ p: float2, tileCtx: TileContext) -> Float
     {
-        return sdBezier(p, float2(-0.5, -0.0), float2(0.3,-0.2), float2(0.2,0.5))
+        let p1 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control1", float2(0.0, 0.5))
+        let p2 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control2", float2(0.5, 0.5))
+        let p3 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control3", float2(1.0, 0.5))
+
+        if p1 == float2(0.0, 0.5) && p2 == float2(0.5, 0.5) && p3 == float2(1.0, 0.5) {
+            return sdHalf(p, tileCtx: tileCtx)
+        }
+        return sdBezier(p, p1, p2, p3)
     }
     
     //
-    func sdHalf(_ p: float2) -> Float
+    func sdHalf(_ p: float2, tileCtx: TileContext) -> Float
     {
-        return 0.5 - p.y - 0.5
+        return 0.5 - p.y
     }
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdHalf(uv))
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, centered: false)
+        let d = sdSpline(uv, tileCtx: tileCtx)
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
         return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }

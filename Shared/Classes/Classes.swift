@@ -139,6 +139,14 @@ class MMValues
         }
     }
     
+    func readFloat2FromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    {
+        var value = float2()
+        value.x = readFloatFromInstanceIfExists(instance, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceIfExists(instance, name + "_y", defaultValue.y)
+        return value
+    }
+    
     func readFloat4FromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
     {
         var value = float4()
