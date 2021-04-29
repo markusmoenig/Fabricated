@@ -40,6 +40,9 @@ class Project           : MMValues, Codable
         screens = try container.decode([Screen].self, forKey: .screens)
         tileSets = try container.decode([TileSet].self, forKey: .tileSets)
         values = try container.decode([String:Float].self, forKey: .values)
+        
+        currentLayer = screens[0].layers[0]
+        currentTileSet = tileSets[0]
     }
     
     func encode(to encoder: Encoder) throws

@@ -88,6 +88,9 @@ class Core
     func setProject(project: Project)
     {
         self.project = project
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.updateTileSetPreviews()
+        }
     }
     
     /// Setup the preview view

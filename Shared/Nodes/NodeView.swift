@@ -298,6 +298,7 @@ class NodeView
         if node !== currentNode {
             currentNode = node
             core.tileNodeChanged.send(node)
+            core.screenView.update()
         }
     }
     
@@ -337,7 +338,6 @@ class NodeView
     
     func touchDown(_ pos: float2)
     {
-        print("touch", pos)
         if let tile = getCurrentTile() {
             for node in tile.nodes {
                 var freshlySelectedNode : TileNode? = nil

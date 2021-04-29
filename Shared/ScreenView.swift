@@ -131,8 +131,8 @@ class ScreenView
             
             if editable {
                 let r = convertFloat(0.08)
-                
                 let off = r / 2 + r / 3
+                
                 if toolControl == .BezierControl1 {
                     drawables.drawDisk(position: p1 - off, radius: r, borderSize: 2 * graphZoom, borderColor: float4(0,0,0,1))
                 } else {
@@ -150,8 +150,7 @@ class ScreenView
                 }
             }
             
-            let r = convertFloat(0.04)
-            drawables.drawBezier(p1: p1, p2: p2, p3: p3, radius: r)
+            //drawables.drawBezier(p1: p1, p2: p2, p3: p3, borderSize: 2 * graphZoom)
         }
     }
     
@@ -306,7 +305,6 @@ class ScreenView
                         var p = instance.readFloat2("_control1", float2(0.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
                         instance.writeFloat2("_control1", value: p)
-                        print(p)
                     } else
                     if toolControl == .BezierControl2 {
                         var p = instance.readFloat2("_control2", float2(0.5, 0.5))
@@ -320,6 +318,7 @@ class ScreenView
                     }
                 }
                 dragStart = tilePos
+                //core.renderer.render()
                 update()
             }
         }

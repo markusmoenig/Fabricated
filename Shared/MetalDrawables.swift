@@ -243,7 +243,7 @@ class MetalDrawables
     }
     
     /// Draws a bezier
-    func drawBezier(p1: float2, p2: float2, p3: float2, radius: Float, borderSize: Float = 0, fillColor: float4 = float4(1,1,1,1), borderColor: float4 = float4(0,0,0,0))
+    func drawBezier(p1: float2, p2: float2, p3: float2, borderSize: Float = 2, fillColor: float4 = float4(1,1,1,0), borderColor: float4 = float4(1,1,1,1))
     {
         let sx = p1.x
         let sy = p1.y
@@ -257,15 +257,15 @@ class MetalDrawables
         let minY = min(sy, my, ey)
         let maxY = max(sy, my, ey)
         
-        let areaWidth : Float = maxX - minX + borderSize + radius * 2
-        let areaHeight : Float = maxY - minY + borderSize + radius * 2
+        let areaWidth : Float = maxX - minX + borderSize
+        let areaHeight : Float = maxY - minY + borderSize
                 
-        let middleX : Float = (sx + ex) / 2
-        let middleY : Float = (sy + ey) / 2
+        let middleX : Float = (sx + mx + ex) / 3
+        let middleY : Float = (sy + my + ey) / 3
         
         var data = BezierUniform()
         data.size = float2(areaWidth, areaHeight)
-        data.width = radius
+        data.width = 0
         data.borderSize = borderSize
         data.fillColor = fillColor
         data.borderColor = borderColor
@@ -273,7 +273,7 @@ class MetalDrawables
         data.p2 = float2(mx - middleX, middleY - my)
         data.p3 = float2(ex - middleX, middleY - ey)
 
-        let rect = MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: 1)
+        let rect = MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth + data.borderSize * 2, areaHeight + data.borderSize * 2, scale: 1)
         let vertexData = createVertexData(rect)
         
         renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)
