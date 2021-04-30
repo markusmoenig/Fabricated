@@ -11,7 +11,7 @@ import Combine
 class ScreenView
 {
     enum Action {
-        case None, DragTool
+        case None, DragTool, DragInsert
     }
     
     enum ToolControl {
@@ -21,6 +21,8 @@ class ScreenView
     var action              : Action = .None
     var toolControl         : ToolControl = .None
     var actionInstance      : TileInstance? = nil
+    
+    var dragTileIds         : [SIMD2<Int>] = []
 
     var core                : Core
     var view                : DMTKView!
@@ -62,12 +64,12 @@ class ScreenView
         var selectedTilePos : float2? = nil
         
         // Selection
-        if let selection = core.project.selectedRect, core.currentTool == .Select {
+        if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
             let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
             selectedTilePos = float2(x,y)
-            drawables.drawBox(position: float2(x,y), size: float2(tileSize, tileSize) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+            drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
         }
             
         let center = drawables.viewSize / 2.0 + graphOffset
@@ -232,6 +234,47 @@ class ScreenView
         tilePos /= tileSize
     }
     
+    /// Calculates the dimensions of the tile area
+    func calculateAreaDimensions(_ tileIds: [SIMD2<Int>]) -> (SIMD2<Int>, SIMD4<Int>) {
+        var width   : Int = 0
+        var height  : Int = 0
+        
+        var minX    : Int = 10000
+        var maxX    : Int = -10000
+        var minY    : Int = 10000
+        var maxY    : Int = -10000
+        
+        var tilesInArea : Int = 0
+
+        for index in tileIds {
+            
+            let x = index.x
+            let y = index.y
+            
+            if x < minX {
+                minX = x
+            }
+            if x > maxX {
+                maxX = x
+            }
+            if y < minY {
+                minY = y
+            }
+            if y > maxY {
+                maxY = y
+            }
+            
+            tilesInArea += 1
+        }
+                
+        if tilesInArea > 0 {
+            width = (abs(maxX - minX) + 1)
+            height = (abs(maxY - minY) + 1)
+        }
+        
+        return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
+    }
+    
     func touchDown(_ pos: float2)
     {
         actionInstance = nil
@@ -256,12 +299,11 @@ class ScreenView
             print("touch at", tileId.x, tileId.y, "offset", tilePos.x, tilePos.y)
 
             if core.currentTool == .Apply {
-                if let currentTileSet = core.project.currentTileSet {
-                    if let currentTile = currentTileSet.currentTile {
-                        layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
-                        core.renderer.render()
-                    }
-                }
+                dragTileIds = [tileId]
+                action = .DragInsert
+                
+                core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+                //core.renderer.render()
             } else
             if core.currentTool == .Select {
                 core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
@@ -320,15 +362,69 @@ class ScreenView
                 dragStart = tilePos
                 //core.renderer.render()
                 update()
+            } else
+            if action == .DragInsert {
+                //if let currentTileSet = core.project.currentTileSet {
+                    //if let currentTile = currentTileSet.currentTile {
+                        
+                        if dragTileIds.contains(tileId) == false {
+                            dragTileIds.append(tileId)
+                            
+                            let dim = calculateAreaDimensions(dragTileIds)
+                            core.project.selectedRect = SIMD4<Int>(dim.1.x, dim.1.y, dim.0.x, dim.0.y)
+                        }
+                                                
+                        //layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
+                        //core.renderer.render()
+                    //}
+                //}
+                update()
             }
         }
     }
 
     func touchUp(_ pos: float2)
     {
+        if let layer = core.project.currentLayer {
+            if action == .DragInsert {
+                if let currentTileSet = core.project.currentTileSet {
+                    if let currentTile = currentTileSet.currentTile, core.project.selectedRect != nil {
+                        
+                        var ids : [SIMD2<Int>] = []
+                        
+                        // Collect all tileIds inside the currently selected rect
+                        let rect = core.project.selectedRect!
+                        for h in rect.y..<(rect.y + rect.w) {
+                            for w in rect.x..<(rect.x + rect.z) {
+                                ids.append(SIMD2<Int>(w, h))
+                            }
+                        }
+                        
+                        // Iterate the tileIds and assign the area
+                        let area = TileInstanceArea(currentTileSet.id, currentTile.id)
+                        for tileId in ids {
+                            if let instance = layer.tileInstances[tileId] {
+                                instance.tileAreas.append(area.id)
+                            } else {
+                                let instance = TileInstance(currentTileSet.id, currentTile.id)
+                                instance.tileAreas.append(area.id)
+                                layer.tileInstances[tileId] = instance
+                            }
+                        }
+                        
+                        area.area = core.project.selectedRect!
+                                                
+                        layer.tileAreas.append(area)
+                        core.renderer.render()
+                    }
+                }
+            }
+        }
+        
         if action != .None {
             core.renderer.render()
         }
+        
         action = .None
         toolControl = .None
         actionInstance = nil

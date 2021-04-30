@@ -142,6 +142,7 @@ class Renderer
             
             checkIfTextureIsValid(size: texSize)
             
+            /*
             for (index, instance) in layer.tileInstances {
                                 
                 if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
@@ -159,6 +160,30 @@ class Renderer
                     let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
                     //renderTile(tileContext, rect)
                     tileJobs.append(TileJob(tileContext, rect))
+                }
+            }*/
+            for area in layer.tileAreas {
+                if let tile = core.project.getTileOfTileSet(area.tileSetId, area.tileId) {
+                    let rect = area.area
+                    for h in rect.y..<(rect.y + rect.w) {
+                        for w in rect.x..<(rect.x + rect.z) {
+                            //ids.append(SIMD2<Int>(w, h))
+                            
+                            let tileContext = TileContext()
+                            tileContext.layer = layer
+                            tileContext.pixelSize = core.project.getPixelSize()
+                            tileContext.antiAliasing = core.project.getAntiAliasing()
+                            tileContext.tile = copyTile(tile)
+                            tileContext.tileInstance = layer.tileInstances[SIMD2<Int>(w,h)]
+
+                            let x : Float = Float(abs(dims.1.x - w)) * tileSize
+                            let y : Float = Float(abs(dims.1.y - h)) * tileSize
+                            
+                            let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
+                            //renderTile(tileContext, rect)
+                            tileJobs.append(TileJob(tileContext, rect))
+                        }
+                    }
                 }
             }
             

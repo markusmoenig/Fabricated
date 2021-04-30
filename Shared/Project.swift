@@ -149,12 +149,14 @@ class Layer             : MMValues, Codable, Equatable
     var name            = ""
     
     var tileInstances   : [SIMD2<Int>: TileInstance] = [:]
-    
+    var tileAreas       : [TileInstanceArea] = []
+
     private enum CodingKeys: String, CodingKey {
         case id
         case name
         case tileInstances
         case values
+        case tileAreas
     }
     
     init(_ name: String = "Unnamed")
@@ -171,6 +173,9 @@ class Layer             : MMValues, Codable, Equatable
         name = try container.decode(String.self, forKey: .name)
         tileInstances = try container.decode([SIMD2<Int>: TileInstance].self, forKey: .tileInstances)
         values = try container.decode([String:Float].self, forKey: .values)
+        if let areas = try container.decodeIfPresent([TileInstanceArea].self, forKey: .tileAreas) {
+            self.tileAreas = areas
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -180,10 +185,23 @@ class Layer             : MMValues, Codable, Equatable
         try container.encode(name, forKey: .name)
         try container.encode(tileInstances, forKey: .tileInstances)
         try container.encode(values, forKey: .values)
+        try container.encode(tileAreas, forKey: .tileAreas)
     }
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
+    }
+    
+    /// Returns the TileInstanceArea identified by its id
+    func getTileArea(_ id: UUID) -> TileInstanceArea?
+    {
+        for area in tileAreas {
+            if area.id == id {
+                return area
+            }
+        }
+        
+        return nil
     }
 }
 
@@ -293,18 +311,67 @@ class Tile         : Codable, Equatable
     }
 }
 
+class TileInstanceArea : Codable, Equatable
+{
+    var id          = UUID()
+
+    var tileSetId   : UUID
+    var tileId      : UUID
+    
+    var area        : SIMD4<Int>
+    
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case tileSetId
+        case tileId
+        case area
+    }
+    
+    init(_ tileSetId: UUID,_ tileId: UUID,_ area: SIMD4<Int> = SIMD4<Int>(0,0,0,0))
+    {
+        self.tileSetId = tileSetId
+        self.tileId = tileId
+        self.area = area
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        tileSetId = try container.decode(UUID.self, forKey: .tileSetId)
+        tileId = try container.decode(UUID.self, forKey: .tileId)
+        area = try container.decode(SIMD4<Int>.self, forKey: .area)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(tileSetId, forKey: .tileSetId)
+        try container.encode(tileId, forKey: .tileId)
+        try container.encode(area, forKey: .area)
+    }
+    
+    static func ==(lhs:TileInstanceArea, rhs:TileInstanceArea) -> Bool { // Implement Equatable
+        return lhs.id == rhs.id
+    }
+}
+
 class TileInstance : MMValues, Codable, Equatable
 {
     var id          = UUID()
 
     var tileSetId   : UUID
     var tileId      : UUID
+    
+    var tileAreas   : [UUID] = []
 
     private enum CodingKeys: String, CodingKey {
         case id
         case tileSetId
         case tileId
         case values
+        case tileAreas
     }
     
     init(_ tileSetId: UUID,_ tileId: UUID)
@@ -322,6 +389,9 @@ class TileInstance : MMValues, Codable, Equatable
         tileId = try container.decode(UUID.self, forKey: .tileId)
         super.init()
         values = try container.decode([String:Float].self, forKey: .values)
+        if let areas = try container.decodeIfPresent([UUID].self, forKey: .tileAreas) {
+            self.tileAreas = areas
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -331,6 +401,7 @@ class TileInstance : MMValues, Codable, Equatable
         try container.encode(tileSetId, forKey: .tileSetId)
         try container.encode(tileId, forKey: .tileId)
         try container.encode(values, forKey: .values)
+        try container.encode(tileAreas, forKey: .tileAreas)
     }
     
     static func ==(lhs:TileInstance, rhs:TileInstance) -> Bool { // Implement Equatable

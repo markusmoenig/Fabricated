@@ -193,8 +193,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             return pos * float2x2(float2(ca, sa), float2(-sa, ca))
         }
         
-        let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0
-        
+        let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0        
         tUV = rotateCW(tUV, angle: rotation.degreesToRadians)
         
         return tUV
