@@ -378,7 +378,28 @@ class ScreenView
                 }
             } else
             if core.currentTool == .Clear {
-                layer.tileInstances[tileId] = nil
+                if let instance = layer.tileInstances[tileId] {
+                    let areas = getAreasOfTileInstance(layer, instance)
+                    for area in areas {
+                        if let index = layer.tileAreas.firstIndex(of: area) {
+                            layer.tileAreas.remove(at: index)
+
+                            for (pos, inst) in layer.tileInstances {
+                                if inst.tileAreas.contains(area.id) {
+                                    if let index = inst.tileAreas.firstIndex(of: area.id) {
+                                        inst.tileAreas.remove(at: index)
+
+                                        if inst.tileAreas.isEmpty {
+                                            layer.tileInstances[pos] = nil
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                core.project.selectedRect = nil
+                core.project.selectedAreas = []
                 core.renderer.render()
             }
         }
