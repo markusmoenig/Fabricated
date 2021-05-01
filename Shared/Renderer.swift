@@ -70,9 +70,10 @@ class TilePixelContext
 
 class TileContext
 {
-    var tile            : Tile!         // The current tile
-    var tileInstance    : TileInstance! // The instance of the tile
-    var layer           : Layer!        // The current layer
+    var tile            : Tile!             // The current tile
+    var tileInstance    : TileInstance!     // The instance of the tile
+    var tileArea        : TileInstanceArea! // The area of the tile
+    var layer           : Layer!            // The current layer
 
     var pixelSize       : Float = 1
     var antiAliasing    : Float = 2
