@@ -17,7 +17,11 @@ class Project           : MMValues, Codable
     
     var projectSettings : Bool = false
 
+    // For preview of selection in progress
     var selectedRect    : SIMD4<Int>? = nil
+    
+    // The areas for the currently selected tile instance
+    var selectedAreas   : [TileInstanceArea] = []
 
     override init()
     {
@@ -311,7 +315,7 @@ class Tile         : Codable, Equatable
     }
 }
 
-class TileInstanceArea : Codable, Equatable
+class TileInstanceArea : MMValues, Codable, Equatable
 {
     var id          = UUID()
 
@@ -325,6 +329,7 @@ class TileInstanceArea : Codable, Equatable
         case tileSetId
         case tileId
         case area
+        case values
     }
     
     init(_ tileSetId: UUID,_ tileId: UUID,_ area: SIMD4<Int> = SIMD4<Int>(0,0,0,0))
@@ -332,6 +337,7 @@ class TileInstanceArea : Codable, Equatable
         self.tileSetId = tileSetId
         self.tileId = tileId
         self.area = area
+        super.init()
     }
     
     required init(from decoder: Decoder) throws
@@ -341,6 +347,8 @@ class TileInstanceArea : Codable, Equatable
         tileSetId = try container.decode(UUID.self, forKey: .tileSetId)
         tileId = try container.decode(UUID.self, forKey: .tileId)
         area = try container.decode(SIMD4<Int>.self, forKey: .area)
+        super.init()
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -350,6 +358,7 @@ class TileInstanceArea : Codable, Equatable
         try container.encode(tileSetId, forKey: .tileSetId)
         try container.encode(tileId, forKey: .tileId)
         try container.encode(area, forKey: .area)
+        try container.encode(values, forKey: .values)
     }
     
     static func ==(lhs:TileInstanceArea, rhs:TileInstanceArea) -> Bool { // Implement Equatable

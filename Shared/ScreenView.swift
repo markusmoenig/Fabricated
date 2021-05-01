@@ -20,7 +20,7 @@ class ScreenView
     
     var action              : Action = .None
     var toolControl         : ToolControl = .None
-    var actionInstance      : TileInstance? = nil
+    var actionArea          : TileInstanceArea? = nil
     
     var dragTileIds         : [SIMD2<Int>] = []
 
@@ -60,15 +60,21 @@ class ScreenView
 
             drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
         }
-        
-        var selectedTilePos : float2? = nil
-        
-        // Selection
+                
+        // Selected rectangle
         if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
             let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
-            selectedTilePos = float2(x,y)
+            drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+        }
+        
+        // Selected areas
+        for area in core.project.selectedAreas {
+            let selection = area.area
+            let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
+            let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
+            
             drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
         }
             
@@ -101,10 +107,14 @@ class ScreenView
         }
 
         // Draw tool shape(s)
-        if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil, selectedTilePos != nil {
+        if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
             if currentNode.role == .Shape {
-                if let instance = getInstanceAt(selectedTilePos! + float2(0.5, 0.5)) {
-                    drawToolShapes(true, currentNode, instance, selectedTilePos!)
+                if let area = getCurrentArea() {
+                    
+                    let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
+                    let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
+                    
+                    drawToolShapes(true, currentNode, area, float2(x, y))
                 }
             }
         }
@@ -113,23 +123,23 @@ class ScreenView
     }
     
     /// Draw the current tool shape of the currently selected shape node
-    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ instance: TileInstance,_ pos: float2)
+    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ area: TileInstanceArea,_ pos: float2)
     {
         let tileSize = core.project.getTileSize()
 
         func convertPos(_ p: float2) -> float2 {
-            return pos + p * tileSize * graphZoom
+            return pos + p * tileSize * float2(Float(area.area.z), Float(area.area.w)) * graphZoom
         }
         
         func convertFloat(_ v: Float) -> Float {
-            return v * tileSize * graphZoom
+            return v * tileSize * Float(area.area.w) * graphZoom
         }
         
         if node.toolShape == .QuadraticSpline {
             
-            let p1 = convertPos(instance.readFloat2("_control1", float2(0.0, 0.5)))
-            let p2 = convertPos(instance.readFloat2("_control2", float2(0.5, 0.5)))
-            let p3 = convertPos(instance.readFloat2("_control3", float2(1.0, 0.5)))
+            let p1 = convertPos(area.readFloat2("_control1", float2(0.0, 0.5)))
+            let p2 = convertPos(area.readFloat2("_control2", float2(0.5, 0.5)))
+            let p3 = convertPos(area.readFloat2("_control3", float2(1.0, 0.5)))
             
             if editable {
                 let r = convertFloat(0.08)
@@ -170,23 +180,23 @@ class ScreenView
         }
         
         if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
-            if let instance = getInstanceAt(pos) {
+            if let area = getCurrentArea() {
                 if currentNode.role == .Shape {
                     if currentNode.toolShape == .QuadraticSpline {
-                        if checkForDisc(nPos, instance.readFloat2("_control1", float2(0.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readFloat2("_control1", float2(0.0, 0.5)), 0.08) {
                             control = .BezierControl1
                         } else
-                        if checkForDisc(nPos, instance.readFloat2("_control2", float2(0.5, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readFloat2("_control2", float2(0.5, 0.5)), 0.08) {
                             control = .BezierControl2
                         } else
-                        if checkForDisc(nPos, instance.readFloat2("_control3", float2(1.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readFloat2("_control3", float2(1.0, 0.5)), 0.08) {
                             control = .BezierControl3
                         }
                     }
                 }
                 
                 if control != .None {
-                    actionInstance = instance
+                    actionArea = area
                 }
             }
         }
@@ -234,6 +244,23 @@ class ScreenView
         tilePos /= tileSize
     }
     
+    /// Returns the normalized position inside an area
+    func getNormalizedAreaPos(_ pos: float2,_ area: TileInstanceArea) -> float2
+    {
+        let tileSize = core.project.getTileSize()
+
+        let size = drawables.viewSize
+        let center = size / 2 + graphOffset
+        
+        let areaSize = float2(tileSize * Float(area.area.z), tileSize * Float(area.area.w))
+                
+        var p = pos - center
+        p /= graphZoom
+            
+        let areaPos = p - float2(Float(area.area.x) * tileSize, Float(area.area.y) * tileSize)
+        return areaPos / areaSize
+    }
+    
     /// Calculates the dimensions of the tile area
     func calculateAreaDimensions(_ tileIds: [SIMD2<Int>]) -> (SIMD2<Int>, SIMD4<Int>) {
         var width   : Int = 0
@@ -275,9 +302,26 @@ class ScreenView
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
     }
     
+    /// Returns the TileInstanceAreas of the given TileInstance
+    func getAreasOfTileInstance(_ layer: Layer,_ instance: TileInstance) -> [TileInstanceArea]
+    {
+        var areas : [TileInstanceArea] = []
+        for id in instance.tileAreas {
+            if let a = layer.getTileArea(id) {
+                areas.append(a)
+            }
+        }
+        return areas
+    }
+    
+    /// Returns the current area we process the tools for
+    func getCurrentArea() -> TileInstanceArea? {
+        return core.project.selectedAreas.first
+    }
+    
     func touchDown(_ pos: float2)
     {
-        actionInstance = nil
+        actionArea = nil
         
         if let layer = core.project.currentLayer {
 
@@ -287,27 +331,37 @@ class ScreenView
 
             // -
 
-            let control = getToolControl(pos, tilePos)
-            if control != .None {
-                self.toolControl = control
-                action = .DragTool
+            if let area = getCurrentArea() {
+                let nAreaPos = getNormalizedAreaPos(pos, area)
                 
-                dragId = tileId
-                dragStart = tilePos
+                let control = getToolControl(pos, nAreaPos)
+                if control != .None {
+                    self.toolControl = control
+                    action = .DragTool
+                    
+                    dragId = tileId
+                    dragStart = nAreaPos
+                }
             }
             
             print("touch at", tileId.x, tileId.y, "offset", tilePos.x, tilePos.y)
 
-            if core.currentTool == .Apply {
-                dragTileIds = [tileId]
-                action = .DragInsert
-                
-                core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
-                //core.renderer.render()
+            if core.currentTool == .Apply && core.project.currentTileSet?.currentTile != nil {
+                if layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] == nil {
+
+                    dragTileIds = [tileId]
+                    action = .DragInsert
+                    
+                    core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+                }
             } else
             if core.currentTool == .Select {
-                core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
                 if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
+
+                    // Assemble all areas in which the tile is included and select them
+                    core.project.selectedAreas = getAreasOfTileInstance(layer, instance)
+                    
+                    //
                     if let tileSet = core.project.getTileSet(instance.tileSetId) {
                         if let newTile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
                             if tileSet.currentTile !== newTile {
@@ -339,27 +393,30 @@ class ScreenView
             var tileId : SIMD2<Int> = SIMD2<Int>(0,0)
             var tilePos = SIMD2<Float>(0,0)
             getTileIdPos(pos, tileId: &tileId, tilePos: &tilePos)
-            let diff = tilePos - dragStart
 
             if action == .DragTool {
-                if let instance = actionInstance, tileId == dragId {
+                if let area = actionArea {
+                    let nAreaPos = getNormalizedAreaPos(pos, area)
+                    let diff = nAreaPos - dragStart
+
                     if toolControl == .BezierControl1 {
-                        var p = instance.readFloat2("_control1", float2(0.0, 0.5))
+                        var p = area.readFloat2("_control1", float2(0.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        instance.writeFloat2("_control1", value: p)
+                        area.writeFloat2("_control1", value: p)
                     } else
                     if toolControl == .BezierControl2 {
-                        var p = instance.readFloat2("_control2", float2(0.5, 0.5))
+                        var p = area.readFloat2("_control2", float2(0.5, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        instance.writeFloat2("_control2", value: p)
+                        area.writeFloat2("_control2", value: p)
                     } else
                     if toolControl == .BezierControl3 {
-                        var p = instance.readFloat2("_control3", float2(1.0, 0.5))
+                        var p = area.readFloat2("_control3", float2(1.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        instance.writeFloat2("_control3", value: p)
+                        area.writeFloat2("_control3", value: p)
                     }
+                    
+                    dragStart = nAreaPos
                 }
-                dragStart = tilePos
                 //core.renderer.render()
                 update()
             } else
@@ -413,7 +470,9 @@ class ScreenView
                         }
                         
                         area.area = core.project.selectedRect!
-                                                
+                        core.project.selectedRect = nil
+                        core.project.selectedAreas = [area]
+                        
                         layer.tileAreas.append(area)
                         core.renderer.render()
                     }
@@ -427,7 +486,7 @@ class ScreenView
         
         action = .None
         toolControl = .None
-        actionInstance = nil
+        actionArea = nil
         update()
     }
     
