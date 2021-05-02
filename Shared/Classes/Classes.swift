@@ -129,7 +129,7 @@ class MMValues
     }
     
     // These functions read / write to either itself or the currently selected instance if .Select tool is active
-    func readFloatFromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: Float = 0) -> Float
+    func readFloatFromInstanceIfExists(_ instance: MMValues,_ name: String,_ defaultValue: Float = 0) -> Float
     {
         if let value = instance.values[name] {
             return value
@@ -139,7 +139,7 @@ class MMValues
         }
     }
     
-    func readFloat2FromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    func readFloat2FromInstanceIfExists(_ instance: MMValues,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
     {
         var value = float2()
         value.x = readFloatFromInstanceIfExists(instance, name + "_x", defaultValue.x)
@@ -147,7 +147,7 @@ class MMValues
         return value
     }
     
-    func readFloat4FromInstanceIfExists(_ instance: TileInstance,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
+    func readFloat4FromInstanceIfExists(_ instance: MMValues,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
     {
         var value = float4()
         value.x = readFloatFromInstanceIfExists(instance, name + "_x", defaultValue.x)

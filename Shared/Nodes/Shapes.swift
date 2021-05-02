@@ -117,8 +117,10 @@ class ShapeBox : TileNode {
         let height : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Height") / 2
         let rounding : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rounding") / 2.0
         
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox(uv, float2(width, height), rounding))
+        let areaSize = float2(Float(tileCtx.tileArea.area.z), Float(tileCtx.tileArea.area.w))
+
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true)
+        pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox(uv * areaSize, float2(width, height), rounding))
         return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
     }
 }
@@ -213,25 +215,25 @@ class ShapeGround : TileNode {
     //
     func sdSpline(_ p: float2, tileCtx: TileContext) -> Float
     {
-        let p1 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control1", float2(0.0, 0.5))
-        let p2 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control2", float2(0.5, 0.5))
-        let p3 = readFloat2FromInstanceIfExists(tileCtx.tileInstance, "_control3", float2(1.0, 0.5))
+        let areaSize = float2(Float(tileCtx.tileArea.area.z), Float(tileCtx.tileArea.area.w))
 
-        if p1 == float2(0.0, 0.5) && p2 == float2(0.5, 0.5) && p3 == float2(1.0, 0.5) {
-            return sdHalf(p, tileCtx: tileCtx)
-        }
-        return sdBezier(p, p1, p2, p3)
+        let p1 = readFloat2FromInstanceIfExists(tileCtx.tileArea, "_control1", float2(0.0, 0.5))
+        let p2 = readFloat2FromInstanceIfExists(tileCtx.tileArea, "_control2", float2(0.5, 0.501))
+        let p3 = readFloat2FromInstanceIfExists(tileCtx.tileArea, "_control3", float2(1.0, 0.5))
+
+        return sdBezier(p, p1 * areaSize, p2 * areaSize, p3 * areaSize)
     }
     
     //
     func sdHalf(_ p: float2, tileCtx: TileContext) -> Float
     {
-        return 0.5 - p.y
+        let y = Float(tileCtx.tileArea.area.w)
+        return y / 2 - p.y * y
     }
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, centered: false)
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, centered: false, areaAdjust: true)
         let d = sdSpline(uv, tileCtx: tileCtx)
         pixelCtx.localDist = modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
         return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)

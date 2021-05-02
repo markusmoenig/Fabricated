@@ -77,6 +77,8 @@ class TileContext
 
     var pixelSize       : Float = 1
     var antiAliasing    : Float = 2
+    
+    var areaOffset      = float2(0,0)
 }
 
 class TileJob
@@ -176,6 +178,9 @@ class Renderer
                             tileContext.antiAliasing = core.project.getAntiAliasing()
                             tileContext.tile = copyTile(tile)
                             tileContext.tileInstance = layer.tileInstances[SIMD2<Int>(w,h)]
+                            tileContext.tileArea = area
+                            
+                            tileContext.areaOffset = float2(Float(w - rect.x), Float(h - rect.y))
 
                             let x : Float = Float(abs(dims.1.x - w)) * tileSize
                             let y : Float = Float(abs(dims.1.y - h)) * tileSize

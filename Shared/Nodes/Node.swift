@@ -177,10 +177,23 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Transforms the UV
-    func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true, centered: Bool = true) -> float2
+    func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true, centered: Bool = true, areaAdjust: Bool = false) -> float2
     {
+        let areaSize = float2(Float(tileCtx.tileArea.area.z), Float(tileCtx.tileArea.area.w))
         var uv = pixelCtx.uv
+                
+        if areaAdjust {
+            if areaSize.x > 1 {
+                uv.x += areaSize.x - (areaSize.x - tileCtx.areaOffset.x)
+                //uv.x /= areaSize.x
+            }
 
+            if areaSize.y > 1 {
+                uv.y += areaSize.y - (areaSize.y - tileCtx.areaOffset.y)
+                //uv.y /= areaSize.y
+            }
+        }
+        
         if centered {
             uv -= 0.5
         }

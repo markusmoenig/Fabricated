@@ -250,6 +250,8 @@ class Core
         tileContext.antiAliasing = project.getAntiAliasing()
         tileContext.tile = renderer.copyTile(tile)
         tileContext.tileInstance = TileInstance(UUID(), UUID())
+        tileContext.tileArea = TileInstanceArea(UUID(), UUID())
+        tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
         
         let tileRect = TileRect(0, 0, tileSize, tileSize)
         

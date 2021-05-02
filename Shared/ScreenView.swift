@@ -138,7 +138,7 @@ class ScreenView
         if node.toolShape == .QuadraticSpline {
             
             let p1 = convertPos(area.readFloat2("_control1", float2(0.0, 0.5)))
-            let p2 = convertPos(area.readFloat2("_control2", float2(0.5, 0.5)))
+            let p2 = convertPos(area.readFloat2("_control2", float2(0.5, 0.501)))
             let p3 = convertPos(area.readFloat2("_control3", float2(1.0, 0.5)))
             
             if editable {
@@ -186,7 +186,7 @@ class ScreenView
                         if checkForDisc(nPos, area.readFloat2("_control1", float2(0.0, 0.5)), 0.08) {
                             control = .BezierControl1
                         } else
-                        if checkForDisc(nPos, area.readFloat2("_control2", float2(0.5, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readFloat2("_control2", float2(0.5, 0.501)), 0.08) {
                             control = .BezierControl2
                         } else
                         if checkForDisc(nPos, area.readFloat2("_control3", float2(1.0, 0.5)), 0.08) {
@@ -426,7 +426,7 @@ class ScreenView
                         area.writeFloat2("_control1", value: p)
                     } else
                     if toolControl == .BezierControl2 {
-                        var p = area.readFloat2("_control2", float2(0.5, 0.5))
+                        var p = area.readFloat2("_control2", float2(0.5, 0.501))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
                         area.writeFloat2("_control2", value: p)
                     } else
