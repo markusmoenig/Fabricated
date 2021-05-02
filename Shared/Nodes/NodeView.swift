@@ -408,6 +408,7 @@ class NodeView
                         }
                         
                         core.updateTilePreviews()
+                        core.renderer.render()
                         update()
                         
                     }

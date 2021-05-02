@@ -59,7 +59,7 @@ class ModifierNoise : TileNode {
         let uv : float2
         
         if pixelize == 1 {
-            uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.texUV)
+            uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: tileCtx.tileId /* / float2(pixelCtx.texWidth / pixelCtx.width, pixelCtx.texHeight / pixelCtx.height)*/ + pixelCtx.texUV)
         } else {
             uv = uvType == 0 ? pixelCtx.uv : pixelCtx.texUV
         }

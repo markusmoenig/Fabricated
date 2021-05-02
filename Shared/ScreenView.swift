@@ -329,8 +329,7 @@ class ScreenView
             var tilePos = SIMD2<Float>(0,0)
             getTileIdPos(pos, tileId: &tileId, tilePos: &tilePos)
 
-            // -
-
+            // --- Check for Control Tool
             if let area = getCurrentArea() {
                 let nAreaPos = getNormalizedAreaPos(pos, area)
                 
@@ -348,7 +347,7 @@ class ScreenView
 
             if core.currentTool == .Apply && core.project.currentTileSet?.currentTile != nil {
                 if layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] == nil {
-
+                    
                     dragTileIds = [tileId]
                     action = .DragInsert
                     

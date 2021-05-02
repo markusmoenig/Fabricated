@@ -179,18 +179,15 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     /// Transforms the UV
     func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true, centered: Bool = true, areaAdjust: Bool = false) -> float2
     {
-        let areaSize = float2(Float(tileCtx.tileArea.area.z), Float(tileCtx.tileArea.area.w))
         var uv = pixelCtx.uv
                 
         if areaAdjust {
-            if areaSize.x > 1 {
-                uv.x += areaSize.x - (areaSize.x - tileCtx.areaOffset.x)
-                //uv.x /= areaSize.x
+            if tileCtx.areaSize.x > 1 {
+                uv.x += tileCtx.areaSize.x - (tileCtx.areaSize.x - tileCtx.areaOffset.x)
             }
 
-            if areaSize.y > 1 {
-                uv.y += areaSize.y - (areaSize.y - tileCtx.areaOffset.y)
-                //uv.y /= areaSize.y
+            if tileCtx.areaSize.y > 1 {
+                uv.y += tileCtx.areaSize.y - (tileCtx.areaSize.y - tileCtx.areaOffset.y)
             }
         }
         
@@ -198,7 +195,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             uv -= 0.5
         }
         
-        var tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
+        let tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
         
         func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
         {
@@ -206,8 +203,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             return pos * float2x2(float2(ca, sa), float2(-sa, ca))
         }
         
-        let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0        
-        tUV = rotateCW(tUV, angle: rotation.degreesToRadians)
+        //let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0
+        //tUV = rotateCW(tUV, angle: rotation.degreesToRadians)
         
         return tUV
     }
@@ -292,6 +289,12 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
          
          */
         
+        let depthRange = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth Range", 0)
+        
+        if depthRange == 0 {
+            return 1
+        }
+
         let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth Start", 0)
         let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth End", 1)
         
@@ -366,6 +369,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return TileNodeOptionsGroup("Default Options", [
             TileNodeOption(self, "Shape", .Menu, menuEntries: ["Inside", "Outside"], defaultFloat: 0),
             TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Mask"], defaultFloat: 0),
+            TileNodeOption(self, "Depth Range", .Switch, defaultFloat: 0),
             TileNodeOption(self, "Depth Start", .Float, defaultFloat: 0),
             TileNodeOption(self, "Depth End", .Float, defaultFloat: 1)
         ])

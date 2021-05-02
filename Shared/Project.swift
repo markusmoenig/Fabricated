@@ -179,7 +179,7 @@ class Layer             : MMValues, Codable, Equatable
         values = try container.decode([String:Float].self, forKey: .values)
         if let areas = try container.decodeIfPresent([TileInstanceArea].self, forKey: .tileAreas) {
             self.tileAreas = areas
-        }
+        }        
     }
     
     func encode(to encoder: Encoder) throws

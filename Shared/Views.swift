@@ -391,7 +391,7 @@ struct ParamIntView: View {
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
                     }
-                }), in: 0...10, step: 1)
+                }), in: 0...12, step: 1)
                 Text(valueText)
                     .frame(maxWidth: 40)
             }

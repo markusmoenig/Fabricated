@@ -79,6 +79,9 @@ class TileContext
     var antiAliasing    : Float = 2
     
     var areaOffset      = float2(0,0)
+    var areaSize        = float2(1,1)
+
+    var tileId          = float2(0,0)
 }
 
 class TileJob
@@ -181,6 +184,9 @@ class Renderer
                             tileContext.tileArea = area
                             
                             tileContext.areaOffset = float2(Float(w - rect.x), Float(h - rect.y))
+                            tileContext.areaSize = float2(Float(area.area.z), Float(area.area.w))
+
+                            tileContext.tileId = SIMD2<Float>(Float(w),Float(h))
 
                             let x : Float = Float(abs(dims.1.x - w)) * tileSize
                             let y : Float = Float(abs(dims.1.y - h)) * tileSize
