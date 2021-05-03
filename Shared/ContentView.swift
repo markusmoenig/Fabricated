@@ -23,6 +23,9 @@ struct ContentView: View {
     
     @State var antiAliasingValue            : Double = 2
     @State var antiAliasingText             : String = "2"
+    
+    @State var gridIsOn                     : Bool = true
+
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
 
@@ -40,9 +43,13 @@ struct ContentView: View {
                     .frame(minWidth: leftPanelWidth, idealWidth: leftPanelWidth, maxWidth: leftPanelWidth)
                 
                 VStack(spacing: 2) {
-                    ZStack(alignment: .topLeading) {
-                        MetalView(document.core, .Preview)
-                        ToolsView(document: document, updateView: $updateView)
+                    GeometryReader { geometry in
+                        ZStack(alignment: .topLeading) {
+                            MetalView(document.core, .Preview)
+                            ToolsView(document: document, updateView: $updateView)
+                            ToolsView2(document: document, updateView: $updateView)
+                                .offset(x: geometry.size.width - 130, y: 0)
+                        }
                     }
                     HStack {
                         ZStack(alignment: .topLeading) {
@@ -133,6 +140,15 @@ struct ContentView: View {
                                 .frame(maxWidth: 40)
                         }
                         .padding(4)
+                        
+                        Toggle(isOn: $gridIsOn) {
+                            Text("Show Grid")
+                        }
+                        
+                        .onChange(of: gridIsOn) { value in
+                            document.core.screenView.showGrid = gridIsOn
+                            document.core.screenView.update()
+                        }
                     }
                     .padding()
                 }

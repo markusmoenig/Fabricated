@@ -95,12 +95,14 @@ class TileJob
 
 class Renderer
 {
-    enum RenderDimensions {
-        case All, Visible
+    enum RenderMode {
+        case Screen, Layer
     }
     
     let core            : Core
-        
+    
+    var renderMode      : RenderMode = .Screen
+    
     var commandQueue    : MTLCommandQueue? = nil
     var commandBuffer   : MTLCommandBuffer? = nil
     
@@ -171,15 +173,16 @@ class Renderer
             }
         }
         
-        //if let layer = core.project.currentLayer {
-        //    collectJobsForLayer(layer)
-        //}
-        
-        if let screen = core.project.getCurrentScreen() {
-            for layer in screen.layers {
-                collectJobsForLayer(layer)
+        if renderMode == .Screen {
+            if let screen = core.project.getCurrentScreen() {
+                for layer in screen.layers {
+                    collectJobsForLayer(layer)
+                }
             }
-        }
+        } else
+        if let layer = core.project.currentLayer {
+            collectJobsForLayer(layer)
+        }        
             
         screenDim = dims.1
         

@@ -18,6 +18,8 @@ class ScreenView
         case None, BezierControl1, BezierControl2, BezierControl3
     }
     
+    var showGrid            : Bool = true
+    
     var action              : Action = .None
     var toolControl         : ToolControl = .None
     var actionArea          : TileInstanceArea? = nil
@@ -37,7 +39,7 @@ class ScreenView
     var mouseMovedPos       : float2? = nil
     
     var firstDraw           = true
-        
+    
     init(_ core: Core)
     {
         self.core = core
@@ -58,8 +60,17 @@ class ScreenView
         let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
         let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
         
-        if let currentScreen = core.project.getCurrentScreen() {
-            for layer in currentScreen.layers {
+        if core.renderer.renderMode == .Screen {
+            if let currentScreen = core.project.getCurrentScreen() {
+                for layer in currentScreen.layers {
+                    if let texture = layer.texture {
+                        drawables.drawBox(position: float2(texX,texY), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
+                    }
+                }
+            }
+        } else
+        if core.renderer.renderMode == .Layer {
+            if let layer = core.project.currentLayer {
                 if let texture = layer.texture {
                     drawables.drawBox(position: float2(texX,texY), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
                 }
@@ -85,45 +96,46 @@ class ScreenView
             
         let center = drawables.viewSize / 2.0 + graphOffset
         
-        // Grid
-        var xOffset    : Float = 0
-        var yOffset    : Float = 0
-        let radius     : Float = 0.5
-        let gridColor  = float4(0.5, 0.5, 0.5, 0.5)
+        if showGrid == true {
+            // Grid
+            var xOffset    : Float = 0
+            var yOffset    : Float = 0
+            let radius     : Float = 0.5
+            let gridColor  = float4(0.5, 0.5, 0.5, 0.5)
 
-        while center.y - yOffset >= 0 || center.y + yOffset <= drawables.viewSize.x {
-            var r = radius
-            if yOffset == 0 {
-                r *= 1.5
+            while center.y - yOffset >= 0 || center.y + yOffset <= drawables.viewSize.x {
+                var r = radius
+                if yOffset == 0 {
+                    r *= 1.5
+                }
+                drawables.drawLine(startPos: float2(0, center.y + yOffset), endPos: float2(drawables.viewSize.x, center.y + yOffset), radius: r, fillColor: gridColor)
+                drawables.drawLine(startPos: float2(0, center.y - yOffset), endPos: float2(drawables.viewSize.x, center.y - yOffset), radius: r, fillColor: gridColor)
+                yOffset += tileSize * graphZoom
             }
-            drawables.drawLine(startPos: float2(0, center.y + yOffset), endPos: float2(drawables.viewSize.x, center.y + yOffset), radius: r, fillColor: gridColor)
-            drawables.drawLine(startPos: float2(0, center.y - yOffset), endPos: float2(drawables.viewSize.x, center.y - yOffset), radius: r, fillColor: gridColor)
-            yOffset += tileSize * graphZoom
-        }
-        
-        while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x {
-            var r = radius
-            if xOffset == 0 {
-                r *= 1.5
+            
+            while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x {
+                var r = radius
+                if xOffset == 0 {
+                    r *= 1.5
+                }
+                drawables.drawLine(startPos: float2(center.x + xOffset, 0), endPos: float2(center.x + xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
+                drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
+                xOffset += tileSize * graphZoom
             }
-            drawables.drawLine(startPos: float2(center.x + xOffset, 0), endPos: float2(center.x + xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
-            drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
-            xOffset += tileSize * graphZoom
-        }
 
-        // Draw tool shape(s)
-        if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
-            if currentNode.role == .Shape {
-                if let area = getCurrentArea() {
-                    
-                    let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
-                    let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
-                    
-                    drawToolShapes(true, currentNode, area, float2(x, y))
+            // Draw tool shape(s)
+            if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
+                if currentNode.role == .Shape {
+                    if let area = getCurrentArea() {
+                        
+                        let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
+                        let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
+                        
+                        drawToolShapes(true, currentNode, area, float2(x, y))
+                    }
                 }
             }
         }
-        
         drawables.encodeEnd()
     }
     

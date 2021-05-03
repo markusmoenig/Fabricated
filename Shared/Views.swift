@@ -179,6 +179,38 @@ struct ToolsView: View {
     }
 }
 
+/// ToolsView2
+struct ToolsView2: View {
+    @State var document                     : FabricatedDocument
+    @Binding var updateView                 : Bool
+
+    @State var text                         : String = "Render: Screen"
+
+    var body: some View {
+        HStack {
+            Menu {
+                Button("Render: Screen", action: {
+                    text = "Render: Screen"
+                    document.core.renderer.renderMode = .Screen
+                    document.core.renderer.render()
+                })
+                Button("Render: Layer", action: {
+                    text = "Render: Layer"
+                    document.core.renderer.renderMode = .Layer
+                    document.core.renderer.render()
+                })
+            }
+            label: {
+                Text(text)
+            }
+            .menuStyle(BorderlessButtonMenuStyle())
+            .frame(maxWidth: 120)
+                    
+        }
+        .frame(minHeight: 30)
+    }
+}
+
 /// NodeToolbar
 struct NodeToolbar: View {
     @State var document                     : FabricatedDocument
