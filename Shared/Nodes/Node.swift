@@ -36,13 +36,16 @@ class TileNodeOption
     let node                : TileNode
     
     let menuEntries         : [String]?
+    
+    var range               : float2
         
-    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
+    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, range: float2 = float2(0,1), defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
     {
         self.node = node
         self.name = name
         self.type = type
         self.menuEntries = menuEntries
+        self.range = range
         
         if type == .Color {
             if node.doesFloatExist(name + "_x") == false {
@@ -219,7 +222,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
                 let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
 
-                let modifierMode = node.readFloatFromInstanceIfExists(tileCtx.tileInstance, "Mode")
+                let modifierMode = node.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Mode")
 
                 if modifierMode == 0 {
                     color.x += value
@@ -289,14 +292,14 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
          
          */
         
-        let depthRange = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth Range", 0)
+        let depthRange = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth Range", 0)
         
         if depthRange == 0 {
             return 1
         }
 
-        let maskStart = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth Start", 0)
-        let maskEnd = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Depth End", 1)
+        let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth Start", 0)
+        let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth End", 1)
         
         let d = pixelCtx.localDist
         

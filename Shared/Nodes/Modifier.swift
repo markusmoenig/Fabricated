@@ -25,9 +25,9 @@ class ModifierNoise : TileNode {
             TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
             TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Area"], defaultFloat: 0),
             TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
-            TileNodeOption(self, "Seed", .Int, defaultFloat: 1),
+            TileNodeOption(self, "Seed", .Int, range: float2(0, 20), defaultFloat: 1),
             TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5),
-            TileNodeOption(self, "Sub Divisions", .Int, defaultFloat: 0)
+            TileNodeOption(self, "Sub Divisions", .Int, range: float2(0, 12), defaultFloat: 0)
         ]))
      }
     
@@ -50,11 +50,11 @@ class ModifierNoise : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let seed : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Seed")
-        let uvType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "UV")
-        let pixelize : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Pixelise")
-        let scale : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Scale")
-        let subDivisions : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Sub Divisions") + 2
+        let seed : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Seed")
+        let uvType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "UV")
+        let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Pixelise")
+        let scale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Scale")
+        let subDivisions : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Sub Divisions") + 2
         
         let uv : float2
         
@@ -64,7 +64,7 @@ class ModifierNoise : TileNode {
             uv = uvType == 0 ? pixelCtx.uv : pixelCtx.areaUV
         }
             
-        let noiseType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Noise")
+        let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Noise")
 
         let n : Float
         if noiseType == 1 {
