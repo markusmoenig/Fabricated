@@ -97,7 +97,7 @@ class MMValues
     {
         if let area = core.screenView.getCurrentArea(), core.currentTool == .Select {
             // Write values into the area
-            area.writeFloat(name, value: value)
+            area.writeFloat(area.id.uuidString + "_" + name, value: value)
         } else {
             // Write value to self
             writeFloat(name, value: value)
@@ -125,7 +125,7 @@ class MMValues
     // These functions read / write to either itself or the currently selected instance if .Select tool is active
     func readFloatFromInstanceAreaIfExists(_ instance: TileInstanceArea,_ name: String,_ defaultValue: Float = 0) -> Float
     {
-        if let value = instance.values[name] {
+        if let value = instance.values[instance.id.uuidString + "_" + name] {
             return value
         } else {
             // Read from self
