@@ -23,7 +23,7 @@ class ModifierNoise : TileNode {
         type = "ModifierNoise"
         optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
             TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
-            TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Screen"], defaultFloat: 0),
+            TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Area"], defaultFloat: 0),
             TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
             TileNodeOption(self, "Seed", .Int, defaultFloat: 1),
             TileNodeOption(self, "Scale", .Float, defaultFloat: 0.5),
@@ -59,9 +59,9 @@ class ModifierNoise : TileNode {
         let uv : float2
         
         if pixelize == 1 {
-            uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: tileCtx.tileId /* / float2(pixelCtx.texWidth / pixelCtx.width, pixelCtx.texHeight / pixelCtx.height)*/ + pixelCtx.texUV)
+            uv = uvType == 0 ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) : getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.areaUV)
         } else {
-            uv = uvType == 0 ? pixelCtx.uv : pixelCtx.texUV
+            uv = uvType == 0 ? pixelCtx.uv : pixelCtx.areaUV
         }
             
         let noiseType : Float = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Noise")

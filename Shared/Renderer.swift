@@ -34,12 +34,10 @@ class TileRect
 
 class TilePixelContext
 {
-    let texOffset   : float2    // The offset into the texture
-    let texUV       : float2    // The global texture UV
+    let areaOffset  : float2    // The offset into the area
+    let areaSize    : float2    // Area Size
+    let areaUV      : float2    // The global texture UV
     
-    let texWidth    : Float     // Texture width
-    let texHeight   : Float     // Texture height
-
     let offset      : float2    // The local tile offset
     let uv          : float2    // The local tile UV
 
@@ -49,15 +47,14 @@ class TilePixelContext
     var localDist   : Float
     var totalDist   : Float
         
-    init(texOffset: float2, texWidth: Float, texHeight: Float, tileRect: TileRect)
+    init(areaOffset: float2, areaSize: float2, tileRect: TileRect)
     {
-        self.texOffset = texOffset
-        self.texWidth = texWidth
-        self.texHeight = texHeight
+        self.areaOffset = areaOffset
+        self.areaSize = areaSize
         
-        texUV = texOffset / float2(texWidth, texHeight) - float2(0.5, 0.5)
+        areaUV = areaOffset / areaSize - float2(0.5, 0.5)
         
-        offset = float2(texOffset.x - Float(tileRect.x), texOffset.y - Float(tileRect.y))
+        offset = float2(areaOffset.x - Float(tileRect.x), areaOffset.y - Float(tileRect.y))
         
         width = Float(tileRect.width)
         height = Float(tileRect.height)
@@ -206,7 +203,6 @@ class Renderer
             } else {
                 let cores = ProcessInfo().activeProcessorCount// + 1
                 
-
                 startTime = Double(Date().timeIntervalSince1970)
                 totalTime = 0
                 coresActive = 0
@@ -287,9 +283,6 @@ class Renderer
             }
             
             updateTexture(inProgressArray!)
-
-            let width: Float = Float(texture.width)
-            let height: Float = Float(texture.height)
             
             let tile = tileContext.tile!
                             
@@ -301,7 +294,10 @@ class Renderer
                         break
                     }
                     
-                    let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                    let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
+                    let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
+
+                    let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
                     //pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
                     
                     var color = float4(0, 0, 0, 0)

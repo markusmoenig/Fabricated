@@ -279,7 +279,7 @@ class Core
                         break
                     }
                     
-                    let pixelContext = TilePixelContext(texOffset: float2(Float(w), Float(h)), texWidth: width, texHeight: height, tileRect: tileRect)
+                    let pixelContext = TilePixelContext(areaOffset: float2(Float(w), Float(h)), areaSize: float2(width, height), tileRect: tileRect)
                     
                     var color = float4(0, 0, 0, 0)
                     
