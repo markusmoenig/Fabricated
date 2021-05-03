@@ -28,6 +28,7 @@ struct ContentView: View {
 
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
+    @Environment(\.undoManager) var undoManager
 
     #if os(macOS)
     let leftPanelWidth                      : CGFloat = 200
@@ -165,6 +166,15 @@ struct ContentView: View {
         .onReceive(self.document.core.tileSetChanged) { tileSet in
             currentTileSet = nil
             currentTileSet = tileSet
+            if undoManager != nil && document.core.undoManager == nil {
+                document.core.undoManager = undoManager
+            }
+        }
+        
+        .onReceive(self.document.core.startupSignal) { _ in
+            if undoManager != nil && document.core.undoManager == nil {
+                document.core.undoManager = undoManager
+            }
         }
     }
     

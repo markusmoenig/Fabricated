@@ -43,12 +43,16 @@ class Core
 
     let tileSetChanged = PassthroughSubject<TileSet?, Never>()
     
+    let startupSignal = PassthroughSubject<Void, Never>()
+
     // Preview Rendering
     var semaphore       : DispatchSemaphore!
     var dispatchGroup   : DispatchGroup!
     
     var isRunning       : Bool = false
     var stopRunning     : Bool = false
+    
+    var undoManager     : UndoManager? = nil
 
     init()
     {
@@ -72,16 +76,21 @@ class Core
         project.currentLayer = layer
         project.currentTileSet = tileSet
         
-        tileSetChanged.send(tileSet)
-        
         semaphore = DispatchSemaphore(value: 1)
         dispatchGroup = DispatchGroup()
         
+        self.tileSetChanged.send(tileSet)
+
         #if os(OSX)
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
         #else
         scaleFactor = Float(UIScreen.main.scale)
         #endif
+        
+        // Send the startup signal to capture the undoManager
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.startupSignal.send()
+        }
     }
     
     /// Sets a loaded project
@@ -366,5 +375,13 @@ class Core
         }
         
         return cgImage
+    }
+    
+    // ----- Undo
+    
+    var currentLayerUndo : LayerUndoComponent? = nil    
+    func startLayerUndo(_ layer: Layer) {
+        currentLayerUndo = LayerUndoComponent(layer, self)
+        currentLayerUndo!.start()
     }
 }

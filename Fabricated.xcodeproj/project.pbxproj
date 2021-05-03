@@ -15,6 +15,8 @@
 		2B1A6FC526214078005F65E6 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FC326214078005F65E6 /* Shapes.swift */; };
 		2B1A6FCD262189A7005F65E6 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FCC262189A7005F65E6 /* NodeView.swift */; };
 		2B1A6FCE262189A7005F65E6 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FCC262189A7005F65E6 /* NodeView.swift */; };
+		2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B23D6263FF0EE005D7F93 /* Undo.swift */; };
+		2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B23D6263FF0EE005D7F93 /* Undo.swift */; };
 		2B705057262A6ADB00E7E4A1 /* Noise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B705056262A6ADB00E7E4A1 /* Noise.swift */; };
 		2B705058262A6ADB00E7E4A1 /* Noise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B705056262A6ADB00E7E4A1 /* Noise.swift */; };
 		2B70505C262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
@@ -66,6 +68,7 @@
 		2B1A6FBE26213F60005F65E6 /* NodeArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeArray.swift; sourceTree = "<group>"; };
 		2B1A6FC326214078005F65E6 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
 		2B1A6FCC262189A7005F65E6 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		2B6B23D6263FF0EE005D7F93 /* Undo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Undo.swift; sourceTree = "<group>"; };
 		2B705056262A6ADB00E7E4A1 /* Noise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Noise.swift; sourceTree = "<group>"; };
 		2B70505B262A95DA00E7E4A1 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		2B7B1937261D4DC50027C905 /* FabricatedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedApp.swift; sourceTree = "<group>"; };
@@ -134,6 +137,7 @@
 				2B9D92FF2625319500A18D2A /* TileGridView.swift */,
 				2B7B1964261D52DF0027C905 /* Project.swift */,
 				2B7B195D261D52530027C905 /* Core.swift */,
+				2B6B23D6263FF0EE005D7F93 /* Undo.swift */,
 				2B9D93042625807200A18D2A /* ScreenView.swift */,
 				2B1A6FAC2621239C005F65E6 /* Renderer.swift */,
 				2B7B1977261D851F0027C905 /* Metal.metal */,
@@ -312,6 +316,7 @@
 				2B7B1986261D86930027C905 /* MetalView.swift in Sources */,
 				2B705057262A6ADB00E7E4A1 /* Noise.swift in Sources */,
 				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
+				2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0755261EA0050097212F /* Classes.swift in Sources */,
 				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1978261D851F0027C905 /* Metal.metal in Sources */,
@@ -342,6 +347,7 @@
 				2B7B1987261D86930027C905 /* MetalView.swift in Sources */,
 				2B705058262A6ADB00E7E4A1 /* Noise.swift in Sources */,
 				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
+				2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0756261EA0050097212F /* Classes.swift in Sources */,
 				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1979261D851F0027C905 /* Metal.metal in Sources */,

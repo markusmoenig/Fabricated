@@ -374,6 +374,8 @@ class ScreenView
                     action = .DragInsert
                     
                     core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+                    
+                    core.startLayerUndo(layer)
                 }
             } else
             if core.currentTool == .Select {
@@ -513,9 +515,14 @@ class ScreenView
                         
                         area.area = core.project.selectedRect!
                         core.project.selectedRect = nil
-                        layer.selectedAreas = [area]
                         
+                        layer.selectedAreas = [area]
                         layer.tileAreas.append(area)
+                        
+                        if let undoComponent = core.currentLayerUndo {
+                            undoComponent.end()
+                        }
+
                         core.renderer.render()
                     }
                 }
