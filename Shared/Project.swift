@@ -5,7 +5,7 @@
 //  Created by Markus Moenig on 7/4/21.
 //
 
-import Foundation
+import MetalKit
 
 class Project           : MMValues, Codable
 {
@@ -65,6 +65,14 @@ class Project           : MMValues, Codable
                     return screen
                 }
             }
+        }
+        return nil
+    }
+    
+    /// Returns the current screen
+    func getCurrentScreen() -> Screen? {
+        if let currentLayer = currentLayer {
+            return getScreenForLayer(currentLayer.id)
         }
         return nil
     }
@@ -154,6 +162,9 @@ class Layer             : MMValues, Codable, Equatable
     
     var tileInstances   : [SIMD2<Int>: TileInstance] = [:]
     var tileAreas       : [TileInstanceArea] = []
+    
+    // The layer renders into this texture
+    var texture         : MTLTexture? = nil
 
     private enum CodingKeys: String, CodingKey {
         case id

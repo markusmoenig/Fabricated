@@ -100,9 +100,7 @@ class Renderer
     }
     
     let core            : Core
-    
-    var texture         : MTLTexture? = nil
-    
+        
     var commandQueue    : MTLCommandQueue? = nil
     var commandBuffer   : MTLCommandBuffer? = nil
     
@@ -123,9 +121,7 @@ class Renderer
     init(_ core: Core)
     {
         self.core = core
-        
-        texture = allocateTexture(core.device, width: 800, height: 600)
-        
+                
         semaphore = DispatchSemaphore(value: 1)
         dispatchGroup = DispatchGroup()
     }
@@ -133,38 +129,16 @@ class Renderer
     func render()
     {
         stop()
-        
+                
+        let tileSize = core.project.getTileSize()
         tileJobs = []
+
+        let dims = calculateTextureSizeForScreen()
+        let texSize = SIMD2<Int>(dims.0.x * Int(tileSize), dims.0.y * Int(tileSize))
         
-        if let layer = core.project.currentLayer {
+        func collectJobsForLayer(_ layer: Layer) {
+            checkIfLayerTextureIsValid(layer: layer, size: texSize)
             
-            let tileSize = core.project.getTileSize()
-
-            let dims = calculateTextureSizeForScreen()
-            let texSize = SIMD2<Int>(dims.0.x * Int(tileSize), dims.0.y * Int(tileSize))
-            
-            checkIfTextureIsValid(size: texSize)
-            
-            /*
-            for (index, instance) in layer.tileInstances {
-                                
-                if let tile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
-                    
-                    let tileContext = TileContext()
-                    tileContext.layer = layer
-                    tileContext.pixelSize = core.project.getPixelSize()
-                    tileContext.antiAliasing = core.project.getAntiAliasing()
-                    tileContext.tile = copyTile(tile)
-                    tileContext.tileInstance = instance
-
-                    let x : Float = Float(abs(dims.1.x - index.x)) * tileSize
-                    let y : Float = Float(abs(dims.1.y - index.y)) * tileSize
-                    
-                    let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
-                    //renderTile(tileContext, rect)
-                    tileJobs.append(TileJob(tileContext, rect))
-                }
-            }*/
             for area in layer.tileAreas {
                 if let tile = core.project.getTileOfTileSet(area.tileSetId, area.tileId) {
                     let rect = area.area
@@ -195,36 +169,46 @@ class Renderer
                     }
                 }
             }
-            
-            screenDim = dims.1
-            
-            if layer.tileInstances.isEmpty {
-                core.updatePreviewOnce()
-            } else {
-                let cores = ProcessInfo().activeProcessorCount// + 1
-                
-                startTime = Double(Date().timeIntervalSince1970)
-                totalTime = 0
-                coresActive = 0
-                        
-                isRunning = true
-                stopRunning = false
-                
-                func startThread() {
-                    coresActive += 1
-                    dispatchGroup.enter()
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        self.renderTile()
-                    }
-                }
-
-                for i in 0..<cores {
-                    if i < tileJobs.count {
-                        startThread()
-                    }
-                }
-                print("Cores", cores, "Jobs", tileJobs.count, "Core started:", coresActive)
+        }
+        
+        //if let layer = core.project.currentLayer {
+        //    collectJobsForLayer(layer)
+        //}
+        
+        if let screen = core.project.getCurrentScreen() {
+            for layer in screen.layers {
+                collectJobsForLayer(layer)
             }
+        }
+            
+        screenDim = dims.1
+        
+        if tileJobs.isEmpty {
+            core.updatePreviewOnce()
+        } else {
+            let cores = ProcessInfo().activeProcessorCount// + 1
+            
+            startTime = Double(Date().timeIntervalSince1970)
+            totalTime = 0
+            coresActive = 0
+                    
+            isRunning = true
+            stopRunning = false
+            
+            func startThread() {
+                coresActive += 1
+                dispatchGroup.enter()
+                DispatchQueue.global(qos: .userInitiated).async {
+                    self.renderTile()
+                }
+            }
+
+            for i in 0..<cores {
+                if i < tileJobs.count {
+                    startThread()
+                }
+            }
+            print("Cores", cores, "Jobs", tileJobs.count, "Core started:", coresActive)
         }
     }
     
@@ -252,7 +236,7 @@ class Renderer
 
         while let tileJob = getNextTile() {
             
-            guard let texture = texture else {
+            guard let texture = tileJob.tileContext.layer.texture else {
                 return
             }
             
@@ -407,7 +391,7 @@ class Renderer
     }
     
     /// Checks if the texture is of the given size and if not reallocate, returns true if the texture has been reallocated
-    @discardableResult func checkIfTextureIsValid(size: SIMD2<Int>) -> Bool
+    @discardableResult func checkIfLayerTextureIsValid(layer: Layer, size: SIMD2<Int>) -> Bool
     {
         if size.x == 0 || size.y == 0 {
             return false
@@ -415,21 +399,21 @@ class Renderer
         
         func clear() {
             startDrawing(core.device)
-            clearTexture(texture!, float4(0,0,0,0))
-            stopDrawing(syncTexture: texture!, waitUntilCompleted: true)
+            clearTexture(layer.texture!, float4(0,0,0,0))
+            stopDrawing(syncTexture: layer.texture!, waitUntilCompleted: true)
         }
         
         // Make sure texture is of size size
-        if texture == nil || texture!.width != size.x || texture!.height != size.y {
+        if layer.texture == nil || layer.texture!.width != size.x || layer.texture!.height != size.y {
             
             stopRunning = true
             
-            if texture != nil {
-                texture!.setPurgeableState(.empty)
-                texture = nil
+            if layer.texture != nil {
+                layer.texture!.setPurgeableState(.empty)
+                layer.texture = nil
             }
             
-            texture = allocateTexture(core.device, width: size.x, height: size.y)
+            layer.texture = allocateTexture(core.device, width: size.x, height: size.y)
             
             clear()
             return true

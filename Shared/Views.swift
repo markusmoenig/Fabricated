@@ -40,7 +40,34 @@ struct ProjectView: View {
                             }
                                 .buttonStyle(PlainButtonStyle())
                                 .contextMenu {
-                                    Text("Layer")
+                                    Menu("Add Layer") {
+                                        Button("Before", action: {
+                                            let layer = Layer("New Layer")
+                                            if let currentLayer = currentLayer {
+                                                if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
+                                                    if let index = screen.layers.firstIndex(of: currentLayer) {
+                                                        screen.layers.insert(layer, at: index)
+                                                        self.currentLayer = layer
+                                                        document.core.layerChanged.send(layer)
+                                                        document.core.renderer.render()
+                                                    }
+                                                }
+                                            }
+                                        })
+                                        Button("After", action: {
+                                            let layer = Layer("New Layer")
+                                            if let currentLayer = currentLayer {
+                                                if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
+                                                    if let index = screen.layers.firstIndex(of: currentLayer) {
+                                                        screen.layers.insert(layer, at: index+1)
+                                                        self.currentLayer = layer
+                                                        document.core.layerChanged.send(layer)
+                                                        document.core.renderer.render()
+                                                    }
+                                                }
+                                            }
+                                        })
+                                    }
                                 }
                         }
                     }

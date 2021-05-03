@@ -54,11 +54,16 @@ class ScreenView
         let tileSize = core.project.getTileSize()
 
         // Render Texture
-        if let texture = core.renderer.texture {
-            let x = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
-            let y = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
-
-            drawables.drawBox(position: float2(x,y), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
+        
+        let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
+        let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
+        
+        if let currentScreen = core.project.getCurrentScreen() {
+            for layer in currentScreen.layers {
+                if let texture = layer.texture {
+                    drawables.drawBox(position: float2(texX,texY), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
+                }
+            }
         }
                 
         // Selected rectangle
