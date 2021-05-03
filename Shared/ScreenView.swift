@@ -86,12 +86,14 @@ class ScreenView
         }
         
         // Selected areas
-        for area in core.project.selectedAreas {
-            let selection = area.area
-            let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
-            let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
-            
-            drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+        if let currentLayer = core.project.currentLayer {
+            for area in currentLayer.selectedAreas {
+                let selection = area.area
+                let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
+                let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
+                
+                drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+            }
         }
             
         let center = drawables.viewSize / 2.0 + graphOffset
@@ -333,7 +335,10 @@ class ScreenView
     
     /// Returns the current area we process the tools for
     func getCurrentArea() -> TileInstanceArea? {
-        return core.project.selectedAreas.first
+        if let currentLayer = core.project.currentLayer {
+            return currentLayer.selectedAreas.first
+        }
+        return nil
     }
     
     func touchDown(_ pos: float2)
@@ -375,7 +380,7 @@ class ScreenView
                 if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
 
                     // Assemble all areas in which the tile is included and select them
-                    core.project.selectedAreas = getAreasOfTileInstance(layer, instance)
+                    layer.selectedAreas = getAreasOfTileInstance(layer, instance)
                     
                     //
                     if let tileSet = core.project.getTileSet(instance.tileSetId) {
@@ -415,7 +420,7 @@ class ScreenView
                     }
                 }
                 core.project.selectedRect = nil
-                core.project.selectedAreas = []
+                layer.selectedAreas = []
                 core.renderer.render()
             }
         }
@@ -508,7 +513,7 @@ class ScreenView
                         
                         area.area = core.project.selectedRect!
                         core.project.selectedRect = nil
-                        core.project.selectedAreas = [area]
+                        layer.selectedAreas = [area]
                         
                         layer.tileAreas.append(area)
                         core.renderer.render()

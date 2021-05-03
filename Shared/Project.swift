@@ -19,9 +19,6 @@ class Project           : MMValues, Codable
 
     // For preview of selection in progress
     var selectedRect    : SIMD4<Int>? = nil
-    
-    // The areas for the currently selected tile instance
-    var selectedAreas   : [TileInstanceArea] = []
 
     override init()
     {
@@ -162,6 +159,9 @@ class Layer             : MMValues, Codable, Equatable
     
     var tileInstances   : [SIMD2<Int>: TileInstance] = [:]
     var tileAreas       : [TileInstanceArea] = []
+    
+    // The currently selected areas for this layer
+    var selectedAreas   : [TileInstanceArea] = []
     
     // The layer renders into this texture
     var texture         : MTLTexture? = nil
