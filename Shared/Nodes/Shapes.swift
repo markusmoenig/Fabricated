@@ -173,6 +173,7 @@ class ShapeGround : TileNode {
     func cross2(_ a: float2,_ b: float2 ) -> Float { return a.x*b.y - a.y*b.x }
     
     // signed distance to a quadratic bezier
+    // See copright at https://www.shadertoy.com/view/MlKcDD
     func sdBezier(_ pos: float2,_ A: float2,_ B: float2,_ C: float2 ) -> Float
     {
         let a = B - A
@@ -222,9 +223,9 @@ class ShapeGround : TileNode {
     //
     func sdSpline(_ p: float2, tileCtx: TileContext) -> Float
     {
-        let p1 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control1", float2(0.0, 0.5))
-        let p2 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control2", float2(0.5, 0.501))
-        let p3 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control3", float2(1.0, 0.5))
+        let p1 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control1", float2(0.0, 0.5))
+        let p2 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control2", float2(0.5, 0.501))
+        let p3 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, "_control3", float2(1.0, 0.5))
 
         return sdBezier(p, p1 * tileCtx.areaSize, p2 * tileCtx.areaSize, p3 * tileCtx.areaSize)
     }

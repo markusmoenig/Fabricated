@@ -156,9 +156,9 @@ class ScreenView
         
         if node.toolShape == .QuadraticSpline {
             
-            let p1 = convertPos(area.readFloat2("_control1", float2(0.0, 0.5)))
-            let p2 = convertPos(area.readFloat2("_control2", float2(0.5, 0.501)))
-            let p3 = convertPos(area.readFloat2("_control3", float2(1.0, 0.5)))
+            let p1 = convertPos(area.readOptionalFloat2InstanceArea(core, "_control1", float2(0.0, 0.5)))
+            let p2 = convertPos(area.readOptionalFloat2InstanceArea(core, "_control2", float2(0.5, 0.501)))
+            let p3 = convertPos(area.readOptionalFloat2InstanceArea(core, "_control3", float2(1.0, 0.5)))
             
             if editable {
                 let r = convertFloat(0.08)
@@ -202,13 +202,13 @@ class ScreenView
             if let area = getCurrentArea() {
                 if currentNode.role == .Shape {
                     if currentNode.toolShape == .QuadraticSpline {
-                        if checkForDisc(nPos, area.readFloat2("_control1", float2(0.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, "_control1", float2(0.0, 0.5)), 0.08) {
                             control = .BezierControl1
                         } else
-                        if checkForDisc(nPos, area.readFloat2("_control2", float2(0.5, 0.501)), 0.08) {
+                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, "_control2", float2(0.5, 0.501)), 0.08) {
                             control = .BezierControl2
                         } else
-                        if checkForDisc(nPos, area.readFloat2("_control3", float2(1.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, "_control3", float2(1.0, 0.5)), 0.08) {
                             control = .BezierControl3
                         }
                     }
@@ -362,6 +362,8 @@ class ScreenView
                     
                     dragId = tileId
                     dragStart = nAreaPos
+                    
+                    core.startLayerUndo(layer, "Area Control Changed")
                 }
             }
             
@@ -398,6 +400,9 @@ class ScreenView
                         //core.nodeView.setCurrentNode(nil)
                         //core.nodeView.update()
                     }
+                } else {
+                    layer.selectedAreas = []
+                    update()
                 }
             } else
             if core.currentTool == .Clear {
@@ -444,19 +449,19 @@ class ScreenView
                     let diff = nAreaPos - dragStart
 
                     if toolControl == .BezierControl1 {
-                        var p = area.readFloat2("_control1", float2(0.0, 0.5))
+                        var p = area.readOptionalFloat2InstanceArea(core, "_control1", float2(0.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeFloat2("_control1", value: p)
+                        area.writeOptionalFloat2InstanceArea(core, "_control1", value: p)
                     } else
                     if toolControl == .BezierControl2 {
-                        var p = area.readFloat2("_control2", float2(0.5, 0.501))
+                        var p = area.readOptionalFloat2InstanceArea(core, "_control2", float2(0.5, 0.501))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeFloat2("_control2", value: p)
+                        area.writeOptionalFloat2InstanceArea(core, "_control2", value: p)
                     } else
                     if toolControl == .BezierControl3 {
-                        var p = area.readFloat2("_control3", float2(1.0, 0.5))
+                        var p = area.readOptionalFloat2InstanceArea(core, "_control3", float2(1.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeFloat2("_control3", value: p)
+                        area.writeOptionalFloat2InstanceArea(core, "_control3", value: p)
                     }
                     
                     dragStart = nAreaPos
@@ -519,13 +524,13 @@ class ScreenView
                         layer.selectedAreas = [area]
                         layer.tileAreas.append(area)
                         
-                        if let undoComponent = core.currentLayerUndo {
-                            undoComponent.end()
-                        }
-
+                        core.currentLayerUndo?.end()
                         core.renderer.render()
                     }
                 }
+            } else
+            if action == .DragTool {
+                core.currentLayerUndo?.end()
             }
         }
         

@@ -122,6 +122,20 @@ class MMValues
         writeOptionalFloatInstanceArea(core, name + "_w", value: value.w)
     }
     
+    func readOptionalFloat2InstanceArea(_ core: Core,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    {
+        var value = float2()
+        value.x = readOptionalFloatInstanceArea(core, name + "_x", defaultValue.x)
+        value.y = readOptionalFloatInstanceArea(core, name + "_y", defaultValue.y)
+        return value
+    }
+    
+    func writeOptionalFloat2InstanceArea(_ core: Core, _ name: String, value: float2)
+    {
+        writeOptionalFloatInstanceArea(core, name + "_x", value: value.x)
+        writeOptionalFloatInstanceArea(core, name + "_y", value: value.y)
+    }
+    
     // These functions read / write to either itself or the currently selected instance if .Select tool is active
     func readFloatFromInstanceAreaIfExists(_ instance: TileInstanceArea,_ name: String,_ defaultValue: Float = 0) -> Float
     {
