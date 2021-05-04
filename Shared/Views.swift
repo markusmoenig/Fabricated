@@ -288,6 +288,11 @@ struct NodeToolbar: View {
                         
             Button(action: {
                 if let node = document.core.nodeView.currentNode, node.role != .Tile {
+                    
+                    if let tile = document.core.project.currentTileSet?.openTile {
+                        document.core.startTileUndo(tile, "Node Deleted")
+                    }
+                    
                     document.core.nodeView.nodeIsAboutToBeDeleted(node)
                     
                     if let tile = document.core.project.currentTileSet?.openTile {
@@ -299,6 +304,8 @@ struct NodeToolbar: View {
                     document.core.nodeView.update()
                     document.core.renderer.render()
                     document.core.updateTilePreviews()
+                    
+                    document.core.currentTileUndo?.end()
                 }
             })
             {
