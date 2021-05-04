@@ -375,7 +375,7 @@ class ScreenView
                     
                     core.project.selectedRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
                     
-                    core.startLayerUndo(layer)
+                    core.startLayerUndo(layer, "Area Creation")
                 }
             } else
             if core.currentTool == .Select {

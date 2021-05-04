@@ -73,6 +73,14 @@ public class DMTKView        : MTKView
         
     override public func mouseDown(with event: NSEvent) {
         setMousePos(event)
+        
+        if event.clickCount > 1 {
+            hasDoubleTap = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 / 60.0) {
+                self.hasDoubleTap = false
+            }
+        }
+        
         if viewType == .Preview {
             core.screenView.touchDown(mousePos)
         } else

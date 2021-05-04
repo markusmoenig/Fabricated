@@ -96,6 +96,19 @@ class Project           : MMValues, Codable
         return nil
     }
     
+    
+    /// Returns the tileset which contains the tile identified by its id
+    func getTileSetForTile(_ id: UUID) -> TileSet? {
+        for tileSet in tileSets {
+            for tile in tileSet.tiles {
+                if tile.id == id {
+                    return tileSet
+                }
+            }
+        }
+        return nil
+    }
+    
     /// Get the tile size of the project
     func getTileSize() -> Float {
         return readFloat("tileSize", 64)

@@ -17,9 +17,9 @@ class LayerUndoComponent
     var originalData    : String = ""
     var processedData   : String = ""
             
-    init(_ layer : Layer,_ core: Core)
+    init(_ layer : Layer,_ core: Core,_ name: String)
     {
-        self.name = "Layer Changed"
+        self.name = name
         self.layer = layer
         self.core = core
     }
@@ -63,9 +63,75 @@ class LayerUndoComponent
                 }
                 layerChangedCB(newState, oldState)
             }
-            core.undoManager!.setActionName("Layer")
+            core.undoManager!.setActionName(name)
         }
         
         layerChangedCB(originalData, processedData)
+    }
+}
+
+class TileUndoComponent
+{
+    let core            : Core
+
+    var name            : String
+    var tile            : Tile
+    
+    var originalData    : String = ""
+    var processedData   : String = ""
+            
+    init(_ tile : Tile,_ core: Core,_ name: String)
+    {
+        self.name = name
+        self.tile = tile
+        self.core = core
+    }
+    
+    func start()
+    {
+        let encodedData = try? JSONEncoder().encode(tile)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            originalData = encodedObjectJsonString
+        }
+    }
+    
+    func end() {
+            
+        let encodedData = try? JSONEncoder().encode(tile)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+            processedData = encodedObjectJsonString
+        }
+        
+        func tileChangedCB(_ oldState: String, _ newState: String)
+        {
+            core.undoManager!.registerUndo(withTarget: self) { target in
+                if let jsonData = oldState.data(using: .utf8) {
+                    if let tile = try? JSONDecoder().decode(Tile.self, from: jsonData) {
+                        if let tileSet = self.core.project.getTileSetForTile(tile.id) {
+                            var index : Int? = nil
+                            for (i,l) in tileSet.tiles.enumerated() {
+                                if l.id == tile.id {
+                                    index = i
+                                }
+                            }
+                            if index != nil {
+                                tileSet.tiles[index!] = tile
+                                self.core.nodeView.currentNode = nil
+                                tileSet.currentTile = tile
+                                tileSet.openTile = tile
+                                self.core.nodeView.update()
+                                self.core.updateTilePreviews(tile)
+                                self.core.renderer.render()
+                            }
+                        }
+                    }
+                }
+                tileChangedCB(newState, oldState)
+            }
+            core.undoManager!.setActionName(name)
+        }
+        
+        tileChangedCB(originalData, processedData)
     }
 }

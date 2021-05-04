@@ -60,7 +60,7 @@ class NodeSkin {
 class NodeView
 {
     enum Action {
-        case None, DragNode
+        case None, DragNode, DragConnect
     }
     
     var action              : Action = .None
@@ -69,23 +69,18 @@ class NodeView
     var view                : DMTKView!
     
     let drawables           : MetalDrawables
-    
-    var currentTerminalId   : Int? = nil
-    
+        
     var currentNode         : TileNode? = nil
     
     // For connecting terminals
     var connectingNode      : TileNode? = nil
-    var connectingTerminalId: Int? = nil
 
     var graphZoom           : Float = 0.63
     var graphOffset         = float2(0, 0)
 
     var dragStart           = float2(0, 0)
     var mouseMovedPos       : float2? = nil
-    
-    var lastTouchTime       : Double = 0
-    
+        
     var firstDraw           = true
         
     init(_ core: Core)
@@ -115,9 +110,19 @@ class NodeView
             drawNode(node, node === currentNode, skin)
         }
         
+        // Draw live connection line
+        if action == .DragConnect {
+            if let currentNode = currentNode {
+                if let mouseMovedPos = mouseMovedPos {
+                    let x = currentNode.nodePreviewRect.right()
+                    let y = currentNode.nodePreviewRect.middle().y
+                    drawables.drawLine(startPos: float2(x,y), endPos: mouseMovedPos, radius: 2 * graphZoom, fillColor: skin.selectedBorderColor)
+                }
+            }
+        }
+        
         // Draw Connections
         for node in tile.nodes {
-                
             for (index, nodeUUID) in node.terminalsOut {
                 if let connTo = tile.getNodeById(nodeUUID) {
                     let dRect = getTerminal(connTo, id: -1)
@@ -168,11 +173,6 @@ class NodeView
     {
         var fillColor = skin.normalInteriorColor
         var borderColor = skin.normalBorderColor
-        
-        if node === currentNode && currentTerminalId == terminalId {
-            // Currently pressed
-            borderColor = skin.selectedBorderColor
-        }
         
         if node.role == .Tile {
             if terminalId == 0 {
@@ -236,7 +236,15 @@ class NodeView
         drawables.drawLine(startPos: rect.position() + float2(6,24) * graphZoom, endPos: rect.position() + float2(rect.width - 8 * graphZoom, 24 * graphZoom), radius: 0.6, fillColor: skin.normalTextColor)
         
         if node.texture != nil {
-            drawables.drawBox(position: rect.position() + float2(20,34) * graphZoom, size: float2(80,80) * graphZoom, rounding: 8 * graphZoom, fillColor: skin.normalInteriorColor, texture: node.texture)
+            let previewPos = rect.position() + float2(20,34) * graphZoom
+            let previewSize = float2(80,80) * graphZoom
+            var borderColor = float4(0,0,0,0)
+            let borderSize : Float = 2 * graphZoom
+            if action == .DragConnect && (node === currentNode || node === connectingNode) {
+                borderColor = skin.selectedBorderColor
+            }
+            node.nodePreviewRect = MMRect(previewPos.x, previewPos.y, previewSize.x, previewSize.y)
+            drawables.drawBox(position: previewPos, size: previewSize, rounding: 8 * graphZoom, borderSize: borderSize, fillColor: skin.normalInteriorColor, borderColor: borderColor, texture: node.texture)
         }
         
         /// Get the colors for a terminal
@@ -319,10 +327,10 @@ class NodeView
     }
     
     /// Called before nodes get deleted, make sure to break its connections
-    func nodeIsAboutToBeDeleted(_ node: TileNode)
+    @discardableResult func nodeIsAboutToBeDeleted(_ node: TileNode) -> Bool
     {
         guard let tile = getCurrentTile() else {
-            return
+            return false
         }
         
         for n in tile.nodes {
@@ -330,14 +338,36 @@ class NodeView
                 for (index, nodeUUID) in n.terminalsOut {
                     if nodeUUID == node.id {
                         n.terminalsOut[index] = nil
+                        return true
                     }
                 }
             }
         }
+        return false
     }
     
     func touchDown(_ pos: float2)
     {
+        if view.hasDoubleTap == true {
+            if let tile = getCurrentTile() {
+                for node in tile.nodes {
+                    if node.nodePreviewRect.contains(pos.x, pos.y) {
+                        core.startTileUndo(tile, "Node Disconnected")
+                        if nodeIsAboutToBeDeleted(node) {
+                            core.updateTilePreviews()
+                            core.renderer.render()
+                            update()
+                            core.currentTileUndo?.end()
+                        } else {
+                            core.currentTileUndo = nil
+                        }
+                    }
+                }
+            }
+            return
+        }
+        
+        connectingNode = nil
         if let tile = getCurrentTile() {
             for node in tile.nodes {
                 var freshlySelectedNode : TileNode? = nil
@@ -346,74 +376,10 @@ class NodeView
                     dragStart = pos
                     
                     freshlySelectedNode = node
-
-                    let timestamp = NSDate().timeIntervalSince1970
                     
-                    if timestamp - lastTouchTime < 2 && freshlySelectedNode !== currentNode && currentNode != nil {
-                        
-                        // Connect or disconnect the two nodes if selection speed was under 2 second
-                        
-                        action = .None
-
-                        let from = currentNode!
-                        let to = freshlySelectedNode!
-                        
-                        if from.role == .Tile {
-                            if to.role == .Shape {
-                                if from.terminalsOut[0] == to.id {
-                                    from.terminalsOut[0] = nil
-                                } else {
-                                    from.terminalsOut[0] = to.id
-                                }
-                            }
-                        } else
-                        if from.role == .Shape {
-                            if to.role == .Modifier {
-                                if from.terminalsOut[0] == to.id {
-                                    from.terminalsOut[0] = nil
-                                } else {
-                                    from.terminalsOut[0] = to.id
-                                }
-                            } else
-                            if to.role == .Decorator {
-                                if from.terminalsOut[1] == to.id {
-                                    from.terminalsOut[1] = nil
-                                } else {
-                                    from.terminalsOut[1] = to.id
-                                }
-                            } else
-                            if to.role == .Shape {
-                                if from.terminalsOut[2] == to.id {
-                                    from.terminalsOut[2] = nil
-                                } else {
-                                    from.terminalsOut[2] = to.id
-                                }
-                            }
-                        } else
-                        if from.role == .Decorator {
-                            if to.role == .Modifier {
-                                if from.terminalsOut[0] == to.id {
-                                    from.terminalsOut[0] = nil
-                                } else {
-                                    from.terminalsOut[0] = to.id
-                                }
-                            } else
-                            if to.role == .Decorator {
-                                if from.terminalsOut[1] == to.id {
-                                    from.terminalsOut[1] = nil
-                                } else {
-                                    from.terminalsOut[1] = to.id
-                                }
-                            }
-                        }
-                        
-                        core.updateTilePreviews()
-                        core.renderer.render()
-                        update()
-                        
+                    if freshlySelectedNode!.nodePreviewRect.contains(pos.x, pos.y) {
+                        action = .DragConnect
                     }
-                        
-                    lastTouchTime = timestamp
                 }
                 
                 if freshlySelectedNode != nil && currentNode !== freshlySelectedNode {
@@ -428,6 +394,8 @@ class NodeView
     func touchMoved(_ pos: float2)
     {
         mouseMovedPos = pos
+        connectingNode = nil
+
         if action == .DragNode {
             if let node = currentNode {
                 node.values["nodePos_x"]! += (pos.x - dragStart.x) / graphZoom
@@ -435,13 +403,92 @@ class NodeView
                 dragStart = pos
                 update()
             }
+        } else
+        if action == .DragConnect {
+            
+            func canConnect(_ from: TileNode,_ to: TileNode) -> Bool
+            {
+                if from.role == .Tile {
+                    if to.role == .Shape {
+                        return true
+                    }
+                } else
+                if from.role == .Shape {
+                    if to.role == .Modifier {
+                        return true
+                    } else
+                    if to.role == .Decorator {
+                        return true
+                    } else
+                    if to.role == .Shape {
+                        return true
+                    }
+                } else
+                if from.role == .Decorator {
+                    if to.role == .Modifier {
+                        return true
+                    } else
+                    if to.role == .Decorator {
+                        return true
+                    }
+                }
+                return false
+            }
+            
+            if let tile = getCurrentTile() {
+                for node in tile.nodes {
+                    if node !== currentNode && node.nodePreviewRect.contains(pos.x, pos.y) && canConnect(currentNode!, node) {
+                        connectingNode = node
+                        
+                        mouseMovedPos!.x = node.nodePreviewRect.x
+                        mouseMovedPos!.y = node.nodePreviewRect.middle().y
+                    }
+                }
+            }
+            update()
         }
     }
 
     func touchUp(_ pos: float2)
     {
+        if action == .DragConnect && connectingNode != nil {
+            let from = currentNode!
+            let to = connectingNode!
+            
+            core.startTileUndo(getCurrentTile()!, "Node Connect")
+            
+            if from.role == .Tile {
+                if to.role == .Shape {
+                    from.terminalsOut[0] = to.id
+                }
+            } else
+            if from.role == .Shape {
+                if to.role == .Modifier {
+                    from.terminalsOut[0] = to.id
+                } else
+                if to.role == .Decorator {
+                    from.terminalsOut[1] = to.id
+                } else
+                if to.role == .Shape {
+                    from.terminalsOut[2] = to.id
+                }
+            } else
+            if from.role == .Decorator {
+                if to.role == .Modifier {
+                    from.terminalsOut[0] = to.id
+                } else
+                if to.role == .Decorator {
+                    from.terminalsOut[1] = to.id
+                }
+            }
+            
+            core.currentTileUndo?.end()
+            
+            core.updateTilePreviews()
+            core.renderer.render()
+            update()
+        }
         action = .None
-        currentTerminalId = nil
         mouseMovedPos = nil
         update()
     }

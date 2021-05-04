@@ -377,11 +377,19 @@ class Core
         return cgImage
     }
     
-    // ----- Undo
+    // ----- Undo: Layer
     
     var currentLayerUndo : LayerUndoComponent? = nil    
-    func startLayerUndo(_ layer: Layer) {
-        currentLayerUndo = LayerUndoComponent(layer, self)
+    func startLayerUndo(_ layer: Layer,_ name: String) {
+        currentLayerUndo = LayerUndoComponent(layer, self, name)
         currentLayerUndo!.start()
+    }
+    
+    // ----- Undo: Tile
+    
+    var currentTileUndo : TileUndoComponent? = nil
+    func startTileUndo(_ tile: Tile,_ name: String) {
+        currentTileUndo = TileUndoComponent(tile, self, name)
+        currentTileUndo!.start()
     }
 }

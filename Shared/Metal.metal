@@ -175,11 +175,6 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
     const float mask = m4mFillMask( dist );
     float4 col = float4( data->fillColor.xyz, data->fillColor.w * mask);
     
-    float borderMask = m4mBorderMask(dist, data->borderSize);
-    float4 borderColor = data->borderColor;
-    borderColor.w *= borderMask;
-    col = mix( col, borderColor, borderMask );
-    
     if (data->hasTexture == 1 && col.w > 0.0) {
         constexpr sampler textureSampler (mag_filter::linear,
                                           min_filter::linear);
@@ -193,6 +188,11 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
         col.xyz = sample.xyz;
         col.w = col.w * sample.w;
     }
+    
+    float borderMask = m4mBorderMask(dist, data->borderSize);
+    float4 borderColor = data->borderColor;
+    borderColor.w *= borderMask;
+    col = mix( col, borderColor, borderMask );
     
     return col;
 }

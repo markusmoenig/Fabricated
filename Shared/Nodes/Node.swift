@@ -79,7 +79,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var toolShape           : TileNodeToolShape = .None
 
     var nodeRect            = MMRect()
-    
+    var nodePreviewRect     = MMRect()
+
     var optionGroups        : [TileNodeOptionsGroup] = []
     
     // For node preview, always fixed size of ?
