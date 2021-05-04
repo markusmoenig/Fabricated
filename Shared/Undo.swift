@@ -117,9 +117,22 @@ class TileUndoComponent
                             }
                             if index != nil {
                                 tileSet.tiles[index!] = tile
-                                self.core.nodeView.currentNode = nil
+                                if let currentNode = self.core.nodeView.currentNode {
+                                    let id = currentNode.id
+                                    self.core.nodeView.currentNode = nil
+
+                                    for n in tile.nodes {
+                                        if n.id == id {
+                                            self.core.nodeView.currentNode = n
+                                            break
+                                        }
+                                    }
+                                }
                                 tileSet.currentTile = tile
                                 tileSet.openTile = tile
+                                
+                                self.core.tileNodeChanged.send(self.core.nodeView.currentNode)
+                                
                                 self.core.nodeView.update()
                                 self.core.updateTilePreviews(tile)
                                 self.core.renderer.render()

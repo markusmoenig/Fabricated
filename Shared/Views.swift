@@ -415,6 +415,11 @@ struct ParamFloatView: View {
             }
             HStack {
                 Slider(value: Binding<Double>(get: {value}, set: { v in
+                    
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.startTileUndo(tile, "Node Option Changed")
+                    }
+                    
                     value = v
                     valueText = String(format: "%.02f", v)
 
@@ -423,6 +428,8 @@ struct ParamFloatView: View {
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
                     }
+                    
+                    core.currentTileUndo?.end()
                     
                 }), in: rangeX...rangeY)//, step: Double(parameter.step))
                 Text(valueText)
@@ -461,6 +468,11 @@ struct ParamIntView: View {
             Text(option.name)
             HStack {
                 Slider(value: Binding<Double>(get: {value}, set: { v in
+                    
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.startTileUndo(tile, "Node Option Changed")
+                    }
+                    
                     value = v
                     valueText = String(Int(v))
 
@@ -469,6 +481,8 @@ struct ParamIntView: View {
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
                     }
+                    
+                    core.currentTileUndo?.end()
                 }), in: rangeX...rangeY, step: 1)
                 Text(valueText)
                     .frame(maxWidth: 20)
@@ -502,11 +516,16 @@ struct ParamSwitchView: View {
         }
         
         .onChange(of: toggleValue) { value in
+            if let tile = core.project.currentTileSet?.openTile {
+                core.startTileUndo(tile, "Node Option Changed")
+            }
+            
             option.node.writeOptionalFloatInstanceArea(core, option.name, value: value == false ? 0 : 1)
             core.renderer.render()
             if let tile = core.project.currentTileSet?.openTile {
                 core.updateTilePreviews(tile)
             }
+            core.currentTileUndo?.end()
         }
     }
 }
@@ -534,6 +553,9 @@ struct ParamColorView: View {
             ColorPicker("", selection: $colorValue, supportsOpacity: true)
                 .onChange(of: colorValue) { color in
                     
+                    if let tile = core.project.currentTileSet?.openTile {
+                        core.startTileUndo(tile, "Node Option Changed")
+                    }
                     let newValue = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
                     
                     option.node.writeOptionalFloat4InstanceArea(core, option.name, value: newValue)
@@ -541,6 +563,7 @@ struct ParamColorView: View {
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
                     }
+                    core.currentTileUndo?.end()
                 }
         }
     }
@@ -567,12 +590,16 @@ struct ParamMenuView: View {
             Menu {
                 ForEach(Array(option.menuEntries!.enumerated()), id: \.offset) { index, optionName in
                     Button(optionName, action: {
+                        if let tile = core.project.currentTileSet?.openTile {
+                            core.startTileUndo(tile, "Node Option Changed")
+                        }
                         menuIndex = index
                         option.node.writeOptionalFloatInstanceArea(core, option.name, value: Float(index))
                         core.renderer.render()
                         if let tile = core.project.currentTileSet?.openTile {
                             core.updateTilePreviews(tile)
                         }
+                        core.currentTileUndo?.end()
                     })
                 }
             }
