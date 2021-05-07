@@ -95,7 +95,7 @@ class MMValues
 
     func writeOptionalFloatInstanceArea(_ core: Core,_ node: TileNode,_ name: String, value: Float)
     {
-        if let area = core.screenView.getCurrentArea(), core.currentTool == .Select {
+        if let area = core.screenView.getCurrentArea(), core.currentTool == .Select, core.currentContext == .Area {
             // Write values into the area
             area.writeFloat(node.id.uuidString + "_" + name, value: value)
         } else {

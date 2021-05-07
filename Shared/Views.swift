@@ -215,6 +215,8 @@ struct ToolsView2: View {
 struct NodeToolbar: View {
     @State var document                     : FabricatedDocument
     @Binding var updateView                 : Bool
+    
+    @State var contextMenuText              : String = "Context: Tile"
 
     var body: some View {
         HStack {
@@ -314,6 +316,24 @@ struct NodeToolbar: View {
             .buttonStyle(BorderlessButtonStyle())
             .padding(.leading, 10)
             //.disabled(document.core.nodeView.currentNode?.role != .Tile)
+            
+            Spacer()
+            
+            Menu {
+                Button("Context: Tile", action: {
+                    contextMenuText = "Context: Tile"
+                    document.core.currentContext = .Tile
+                })
+                Button("Context: Area", action: {
+                    contextMenuText = "Context: Area"
+                    document.core.currentContext = .Area
+                })
+            }
+            label: {
+                Text(contextMenuText)
+            }
+            .menuStyle(BorderlessButtonMenuStyle())
+            .frame(maxWidth: 100)
             
             Spacer()
             

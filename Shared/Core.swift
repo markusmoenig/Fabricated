@@ -15,7 +15,12 @@ class Core
         case Select, Apply, Clear
     }
     
+    enum NodeContext {
+        case Tile, Area
+    }
+    
     var currentTool     : DrawingTool = .Select
+    var currentContext  : NodeContext = .Tile
     
     var view            : DMTKView!
     var device          : MTLDevice!
