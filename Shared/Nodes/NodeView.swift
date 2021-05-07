@@ -235,15 +235,15 @@ class NodeView
         
         drawables.drawLine(startPos: rect.position() + float2(6,24) * graphZoom, endPos: rect.position() + float2(rect.width - 8 * graphZoom, 24 * graphZoom), radius: 0.6, fillColor: skin.normalTextColor)
         
+        let previewPos = rect.position() + float2(20,34) * graphZoom
+        let previewSize = float2(80,80) * graphZoom
+        var borderColor = float4(0,0,0,0)
+        let borderSize : Float = 2 * graphZoom
+        if action == .DragConnect && (node === currentNode || node === connectingNode) {
+            borderColor = skin.selectedBorderColor
+        }
+        node.nodePreviewRect = MMRect(previewPos.x, previewPos.y, previewSize.x, previewSize.y)
         if node.texture != nil {
-            let previewPos = rect.position() + float2(20,34) * graphZoom
-            let previewSize = float2(80,80) * graphZoom
-            var borderColor = float4(0,0,0,0)
-            let borderSize : Float = 2 * graphZoom
-            if action == .DragConnect && (node === currentNode || node === connectingNode) {
-                borderColor = skin.selectedBorderColor
-            }
-            node.nodePreviewRect = MMRect(previewPos.x, previewPos.y, previewSize.x, previewSize.y)
             drawables.drawBox(position: previewPos, size: previewSize, rounding: 8 * graphZoom, borderSize: borderSize, fillColor: skin.normalInteriorColor, borderColor: borderColor, texture: node.texture)
         }
         

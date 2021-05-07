@@ -36,10 +36,10 @@ class TilePixelContext
 {
     let areaOffset  : float2    // The offset into the area
     let areaSize    : float2    // Area Size
-    let areaUV      : float2    // The global texture UV
+    var areaUV      : float2    // The global texture UV
     
     let offset      : float2    // The local tile offset
-    let uv          : float2    // The local tile UV
+    var uv          : float2    // The local tile UV
 
     let width       : Float     // Tile Width
     let height      : Float     // Tile Height
@@ -286,6 +286,13 @@ class Renderer
 
                     let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
                     //pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
+                    
+                    if tile.nodes.count > 0 {
+                        let noded = tile.nodes[0]
+                        let offset = noded.readFloat2FromInstanceAreaIfExists(tileContext.tileArea, noded, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
+                        pixelContext.uv -= offset
+                        pixelContext.areaUV -= offset
+                    }
                     
                     var color = float4(0, 0, 0, 0)
                     

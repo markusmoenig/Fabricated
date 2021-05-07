@@ -82,64 +82,64 @@ class MMValues
     
     // These functions read / write to either itself or the currently selected area if .Select tool is active
     
-    func readOptionalFloatInstanceArea(_ core: Core,_ name: String,_ defaultValue: Float = 0) -> Float
+    func readOptionalFloatInstanceArea(_ core: Core,_ node: TileNode,_ name: String,_ defaultValue: Float = 0) -> Float
     {
         if let area = core.screenView.getCurrentArea(), core.currentTool == .Select {
             // Read values from the area
-            return readFloatFromInstanceAreaIfExists(area, name, defaultValue)
+            return readFloatFromInstanceAreaIfExists(area, node, name, defaultValue)
         } else {
             // Write value to self
             return readFloat(name, defaultValue)
         }
     }
 
-    func writeOptionalFloatInstanceArea(_ core: Core, _ name: String, value: Float)
+    func writeOptionalFloatInstanceArea(_ core: Core,_ node: TileNode,_ name: String, value: Float)
     {
         if let area = core.screenView.getCurrentArea(), core.currentTool == .Select {
             // Write values into the area
-            area.writeFloat(area.id.uuidString + "_" + name, value: value)
+            area.writeFloat(node.id.uuidString + "_" + name, value: value)
         } else {
             // Write value to self
             writeFloat(name, value: value)
         }
     }
     
-    func readOptionalFloat4InstanceArea(_ core: Core,_ name: String,_ defaultValue: float4 = float4(0,0,0,0)) -> float4
+    func readOptionalFloat4InstanceArea(_ core: Core,_ node: TileNode,_ name: String,_ defaultValue: float4 = float4(0,0,0,0)) -> float4
     {
         var value = float4()
-        value.x = readOptionalFloatInstanceArea(core, name + "_x", defaultValue.x)
-        value.y = readOptionalFloatInstanceArea(core, name + "_y", defaultValue.y)
-        value.z = readOptionalFloatInstanceArea(core, name + "_z", defaultValue.z)
-        value.w = readOptionalFloatInstanceArea(core, name + "_w", defaultValue.w)
+        value.x = readOptionalFloatInstanceArea(core, node, name + "_x", defaultValue.x)
+        value.y = readOptionalFloatInstanceArea(core, node, name + "_y", defaultValue.y)
+        value.z = readOptionalFloatInstanceArea(core, node, name + "_z", defaultValue.z)
+        value.w = readOptionalFloatInstanceArea(core, node, name + "_w", defaultValue.w)
         return value
     }
     
-    func writeOptionalFloat4InstanceArea(_ core: Core, _ name: String, value: float4)
+    func writeOptionalFloat4InstanceArea(_ core: Core,_ node: TileNode,_ name: String, value: float4)
     {
-        writeOptionalFloatInstanceArea(core, name + "_x", value: value.x)
-        writeOptionalFloatInstanceArea(core, name + "_y", value: value.y)
-        writeOptionalFloatInstanceArea(core, name + "_z", value: value.z)
-        writeOptionalFloatInstanceArea(core, name + "_w", value: value.w)
+        writeOptionalFloatInstanceArea(core, node, name + "_x", value: value.x)
+        writeOptionalFloatInstanceArea(core, node, name + "_y", value: value.y)
+        writeOptionalFloatInstanceArea(core, node, name + "_z", value: value.z)
+        writeOptionalFloatInstanceArea(core, node, name + "_w", value: value.w)
     }
     
-    func readOptionalFloat2InstanceArea(_ core: Core,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    func readOptionalFloat2InstanceArea(_ core: Core,_ node: TileNode,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
     {
         var value = float2()
-        value.x = readOptionalFloatInstanceArea(core, name + "_x", defaultValue.x)
-        value.y = readOptionalFloatInstanceArea(core, name + "_y", defaultValue.y)
+        value.x = readOptionalFloatInstanceArea(core, node, name + "_x", defaultValue.x)
+        value.y = readOptionalFloatInstanceArea(core, node, name + "_y", defaultValue.y)
         return value
     }
     
-    func writeOptionalFloat2InstanceArea(_ core: Core, _ name: String, value: float2)
+    func writeOptionalFloat2InstanceArea(_ core: Core,_ node: TileNode,_ name: String, value: float2)
     {
-        writeOptionalFloatInstanceArea(core, name + "_x", value: value.x)
-        writeOptionalFloatInstanceArea(core, name + "_y", value: value.y)
+        writeOptionalFloatInstanceArea(core, node, name + "_x", value: value.x)
+        writeOptionalFloatInstanceArea(core, node, name + "_y", value: value.y)
     }
     
     // These functions read / write to either itself or the currently selected instance if .Select tool is active
-    func readFloatFromInstanceAreaIfExists(_ instance: TileInstanceArea,_ name: String,_ defaultValue: Float = 0) -> Float
+    func readFloatFromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: Float = 0) -> Float
     {
-        if let value = instance.values[instance.id.uuidString + "_" + name] {
+        if let value = instance.values[node.id.uuidString + "_" + name] {
             return value
         } else {
             // Read from self
@@ -147,21 +147,21 @@ class MMValues
         }
     }
     
-    func readFloat2FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    func readFloat2FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
     {
         var value = float2()
-        value.x = readFloatFromInstanceAreaIfExists(instance, name + "_x", defaultValue.x)
-        value.y = readFloatFromInstanceAreaIfExists(instance, name + "_y", defaultValue.y)
+        value.x = readFloatFromInstanceAreaIfExists(instance, node, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceAreaIfExists(instance, node, name + "_y", defaultValue.y)
         return value
     }
     
-    func readFloat4FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
+    func readFloat4FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
     {
         var value = float4()
-        value.x = readFloatFromInstanceAreaIfExists(instance, name + "_x", defaultValue.x)
-        value.y = readFloatFromInstanceAreaIfExists(instance, name + "_y", defaultValue.y)
-        value.z = readFloatFromInstanceAreaIfExists(instance, name + "_z", defaultValue.z)
-        value.w = readFloatFromInstanceAreaIfExists(instance, name + "_w", defaultValue.w)
+        value.x = readFloatFromInstanceAreaIfExists(instance, node, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceAreaIfExists(instance, node, name + "_y", defaultValue.y)
+        value.z = readFloatFromInstanceAreaIfExists(instance, node, name + "_z", defaultValue.z)
+        value.w = readFloatFromInstanceAreaIfExists(instance, node, name + "_w", defaultValue.w)
         return value
     }
 }

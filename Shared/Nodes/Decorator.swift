@@ -53,19 +53,19 @@ class DecoratorTilesAndBricks : TileNode {
     
     func generatePattern(pixelCtx: TilePixelContext, tileCtx: TileContext) -> float4
     {
-        let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, "Color")
-        let uv = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "UV")
+        let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
+        let uv = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
 
-        let CELL : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Size"))
-        let RATIO : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Ratio"))
+        let CELL : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Size"))
+        let RATIO : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Ratio"))
     
         var U = uv == 0 ? pixelCtx.uv : pixelCtx.areaUV
 
-        let BEVEL_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Bevel")
+        let BEVEL_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Bevel")
         let BEVEL = float2(BEVEL_X, BEVEL_X)
-        let GAP_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Gap")
+        let GAP_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Gap")
         let GAP = float2(GAP_X, GAP_X)
-        let ROUND = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Round")
+        let ROUND = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Round")
 
         let W = float2(RATIO,1)
         U *= CELL / W
@@ -87,8 +87,8 @@ class DecoratorTilesAndBricks : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Shape")
-        let modifierMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Modifier")
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        let modifierMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Modifier")
         let sign : Float = shapeMode == 0 ? -1 : 1
         
         var modifierValue : Float = 0
@@ -155,8 +155,8 @@ class DecoratorColor : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Shape")
-        let modifierMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Modifier")
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        let modifierMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Modifier")
         let sign : Float = shapeMode == 0 ? -1 : 1
         
         var modifierValue : Float = 0
@@ -165,7 +165,7 @@ class DecoratorColor : TileNode {
         }
         
         let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
-        var patternColor = simd_mix(prevColor, readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, "Color"), float4(step, step, step, step))
+        var patternColor = simd_mix(prevColor, readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color"), float4(step, step, step, step))
         
         if modifierMode == 0 {
             patternColor.x += modifierValue

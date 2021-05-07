@@ -67,7 +67,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     enum TileNodeToolShape {
-        case None, Disc, Box, QuadraticSpline
+        case None, Tile, Disc, Box, QuadraticSpline
     }
     
     var id                  = UUID()
@@ -199,6 +199,9 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             uv -= 0.5
         }
         
+        let offset = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
+        uv -= offset
+
         let tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
         
         func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
@@ -223,7 +226,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
                 let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
 
-                let modifierMode = node.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Mode")
+                let modifierMode = node.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Mode")
 
                 if modifierMode == 0 {
                     color.x += value
@@ -293,14 +296,14 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
          
          */
         
-        let depthRange = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth Range", 0)
+        let depthRange = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Range", 0)
         
         if depthRange == 0 {
             return 1
         }
 
-        let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth Start", 0)
-        let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Depth End", 1)
+        let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Start", 0)
+        let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth End", 1)
         
         let d = pixelCtx.localDist
         
@@ -414,6 +417,7 @@ class TiledNode : TileNode {
     override func setup()
     {
         type = "TiledNode"
+        toolShape = .Tile
     }
     
     required init(from decoder: Decoder) throws

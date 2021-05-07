@@ -50,11 +50,11 @@ class ModifierNoise : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let seed : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Seed")
-        let uvType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "UV")
-        let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Pixelise")
-        let scale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Scale")
-        let subDivisions : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Sub Divisions") + 2
+        let seed : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Seed")
+        let uvType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
+        let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Pixelise")
+        let scale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Scale")
+        let subDivisions : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Sub Divisions") + 2
         
         let uv : float2
         
@@ -64,7 +64,7 @@ class ModifierNoise : TileNode {
             uv = uvType == 0 ? pixelCtx.uv : pixelCtx.areaUV
         }
             
-        let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, "Noise")
+        let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise")
 
         let n : Float
         if noiseType == 1 {
