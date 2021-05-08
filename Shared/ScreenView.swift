@@ -50,7 +50,9 @@ class ScreenView
     func draw()
     {
         drawables.encodeStart()
-        
+     
+        let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
+
         //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
         
         let tileSize = core.project.getTileSize()
@@ -133,7 +135,7 @@ class ScreenView
                         let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
                         let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
                         
-                        drawToolShapes(true, currentNode, area, float2(x, y))
+                        drawToolShapes(true, currentNode, area, float2(x, y), skin)
                     }
                 }
             }
@@ -142,7 +144,7 @@ class ScreenView
     }
     
     /// Draw the current tool shape of the currently selected shape node
-    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ area: TileInstanceArea,_ pos: float2)
+    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ area: TileInstanceArea,_ pos: float2,_ skin: NodeSkin)
     {
         let tileSize = core.project.getTileSize()
 
@@ -154,30 +156,52 @@ class ScreenView
             return v * tileSize * Float(area.area.w) * graphZoom
         }
         
+        var borderColor = float4(0,0,0,1)
+        var fillColor = skin.selectedBorderColor
+
+        if node === core.nodeView.currentNode {
+            if core.currentContext == .Tile {
+                borderColor = skin.variablesColor
+            } else {
+                borderColor = skin.worldColor
+            }
+        }
+        
+        func swapColor() {
+            let t = borderColor
+            borderColor = fillColor
+            fillColor = t
+        }
+        
+        let borderSize = 2 * graphZoom
+        
         if node.toolShape == .QuadraticSpline {
             
-            let p1 = convertPos(area.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5)))
-            let p2 = convertPos(area.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501)))
-            let p3 = convertPos(area.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5)))
+            let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5)))
+            let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501)))
+            let p3 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5)))
             
             if editable {
                 let r = convertFloat(0.08)
                 let off = r / 2 + r / 3
                 
                 if toolControl == .BezierControl1 {
-                    drawables.drawDisk(position: p1 - off, radius: r, borderSize: 2 * graphZoom, borderColor: float4(0,0,0,1))
+                    swapColor()
+                    drawables.drawDisk(position: p1 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                 } else {
-                    drawables.drawDisk(position: p1 - off, radius: r)
+                    drawables.drawDisk(position: p1 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                 }
                 if toolControl == .BezierControl2 {
-                    drawables.drawDisk(position: p2 - off, radius: r, borderSize: 2 * graphZoom, borderColor: float4(0,0,0,1))
+                    swapColor()
+                    drawables.drawDisk(position: p2 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                 } else {
-                    drawables.drawDisk(position: p2 - off, radius: r)
+                    drawables.drawDisk(position: p2 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                 }
                 if toolControl == .BezierControl3 {
-                    drawables.drawDisk(position: p3 - off, radius: r, borderSize: 2 * graphZoom, borderColor: float4(0,0,0,1))
+                    swapColor()
+                    drawables.drawDisk(position: p3 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                 } else {
-                   drawables.drawDisk(position: p3 - off, radius: r)
+                   drawables.drawDisk(position: p3 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                }
             }
             
@@ -188,8 +212,12 @@ class ScreenView
             let r = convertFloat(0.08)
             let off = r / 2 + r / 3
             
-            let p = convertPos(area.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5)))
-            drawables.drawDisk(position: p - off, radius: r)
+            if toolControl != .None {
+                swapColor()
+            }
+            
+            let p = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5)))
+            drawables.drawDisk(position: p - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
         }
     }
     
@@ -210,18 +238,18 @@ class ScreenView
             if let area = getCurrentArea() {
                 if currentNode.toolShape != . None{
                     if currentNode.toolShape == .QuadraticSpline {
-                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
                             control = .BezierControl1
                         } else
-                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
                             control = .BezierControl2
                         } else
-                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
                             control = .BezierControl3
                         }
                     } else
                     if currentNode.toolShape != .None {
-                        if checkForDisc(nPos, area.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
                             control = .MoveControl
                         }
                     }
@@ -463,24 +491,24 @@ class ScreenView
                     let node = core.nodeView.currentNode!
                     
                     if toolControl == .BezierControl1 {
-                        var p = area.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5))
+                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeOptionalFloat2InstanceArea(core, node, "_control1", value: p)
+                        node.writeOptionalFloat2InstanceArea(core, node, "_control1", value: p)
                     } else
                     if toolControl == .BezierControl2 {
-                        var p = area.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501))
+                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeOptionalFloat2InstanceArea(core, node, "_control2", value: p)
+                        node.writeOptionalFloat2InstanceArea(core, node, "_control2", value: p)
                     } else
                     if toolControl == .BezierControl3 {
-                        var p = area.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5))
+                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeOptionalFloat2InstanceArea(core, node, "_control3", value: p)
+                        node.writeOptionalFloat2InstanceArea(core, node, "_control3", value: p)
                     } else
                     if toolControl == .MoveControl {
-                        var p = area.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5))
+                        var p = node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5))
                         p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        area.writeOptionalFloat2InstanceArea(core, node, "_offset", value: p)
+                        node.writeOptionalFloat2InstanceArea(core, node, "_offset", value: p)
                     }
                     
                     dragStart = nAreaPos

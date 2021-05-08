@@ -136,10 +136,10 @@ class MMValues
         writeOptionalFloatInstanceArea(core, node, name + "_y", value: value.y)
     }
     
-    // These functions read / write to either itself or the currently selected instance if .Select tool is active
-    func readFloatFromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: Float = 0) -> Float
+    // These functions read / write to either itself or the currently selected area if .Select tool is active
+    func readFloatFromInstanceAreaIfExists(_ area: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: Float = 0) -> Float
     {
-        if let value = instance.values[node.id.uuidString + "_" + name] {
+        if let value = area.values[node.id.uuidString + "_" + name] {
             return value
         } else {
             // Read from self
@@ -147,21 +147,21 @@ class MMValues
         }
     }
     
-    func readFloat2FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
+    func readFloat2FromInstanceAreaIfExists(_ area: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
     {
         var value = float2()
-        value.x = readFloatFromInstanceAreaIfExists(instance, node, name + "_x", defaultValue.x)
-        value.y = readFloatFromInstanceAreaIfExists(instance, node, name + "_y", defaultValue.y)
+        value.x = readFloatFromInstanceAreaIfExists(area, node, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceAreaIfExists(area, node, name + "_y", defaultValue.y)
         return value
     }
     
-    func readFloat4FromInstanceAreaIfExists(_ instance: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
+    func readFloat4FromInstanceAreaIfExists(_ area: TileInstanceArea,_ node: TileNode,_ name: String,_ defaultValue: float4 = float4(0,0,0,1)) -> float4
     {
         var value = float4()
-        value.x = readFloatFromInstanceAreaIfExists(instance, node, name + "_x", defaultValue.x)
-        value.y = readFloatFromInstanceAreaIfExists(instance, node, name + "_y", defaultValue.y)
-        value.z = readFloatFromInstanceAreaIfExists(instance, node, name + "_z", defaultValue.z)
-        value.w = readFloatFromInstanceAreaIfExists(instance, node, name + "_w", defaultValue.w)
+        value.x = readFloatFromInstanceAreaIfExists(area, node, name + "_x", defaultValue.x)
+        value.y = readFloatFromInstanceAreaIfExists(area, node, name + "_y", defaultValue.y)
+        value.z = readFloatFromInstanceAreaIfExists(area, node, name + "_z", defaultValue.z)
+        value.w = readFloatFromInstanceAreaIfExists(area, node, name + "_w", defaultValue.w)
         return value
     }
 }

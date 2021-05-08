@@ -121,9 +121,9 @@ class ShapeBox : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let width : Float = tileCtx.tileArea.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Width", 1) / 2 * tileCtx.areaSize.x
-        let height : Float = tileCtx.tileArea.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Height", 1) / 2  * tileCtx.areaSize.y
-        let rounding : Float = tileCtx.tileArea.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rounding", 0) / 2.0 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
+        let width : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Width", 1) / 2 * tileCtx.areaSize.x
+        let height : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Height", 1) / 2  * tileCtx.areaSize.y
+        let rounding : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rounding", 0) / 2.0 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
         
         let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true)
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox((uv - (tileCtx.areaSize-1) / 2), float2(width, height), rounding))
@@ -227,9 +227,9 @@ class ShapeGround : TileNode {
     //
     func sdSpline(_ p: float2, tileCtx: TileContext) -> Float
     {
-        let p1 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control1", float2(0.0, 0.5))
-        let p2 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control2", float2(0.5, 0.501))
-        let p3 = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control3", float2(1.0, 0.5))
+        let p1 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control1", float2(0.0, 0.5))
+        let p2 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control2", float2(0.5, 0.501))
+        let p3 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_control3", float2(1.0, 0.5))
 
         return sdBezier(p, p1 * tileCtx.areaSize, p2 * tileCtx.areaSize, p3 * tileCtx.areaSize)
     }

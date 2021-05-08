@@ -199,7 +199,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             uv -= 0.5
         }
         
-        let offset = tileCtx.tileArea.readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
+        let offset = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
         uv -= offset
 
         let tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv

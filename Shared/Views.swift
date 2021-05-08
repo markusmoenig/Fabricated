@@ -323,10 +323,12 @@ struct NodeToolbar: View {
                 Button("Context: Tile", action: {
                     contextMenuText = "Context: Tile"
                     document.core.currentContext = .Tile
+                    document.core.screenView.update()
                 })
                 Button("Context: Area", action: {
                     contextMenuText = "Context: Area"
                     document.core.currentContext = .Area
+                    document.core.screenView.update()
                 })
             }
             label: {
@@ -419,8 +421,8 @@ struct ParamFloatView: View {
         self.core = core
         self.option = option
         
-        _value = State(initialValue: Double(option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name)))
-        _valueText = State(initialValue: String(format: "%.02f", option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name)))
+        _value = State(initialValue: Double(option.node.readOptionalFloatInstanceArea(core, option.node, option.name)))
+        _valueText = State(initialValue: String(format: "%.02f", option.node.readOptionalFloatInstanceArea(core, option.node, option.name)))
         
         _rangeX = State(initialValue: Double(option.range.x))
         _rangeY = State(initialValue: Double(option.range.y))
@@ -450,7 +452,7 @@ struct ParamFloatView: View {
                     value = v
                     valueText = String(format: "%.02f", v)
 
-                    option.node.writeOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name, value: Float(v))
+                    option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
                     core.renderer.render()
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
@@ -482,8 +484,8 @@ struct ParamIntView: View {
         self.core = core
         self.option = option
         
-        _value = State(initialValue: Double(option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name)))
-        _valueText = State(initialValue: String(Int(option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name))))
+        _value = State(initialValue: Double(option.node.readOptionalFloatInstanceArea(core, option.node, option.name)))
+        _valueText = State(initialValue: String(Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name))))
         
         _rangeX = State(initialValue: Double(option.range.x))
         _rangeY = State(initialValue: Double(option.range.y))
@@ -503,7 +505,7 @@ struct ParamIntView: View {
                     value = v
                     valueText = String(Int(v))
 
-                    option.node.writeOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name, value: Float(v))
+                    option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
                     core.renderer.render()
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
@@ -530,7 +532,7 @@ struct ParamSwitchView: View {
         self.core = core
         self.option = option
         
-        let value = option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name)
+        let value = option.node.readOptionalFloatInstanceArea(core, option.node, option.name)
         _toggleValue = State(initialValue: Bool(value == 0 ? false : true))
     }
     
@@ -547,7 +549,7 @@ struct ParamSwitchView: View {
                 core.startTileUndo(tile, "Node Option Changed")
             }
             
-            option.node.writeOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name, value: value == false ? 0 : 1)
+            option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: value == false ? 0 : 1)
             core.renderer.render()
             if let tile = core.project.currentTileSet?.openTile {
                 core.updateTilePreviews(tile)
@@ -569,7 +571,7 @@ struct ParamColorView: View {
         self.core = core
         self.option = option
         
-        let value = option.node.readOptionalFloat4InstanceArea(core, core.nodeView.currentNode!, option.name)
+        let value = option.node.readOptionalFloat4InstanceArea(core, option.node, option.name)
         _colorValue = State(initialValue: Color(.sRGB, red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w)))
     }
     
@@ -585,7 +587,7 @@ struct ParamColorView: View {
                     }
                     let newValue = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
                     
-                    option.node.writeOptionalFloat4InstanceArea(core, core.nodeView.currentNode!, option.name, value: newValue)
+                    option.node.writeOptionalFloat4InstanceArea(core, option.node, option.name, value: newValue)
                     core.renderer.render()
                     if let tile = core.project.currentTileSet?.openTile {
                         core.updateTilePreviews(tile)
@@ -608,7 +610,7 @@ struct ParamMenuView: View {
         self.core = core
         self.option = option
         
-        _menuIndex = State(initialValue: Int(option.node.readOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name)))
+        _menuIndex = State(initialValue: Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name)))
     }
     
     var body: some View {
@@ -621,7 +623,7 @@ struct ParamMenuView: View {
                             core.startTileUndo(tile, "Node Option Changed")
                         }
                         menuIndex = index
-                        option.node.writeOptionalFloatInstanceArea(core, core.nodeView.currentNode!, option.name, value: Float(index))
+                        option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(index))
                         core.renderer.render()
                         if let tile = core.project.currentTileSet?.openTile {
                             core.updateTilePreviews(tile)
