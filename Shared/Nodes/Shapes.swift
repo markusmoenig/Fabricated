@@ -26,7 +26,7 @@ class ShapeDisk : TileNode {
         optionGroups.append(TileNodeOptionsGroup("Disk Shape Options", [
             TileNodeOption(self, "Radius", .Float, defaultFloat: 1)
         ]))
-        optionGroups.append(createShapeTransformGroup())
+        optionGroups.append(createShapeOptionsGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -48,7 +48,7 @@ class ShapeDisk : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize-1) / 2
         let radius = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Radius") / 2 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
 
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: length(uv) - radius)
@@ -56,8 +56,20 @@ class ShapeDisk : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        
+        if shapeMode == 0 {
+            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        } else
+        if shapeMode == 1 {
+            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
+        }
+        
+        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        if shapeMode == 0 {
+            pixelCtx.localDist = 1000
+        }
+        return rc
     }
 }
 
@@ -80,8 +92,9 @@ class ShapeBox : TileNode {
             TileNodeOption(self, "Width", .Float, defaultFloat: 1),
             TileNodeOption(self, "Height", .Float, defaultFloat: 1),
             TileNodeOption(self, "Rounding", .Float, defaultFloat: 0),
+            TileNodeOption(self, "Rotation", .Int, range: float2(0, 360), defaultFloat: 0)
         ]))
-        optionGroups.append(createShapeTransformGroup())
+        optionGroups.append(createShapeOptionsGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -125,14 +138,26 @@ class ShapeBox : TileNode {
         let height : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Height", 1) / 2  * tileCtx.areaSize.y
         let rounding : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rounding", 0) / 2.0 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
         
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true)
-        return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox((uv - (tileCtx.areaSize-1) / 2), float2(width, height), rounding))
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize-1) / 2
+        return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox(uv, float2(width, height), rounding))
     }
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        
+        if shapeMode == 0 {
+            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        } else
+        if shapeMode == 1 {
+            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
+        }
+        
+        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        if shapeMode == 0 {
+            pixelCtx.localDist = 1000
+        }
+        return rc
     }
 }
 
@@ -151,7 +176,7 @@ class ShapeGround : TileNode {
     {
         type = "ShapeGround"
         toolShape = .QuadraticSpline
-        optionGroups.append(createShapeTransformGroup())
+        optionGroups.append(createShapeOptionsGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -243,7 +268,19 @@ class ShapeGround : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
-        pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        return renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        
+        if shapeMode == 0 {
+            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        } else
+        if shapeMode == 1 {
+            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
+        }
+        
+        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        if shapeMode == 0 {
+            pixelCtx.localDist = 1000
+        }
+        return rc
     }
 }

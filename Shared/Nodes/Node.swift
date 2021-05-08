@@ -199,19 +199,25 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             uv -= 0.5
         }
         
-        let offset = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
-        uv -= offset
-
-        let tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
+        let offset = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_offset", float2(0.5, 0.5))
+        uv -= offset - float2(0.5, 0.5)
         
-        func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
+        func rotateCW(_ pos : SIMD2<Float>, angle: Float, pivot: float2) -> SIMD2<Float>
         {
             let ca : Float = cos(angle), sa = sin(angle)
-            return pos * float2x2(float2(ca, sa), float2(-sa, ca))
+            return pivot + (pos - pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
         }
         
-        //let rotation = readFloatFromInstanceIfExists(tileCtx.tileInstance, "Rotation") * 360.0
-        //tUV = rotateCW(tUV, angle: rotation.degreesToRadians)
+        let rotation = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rotation", 0)
+        if rotation != 0.0 {
+            var pivot = offset
+            if tileCtx.areaSize.x * tileCtx.areaSize.y == 1 {
+                pivot = float2(0,0)
+            }
+            uv = rotateCW(uv, angle: rotation.degreesToRadians, pivot: pivot)
+        }
+
+        let tUV = pixelise == true ? getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: uv) : uv
         
         return tUV
     }
@@ -364,10 +370,10 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return nil
     }
     
-    /// Creates the shape transform options
-    func createShapeTransformGroup() -> TileNodeOptionsGroup {
-        return TileNodeOptionsGroup("Transform Options", [
-            TileNodeOption(self, "Rotation", .Float, defaultFloat: 0)
+    /// Creates the shape  options
+    func createShapeOptionsGroup() -> TileNodeOptionsGroup {
+        return TileNodeOptionsGroup("Shape Options", [
+            TileNodeOption(self, "Shape", .Menu, menuEntries: ["Standalone", "Merge"], defaultFloat: 1)
         ])
     }
     

@@ -45,7 +45,6 @@ class TilePixelContext
     let height      : Float     // Tile Height
     
     var localDist   : Float
-    var totalDist   : Float
         
     init(areaOffset: float2, areaSize: float2, tileRect: TileRect)
     {
@@ -60,8 +59,7 @@ class TilePixelContext
         height = Float(tileRect.height)
         
         uv = offset / float2(width, height)// - float2(0.5, 0.5)
-        localDist = 0
-        totalDist = 0
+        localDist = 10000
     }
 }
 
