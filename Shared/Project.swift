@@ -109,6 +109,26 @@ class Project           : MMValues, Codable
         return nil
     }
     
+    /// Sets the changed state of the current screen and all tilesets
+    func setHasChanged(_ changed: Bool) {
+        
+        if let screen = getCurrentScreen() {
+            for layer in screen.layers {
+                for area in layer.tileAreas {
+                    area.hasChanged = changed
+                }
+            }
+        }
+        
+        for tileSet in tileSets {
+            for tile in tileSet.tiles {
+                for node in tile.nodes {
+                    node.hasChanged = changed
+                }
+            }
+        }
+    }
+    
     /// Get the tile size of the project
     func getTileSize() -> Float {
         return readFloat("tileSize", 64)
@@ -336,6 +356,23 @@ class Tile         : Codable, Equatable
         }
         
         return nil
+    }
+    
+    /// Returns true if one of the nodes in the tile has been changed
+    func hasChanged() -> Bool {
+        for node in nodes {
+            if node.hasChanged {
+                return true
+            }
+        }
+        return false
+    }
+    
+    /// Sets the changed state of the current screen and all tilesets
+    func setHasChanged(_ changed: Bool = true) {
+        for node in nodes {
+            node.hasChanged = true
+        }
     }
 }
 

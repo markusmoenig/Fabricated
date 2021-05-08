@@ -85,21 +85,25 @@ struct ContentView: View {
                             Button("16x16", action: {
                                 document.core.project.writeFloat("tileSize", value: 16)
                                 tileSizeText = getTileSizeText()
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             })
                             Button("32x32", action: {
                                 document.core.project.writeFloat("tileSize", value: 32)
                                 tileSizeText = getTileSizeText()
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             })
                             Button("64x64", action: {
                                 document.core.project.writeFloat("tileSize", value: 64)
                                 tileSizeText = getTileSizeText()
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             })
                             Button("128x128", action: {
                                 document.core.project.writeFloat("tileSize", value: 128)
                                 tileSizeText = getTileSizeText()
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             })
                         }
@@ -117,6 +121,7 @@ struct ContentView: View {
                                 pixelationText = String(Int(v))//String(format: "%.02f", v)
 
                                 document.core.project.writeFloat("pixelSize", value: Float(pixelationValue))
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             }), in: 1...12, step: Double(1))
                             Text(pixelationText)
@@ -135,6 +140,7 @@ struct ContentView: View {
                                 antiAliasingText = String(Int(v))//String(format: "%.02f", v)
 
                                 document.core.project.writeFloat("antiAliasing", value: Float(antiAliasingValue))
+                                document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
                             }), in: 0...5, step: Double(1))
                             Text(antiAliasingText)

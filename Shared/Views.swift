@@ -300,6 +300,7 @@ struct NodeToolbar: View {
                     if let tile = document.core.project.currentTileSet?.openTile {
                         if let index = tile.nodes.firstIndex(of: node) {
                             tile.nodes.remove(at: index)
+                            tile.setHasChanged(true)
                         }
                     }
                     

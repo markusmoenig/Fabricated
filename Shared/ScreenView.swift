@@ -447,6 +447,9 @@ class ScreenView
                 }
             } else
             if core.currentTool == .Clear {
+                
+                core.startLayerUndo(layer, "Area Removal")
+
                 if let instance = layer.tileInstances[tileId] {
                     let areas = getAreasOfTileInstance(layer, instance)
                     for area in areas {
@@ -468,8 +471,10 @@ class ScreenView
                     }
                 }
                 core.project.selectedRect = nil
+                core.project.setHasChanged(true)
                 layer.selectedAreas = []
-                core.renderer.render()
+                core.renderer.render(forceTextureClear: true)
+                core.currentLayerUndo?.end()
             }
         }
         

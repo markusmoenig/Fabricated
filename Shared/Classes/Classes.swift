@@ -10,7 +10,9 @@ import Foundation
 /// Utility class to handles reading / writing values from a named float map
 class MMValues
 {
-    var values    : [String:Float] = [:]
+    var values          : [String:Float] = [:]
+    
+    var hasChanged      : Bool = true
 
     func doesFloatExist(_ name: String) -> Bool {
         if values[name] == nil {
@@ -30,6 +32,7 @@ class MMValues
     func writeFloat(_ name: String, value: Float)
     {
         values[name] = value
+        hasChanged = true
     }
     
     func readFloat2(_ name: String,_ defaultValue: float2 = float2(0,0)) -> float2
@@ -44,6 +47,7 @@ class MMValues
     {
         values[name + "_x"] = value.x
         values[name + "_y"] = value.y
+        hasChanged = true
     }
     
     func readFloat3(_ name: String) -> float3
@@ -60,6 +64,7 @@ class MMValues
         values[name + "_x"] = value.x
         values[name + "_y"] = value.y
         values[name + "_z"] = value.z
+        hasChanged = true
     }
     
     func readFloat4(_ name: String) -> float4
@@ -78,6 +83,7 @@ class MMValues
         values[name + "_y"] = value.y
         values[name + "_z"] = value.z
         values[name + "_w"] = value.w
+        hasChanged = true
     }
     
     // These functions read / write to either itself or the currently selected area if .Select tool is active

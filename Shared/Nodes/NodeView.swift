@@ -355,6 +355,7 @@ class NodeView
                         core.startTileUndo(tile, "Node Disconnected")
                         if nodeIsAboutToBeDeleted(node) {
                             core.updateTilePreviews()
+                            tile.setHasChanged(true)
                             core.renderer.render()
                             update()
                             core.currentTileUndo?.end()
@@ -485,6 +486,7 @@ class NodeView
             core.currentTileUndo?.end()
             
             core.updateTilePreviews()
+            getCurrentTile()!.setHasChanged(true)
             core.renderer.render()
             update()
         }
