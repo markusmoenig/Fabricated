@@ -428,6 +428,7 @@ class Renderer
             layer.texture = allocateTexture(core.device, width: size.x, height: size.y)
             
             clear()
+            core.project.setHasChanged(true)
             return true
         }
         
