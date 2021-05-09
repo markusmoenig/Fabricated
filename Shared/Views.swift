@@ -211,6 +211,36 @@ struct ToolsView2: View {
     }
 }
 
+/// ToolsView3
+struct ToolsView3: View {
+    @State var document                     : FabricatedDocument
+    @Binding var updateView                 : Bool
+
+    @State var scaleValue                   : Double = 1.0
+    @State var scaleText                    : String = "1.00"
+
+    var body: some View {
+        HStack {
+            Slider(value: Binding<Double>(get: {scaleValue}, set: { v in
+                scaleText = String(format: "%.02f", v)
+                scaleValue = v
+                document.core.screenView.graphZoom = Float(scaleValue)
+                document.core.screenView.update()
+            }), in: 0.20...2.0)
+            Button(scaleText, action: {
+                scaleValue = 1.0
+                scaleText = String(format: "%.02f", scaleValue)
+                document.core.screenView.graphZoom = Float(scaleValue)
+                document.core.screenView.update()
+            })
+            .frame(maxWidth: 30)
+            .buttonStyle(BorderlessButtonStyle())
+        }
+        .frame(minHeight: 30)
+        .frame(maxWidth: 120)
+    }
+}
+
 /// NodeToolbar
 struct NodeToolbar: View {
     @State var document                     : FabricatedDocument

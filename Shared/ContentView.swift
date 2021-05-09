@@ -25,6 +25,7 @@ struct ContentView: View {
     @State var antiAliasingText             : String = "2"
     
     @State var gridIsOn                     : Bool = true
+    @State var areasAreOn                   : Bool = false
 
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
@@ -50,6 +51,8 @@ struct ContentView: View {
                             ToolsView(document: document, updateView: $updateView)
                             ToolsView2(document: document, updateView: $updateView)
                                 .offset(x: geometry.size.width - 130, y: 0)
+                            ToolsView3(document: document, updateView: $updateView)
+                                .offset(x: geometry.size.width - 130, y: geometry.size.height - 30)
                         }
                     }
                     HStack {
@@ -148,12 +151,21 @@ struct ContentView: View {
                         }
                         .padding(4)
                         
+                        Toggle(isOn: $areasAreOn) {
+                            Text("Show Areas")
+                        }
+                        
                         Toggle(isOn: $gridIsOn) {
                             Text("Show Grid")
                         }
                         
                         .onChange(of: gridIsOn) { value in
                             document.core.screenView.showGrid = gridIsOn
+                            document.core.screenView.update()
+                        }
+                        
+                        .onChange(of: areasAreOn) { value in
+                            document.core.screenView.showAreas = areasAreOn
                             document.core.screenView.update()
                         }
                     }

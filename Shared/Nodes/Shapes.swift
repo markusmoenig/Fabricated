@@ -8,7 +8,27 @@
 import Foundation
 import simd
 
-class ShapeDisk : TileNode {
+class ShapeTileNode : TileNode {
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
+        
+        if shapeMode == 0 {
+            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        } else
+        if shapeMode == 1 {
+            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
+        }
+        
+        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
+        if shapeMode == 0 {
+            pixelCtx.localDist = 1000
+        }
+        return rc
+    }
+}
+
+final class ShapeDisk : ShapeTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -53,27 +73,9 @@ class ShapeDisk : TileNode {
 
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: length(uv) - radius)
     }
-    
-    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
-    {
-        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
-        
-        if shapeMode == 0 {
-            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        } else
-        if shapeMode == 1 {
-            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
-        }
-        
-        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
-        if shapeMode == 0 {
-            pixelCtx.localDist = 1000
-        }
-        return rc
-    }
 }
 
-class ShapeBox : TileNode {
+final class ShapeBox : ShapeTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -141,27 +143,9 @@ class ShapeBox : TileNode {
         let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize-1) / 2
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: sdBox(uv, float2(width, height), rounding))
     }
-    
-    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
-    {
-        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
-        
-        if shapeMode == 0 {
-            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        } else
-        if shapeMode == 1 {
-            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
-        }
-        
-        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
-        if shapeMode == 0 {
-            pixelCtx.localDist = 1000
-        }
-        return rc
-    }
 }
 
-class ShapeGround : TileNode {
+final class ShapeGround : ShapeTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -264,23 +248,5 @@ class ShapeGround : TileNode {
         let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, centered: false, areaAdjust: true)
         let d = sdSpline(uv, tileCtx: tileCtx)
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: d)
-    }
-    
-    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
-    {
-        let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
-        
-        if shapeMode == 0 {
-            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-        } else
-        if shapeMode == 1 {
-            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
-        }
-        
-        let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
-        if shapeMode == 0 {
-            pixelCtx.localDist = 1000
-        }
-        return rc
     }
 }

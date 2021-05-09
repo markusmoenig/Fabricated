@@ -19,7 +19,8 @@ class ScreenView
     }
     
     var showGrid            : Bool = true
-    
+    var showAreas           : Bool = false
+
     var action              : Action = .None
     var toolControl         : ToolControl = .None
     var actionArea          : TileInstanceArea? = nil
@@ -39,6 +40,8 @@ class ScreenView
     var mouseMovedPos       : float2? = nil
     
     var firstDraw           = true
+    
+    static var selectionColor = SIMD4<Float>(0.494, 0.455, 0.188, 1.000)
     
     init(_ core: Core)
     {
@@ -86,15 +89,29 @@ class ScreenView
             
             drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
         }
-        
+                
         // Selected areas
         if let currentLayer = core.project.currentLayer {
+            
+            if showAreas == true {
+                for area in currentLayer.tileAreas {
+                    
+                    if currentLayer.selectedAreas.contains(area) == false {
+                        let selection = area.area
+                        let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
+                        let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
+                        
+                        drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
+                    }
+                }
+            }
+
             for area in currentLayer.selectedAreas {
                 let selection = area.area
                 let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
                 let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
                 
-                drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+                drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: 2 * graphZoom, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
             }
         }
             
@@ -618,7 +635,7 @@ class ScreenView
         }
         
         graphZoom = max(0.2, scaleBuffer * scale)
-        graphZoom = min(1, graphZoom)
+        graphZoom = min(2, graphZoom)
         update()
     }
     
