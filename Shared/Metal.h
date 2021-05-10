@@ -89,4 +89,10 @@ typedef struct
     unsigned int    frame;
 } MetalData;
 
+typedef struct
+{
+    float           time;
+    unsigned int    frame;
+} NoiseData;
+
 #endif /* Metal_h */

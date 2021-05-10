@@ -179,7 +179,6 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
                              _pos_floor.y + 1)
 
     //vec4 f = (pos.xyxy - i.xyxy) - vec2(0.0, 1.0).xxyy;
-
     let f : float4 = float4((_pos.x - i.x),
                             (_pos.y - i.y),
                             (_pos.x - i.x) - 1,
@@ -198,13 +197,25 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
     permuteHash2D(i, &gradientX, &gradientY)
     gradientX -= 0.49999
     gradientY -= 0.49999
+    
+    func invSqrt(_ x: Float) -> Float {
+        let halfx = 0.5 * x
+        var y = x
+        var i : Int32 = 0
+        memcpy(&i, &y, 4)
+        i = 0x5f3759df - (i >> 1)
+        memcpy(&y, &i, 4)
+        y = y * (1.5 - (halfx * y * y))
+        return y
+    }
 
     // perlin surflet
+    //vec4 gradients = inversesqrt(gradientX * gradientX + gradientY * gradientY) * (gradientX * f.xzxz + gradientY * f.yyww);
     var gradients : float4 = float4(
-        1.0 / sqrt(gradientX.x * gradientX.x + gradientY.x * gradientY.x) * (gradientX.x * f.x + gradientY.x * f.y),
-        1.0 / sqrt(gradientX.y * gradientX.y + gradientY.y * gradientY.y) * (gradientX.y * f.z + gradientY.y * f.y),
-        1.0 / sqrt(gradientX.z * gradientX.z + gradientY.z * gradientY.z) * (gradientX.z * f.x + gradientY.z * f.w),
-        1.0 / sqrt(gradientX.w * gradientX.w + gradientY.w * gradientY.w) * (gradientX.w * f.z + gradientY.w * f.w)
+        (invSqrt(gradientX.x * gradientX.x + gradientY.x * gradientY.x)) * (gradientX.x * f.x + gradientY.x * f.y),
+        (invSqrt(gradientX.y * gradientX.y + gradientY.y * gradientY.y)) * (gradientX.y * f.z + gradientY.y * f.y),
+        (invSqrt(gradientX.z * gradientX.z + gradientY.z * gradientY.z)) * (gradientX.z * f.x + gradientY.z * f.w),
+        (invSqrt(gradientX.w * gradientX.w + gradientY.w * gradientY.w)) * (gradientX.w * f.z + gradientY.w * f.w)
         )
     
     // normalize: 1.0 / 0.75^3
@@ -217,5 +228,5 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
     lengthSq.w = lengthSq.z + lengthSq.w
     var xSq = 1.0 - min(float4(1.0, 1.0, 1.0, 1.0), lengthSq)
     xSq = xSq * xSq * xSq
-    return simd_dot(xSq, gradients)
+    return dot(xSq, gradients)
 }

@@ -15,6 +15,12 @@
 		2B1A6FC526214078005F65E6 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FC326214078005F65E6 /* Shapes.swift */; };
 		2B1A6FCD262189A7005F65E6 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FCC262189A7005F65E6 /* NodeView.swift */; };
 		2B1A6FCE262189A7005F65E6 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1A6FCC262189A7005F65E6 /* NodeView.swift */; };
+		2B6244AB2649169B00CBDFEA /* NoiseGen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244AA2649169B00CBDFEA /* NoiseGen.swift */; };
+		2B6244AC2649169B00CBDFEA /* NoiseGen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244AA2649169B00CBDFEA /* NoiseGen.swift */; };
+		2B6244AE264916A800CBDFEA /* NoiseStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244AD264916A800CBDFEA /* NoiseStates.swift */; };
+		2B6244AF264916A800CBDFEA /* NoiseStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244AD264916A800CBDFEA /* NoiseStates.swift */; };
+		2B6244B12649171800CBDFEA /* Noise.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244B02649171800CBDFEA /* Noise.metal */; };
+		2B6244B22649171800CBDFEA /* Noise.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B6244B02649171800CBDFEA /* Noise.metal */; };
 		2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B23D6263FF0EE005D7F93 /* Undo.swift */; };
 		2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B23D6263FF0EE005D7F93 /* Undo.swift */; };
 		2B705057262A6ADB00E7E4A1 /* Noise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B705056262A6ADB00E7E4A1 /* Noise.swift */; };
@@ -68,6 +74,9 @@
 		2B1A6FBE26213F60005F65E6 /* NodeArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeArray.swift; sourceTree = "<group>"; };
 		2B1A6FC326214078005F65E6 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
 		2B1A6FCC262189A7005F65E6 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		2B6244AA2649169B00CBDFEA /* NoiseGen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoiseGen.swift; sourceTree = "<group>"; };
+		2B6244AD264916A800CBDFEA /* NoiseStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoiseStates.swift; sourceTree = "<group>"; };
+		2B6244B02649171800CBDFEA /* Noise.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Noise.metal; sourceTree = "<group>"; };
 		2B6B23D6263FF0EE005D7F93 /* Undo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Undo.swift; sourceTree = "<group>"; };
 		2B705056262A6ADB00E7E4A1 /* Noise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Noise.swift; sourceTree = "<group>"; };
 		2B70505B262A95DA00E7E4A1 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
@@ -117,6 +126,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2B6244A92649162A00CBDFEA /* Noise */ = {
+			isa = PBXGroup;
+			children = (
+				2B6244AA2649169B00CBDFEA /* NoiseGen.swift */,
+				2B6244AD264916A800CBDFEA /* NoiseStates.swift */,
+				2B6244B02649171800CBDFEA /* Noise.metal */,
+			);
+			path = Noise;
+			sourceTree = "<group>";
+		};
 		2B7B1931261D4DC50027C905 = {
 			isa = PBXGroup;
 			children = (
@@ -147,6 +166,7 @@
 				2B7D074C261E9E850097212F /* MetalDrawables.swift */,
 				2B7B198A261D86DC0027C905 /* MathLibrary.swift */,
 				2B7D0769261EA4360097212F /* Nodes */,
+				2B6244A92649162A00CBDFEA /* Noise */,
 				2B7D0753261E9FCC0097212F /* Classes */,
 				2B7D0760261EA3960097212F /* Fonts */,
 				2B7B193A261D4DC60027C905 /* Assets.xcassets */,
@@ -315,9 +335,12 @@
 			files = (
 				2B7B1986261D86930027C905 /* MetalView.swift in Sources */,
 				2B705057262A6ADB00E7E4A1 /* Noise.swift in Sources */,
+				2B6244AE264916A800CBDFEA /* NoiseStates.swift in Sources */,
+				2B6244AB2649169B00CBDFEA /* NoiseGen.swift in Sources */,
 				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0755261EA0050097212F /* Classes.swift in Sources */,
+				2B6244B12649171800CBDFEA /* Noise.metal in Sources */,
 				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1978261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */,
@@ -346,9 +369,12 @@
 			files = (
 				2B7B1987261D86930027C905 /* MetalView.swift in Sources */,
 				2B705058262A6ADB00E7E4A1 /* Noise.swift in Sources */,
+				2B6244AF264916A800CBDFEA /* NoiseStates.swift in Sources */,
+				2B6244AC2649169B00CBDFEA /* NoiseGen.swift in Sources */,
 				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0756261EA0050097212F /* Classes.swift in Sources */,
+				2B6244B22649171800CBDFEA /* Noise.metal in Sources */,
 				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1979261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */,

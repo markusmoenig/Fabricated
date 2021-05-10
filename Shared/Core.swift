@@ -58,6 +58,8 @@ class Core
     var stopRunning     : Bool = false
     
     var undoManager     : UndoManager? = nil
+    
+    var noiseGen        : NoiseGen!
 
     init()
     {
@@ -121,6 +123,8 @@ class Core
         metalStates = MetalStates(self)
         drawables = MetalDrawables(view)
         renderer = Renderer(self)
+        
+        noiseGen = NoiseGen(self)
                 
         textureLoader = MTKTextureLoader(device: device)
 
@@ -391,7 +395,7 @@ class Core
         return cgImage
     }
     
-    // ----- Undo: Layer
+    // MARK: Layer Undo
     
     var currentLayerUndo : LayerUndoComponent? = nil    
     func startLayerUndo(_ layer: Layer,_ name: String) {
@@ -399,7 +403,7 @@ class Core
         currentLayerUndo!.start()
     }
     
-    // ----- Undo: Tile
+    // MARK: Tile Undo
     
     var currentTileUndo : TileUndoComponent? = nil
     func startTileUndo(_ tile: Tile,_ name: String) {
