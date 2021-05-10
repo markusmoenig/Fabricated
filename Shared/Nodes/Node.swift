@@ -22,6 +22,18 @@ class TileNodeOptionsGroup
     }
 }
 
+class TileNodeOptionExclusion
+{
+    var name                = ""
+    var value               = Float(0)
+        
+    init(_ name: String,_ value: Float)
+    {
+        self.name = name
+        self.value = value
+    }
+}
+
 class TileNodeOption
 {
     enum OptionType {
@@ -38,14 +50,19 @@ class TileNodeOption
     let menuEntries         : [String]?
     
     var range               : float2
-        
-    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, range: float2 = float2(0,1), defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
+    
+    var exclusion           : TileNodeOptionExclusion? = nil
+    var exclusionTrigger    : Bool = false
+
+    init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, range: float2 = float2(0,1), exclusion: TileNodeOptionExclusion? = nil, exclusionTrigger: Bool = false, defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
     {
         self.node = node
         self.name = name
         self.type = type
         self.menuEntries = menuEntries
         self.range = range
+        self.exclusion = exclusion
+        self.exclusionTrigger = exclusionTrigger
         
         if type == .Color {
             if node.doesFloatExist(name + "_x") == false {
@@ -382,9 +399,9 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         return TileNodeOptionsGroup("Default Options", [
             TileNodeOption(self, "Shape", .Menu, menuEntries: ["Inside", "Outside"], defaultFloat: 0),
             TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Mask"], defaultFloat: 0),
-            TileNodeOption(self, "Depth Range", .Switch, defaultFloat: 0),
-            TileNodeOption(self, "Depth Start", .Float, defaultFloat: 0),
-            TileNodeOption(self, "Depth End", .Float, defaultFloat: 1)
+            TileNodeOption(self, "Depth Range", .Switch, exclusionTrigger: true, defaultFloat: 0),
+            TileNodeOption(self, "Depth Start", .Float, exclusion: TileNodeOptionExclusion("Depth Range", 0), defaultFloat: 0),
+            TileNodeOption(self, "Depth End", .Float, exclusion: TileNodeOptionExclusion("Depth Range", 0), defaultFloat: 1)
         ])
     }
         

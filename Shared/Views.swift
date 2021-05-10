@@ -404,20 +404,22 @@ struct NodeSettingsView: View {
                                         Text(group.name)
                                     } ) {
                             ForEach(group.options, id: \.id) { option in
-                                if option.type == .Int {
-                                    ParamIntView(document.core, option)
-                                } else
-                                if option.type == .Float {
-                                    ParamFloatView(document.core, option)
-                                } else
-                                if option.type == .Switch {
-                                    ParamSwitchView(document.core, option)
-                                } else
-                                if option.type == .Color {
-                                    ParamColorView(document.core, option)
-                                } else
-                                if option.type == .Menu {
-                                    ParamMenuView(document.core, option)
+                                if self.testExclusion(currentNode, option) == false {
+                                    if option.type == .Int {
+                                        ParamIntView(document.core, option)
+                                    } else
+                                    if option.type == .Float {
+                                        ParamFloatView(document.core, option)
+                                    } else
+                                    if option.type == .Switch {
+                                        ParamSwitchView(document.core, option)
+                                    } else
+                                    if option.type == .Color {
+                                        ParamColorView(document.core, option)
+                                    } else
+                                    if option.type == .Menu {
+                                        ParamMenuView(document.core, option)
+                                    }
                                 }
                             }
                         }
@@ -433,6 +435,18 @@ struct NodeSettingsView: View {
             currentNode = nil
             currentNode = tileNode
         }
+    }
+    
+    func testExclusion(_ node: TileNode,_ option: TileNodeOption) -> Bool
+    {
+        if let exclusion = option.exclusion {
+            let value = node.readOptionalFloatInstanceArea(document.core, node, exclusion.name)
+            if value == exclusion.value {
+                return true
+            }
+        }
+        
+        return false
     }
 }
 
@@ -586,6 +600,10 @@ struct ParamSwitchView: View {
                 core.updateTilePreviews(tile)
             }
             core.currentTileUndo?.end()
+            
+            if option.exclusionTrigger == true {
+                core.tileNodeChanged.send(option.node)
+            }
         }
     }
 }
