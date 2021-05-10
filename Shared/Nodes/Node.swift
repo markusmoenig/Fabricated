@@ -260,7 +260,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
                     decoNode = nextDecoNode
                 }                
             } else {
-                let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist)
+                let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.distance)
                 color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
             }
         }
@@ -311,7 +311,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Start", 0)
         let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth End", 1)
         
-        let d = pixelCtx.localDist
+        let d = pixelCtx.distance
         
         if inside {
             if d <= -maskStart && d >= -(maskStart + maskEnd) {

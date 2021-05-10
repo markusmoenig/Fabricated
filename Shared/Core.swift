@@ -267,6 +267,10 @@ class Core
         tileContext.tileArea = TileInstanceArea(UUID(), UUID())
         tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
         
+        tileContext.areaOffset = float2(0,0)
+        tileContext.areaSize = float2(1, 1)
+        tileContext.tileId = float2(0,0)
+        
         let tileRect = TileRect(0, 0, tileSize, tileSize)
         
         let width: Float = Float(tileSize)
@@ -294,6 +298,11 @@ class Core
                     }
                     
                     let pixelContext = TilePixelContext(areaOffset: float2(Float(w), Float(h)), areaSize: float2(width, height), tileRect: tileRect)
+                    
+                    // Otherwise Decorator node previews are empty as no valid distance
+                    if node.role == .Decorator {
+                        pixelContext.distance = 0
+                    }
                     
                     var color = float4(0, 0, 0, 0)
                     

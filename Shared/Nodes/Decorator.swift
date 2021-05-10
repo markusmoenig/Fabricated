@@ -96,7 +96,7 @@ class DecoratorTilesAndBricks : TileNode {
             modifierValue = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
         }
         
-        let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
+        let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.distance) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
         var patternColor = simd_mix(prevColor, generatePattern(pixelCtx: pixelCtx, tileCtx: tileCtx), float4(step, step, step, step))
         
         if modifierMode == 0 {
@@ -164,7 +164,7 @@ class DecoratorColor : TileNode {
             modifierValue = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
         }
         
-        let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.localDist) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
+        let step = simd_smoothstep(-sign * 2.0 * tileCtx.antiAliasing / pixelCtx.width, sign * tileCtx.antiAliasing / pixelCtx.width, pixelCtx.distance) * computeDecoratorMask(pixelCtx: pixelCtx, tileCtx: tileCtx, inside: shapeMode == 0)
         var patternColor = simd_mix(prevColor, readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color"), float4(step, step, step, step))
         
         if modifierMode == 0 {

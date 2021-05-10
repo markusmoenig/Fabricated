@@ -14,15 +14,15 @@ class ShapeTileNode : TileNode {
         let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
         
         if shapeMode == 0 {
-            pixelCtx.localDist = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.distance = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
         } else
         if shapeMode == 1 {
-            pixelCtx.localDist = min(pixelCtx.localDist, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
+            pixelCtx.distance = min(pixelCtx.distance, render(pixelCtx: pixelCtx, tileCtx: tileCtx))
         }
         
         let rc = renderDecorators(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: prevColor)
         if shapeMode == 0 {
-            pixelCtx.localDist = 1000
+            pixelCtx.distance = 1000
         }
         return rc
     }

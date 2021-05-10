@@ -44,7 +44,7 @@ class TilePixelContext
     let width       : Float     // Tile Width
     let height      : Float     // Tile Height
     
-    var localDist   : Float
+    var distance    : Float     // The current 2D SDF distance as computed by the Shape nodes
         
     init(areaOffset: float2, areaSize: float2, tileRect: TileRect)
     {
@@ -59,7 +59,7 @@ class TilePixelContext
         height = Float(tileRect.height)
         
         uv = offset / float2(width, height)// - float2(0.5, 0.5)
-        localDist = 10000
+        distance = 10000
     }
 }
 
