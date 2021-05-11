@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Surge",
+        "repositoryURL": "https://github.com/Jounce/Surge.git",
+        "state": {
+          "branch": null,
+          "revision": "6e4a47e63da8801afe6188cf039e9f04eb577721",
+          "version": "2.3.2"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

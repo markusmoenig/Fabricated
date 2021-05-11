@@ -59,8 +59,6 @@ class Core
     
     var undoManager     : UndoManager? = nil
     
-    var noiseGen        : NoiseGen!
-
     init()
     {
         project = Project()
@@ -123,9 +121,7 @@ class Core
         metalStates = MetalStates(self)
         drawables = MetalDrawables(view)
         renderer = Renderer(self)
-        
-        noiseGen = NoiseGen(self)
-                
+                        
         textureLoader = MTKTextureLoader(device: device)
 
         screenView = ScreenView(self)

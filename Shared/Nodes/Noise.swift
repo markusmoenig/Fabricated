@@ -6,6 +6,11 @@
 //
 
 import simd
+import Surge
+
+func f42a(_ a: [Float] ) -> float4 {
+    return float4(a[0], a[1], a[2], a[3])
+}
 
 // Tileable noises based on https://github.com/tuxalin/procedural-tileable-shaders
 
@@ -60,13 +65,6 @@ func permuteHash2D(_ cellIn: float4,_ hashX: inout float4,_ hashY: inout float4)
 }
 
 // the main noise interpolation function using a hermite polynomial
-/*
-vec2 noiseInterpolate(const in vec2 x)
-{
-    vec2 x2 = x * x;
-    return x2 * x * (x * (x * 6.0 - 15.0) + 10.0);
-}*/
-
 func noiseInterpolate(_ x: float2) -> float2
 {
     let x2 = x * x
@@ -81,29 +79,21 @@ func noiseInterpolate(_ x: float2) -> float2
 // @return Value of the noise, range: [-1, 1]
 func noise(pos: float2, scale: float2, seed: Float) -> Float
 {
-    let _pos = pos * scale
+    let _pos = [pos.x * scale.x, pos.y * scale.y]
+    let _pos_floor = Surge.floor(_pos)
     
-    let _pos_floor = floor(_pos)
-    //vec4 i = floor(pos).xyxy + vec2(0.0, 1.0).xxyy;
-    var i : float4 = float4( _pos_floor.x + 0,
-                             _pos_floor.y + 0,
-                             _pos_floor.x + 1,
-                             _pos_floor.y + 1)
-    let f : float2 = _pos - float2(i.x, i.y)
+    var i = Surge.add([_pos_floor[0], _pos_floor[1], _pos_floor[0], _pos_floor[1]], [0, 0, 1, 1])
+    let f = Surge.sub([_pos[0], _pos[1]], [i[0], i[1]])
     
-    //i = mod(i, scale.xyxy) + seed
-    i.x = i.x.truncatingRemainder(dividingBy: scale.x) + seed
-    i.y = i.y.truncatingRemainder(dividingBy: scale.y) + seed
-    i.z = i.z.truncatingRemainder(dividingBy: scale.x) + seed
-    i.w = i.w.truncatingRemainder(dividingBy: scale.y) + seed
-
-    let hash = permuteHash2D(i)
+    i = Surge.add(Surge.mod(i, [scale.x, scale.y, scale.x, scale.y]), seed)
+    
+    let hash = permuteHash2D(float4(i[0], i[1], i[2], i[3]))
     let a = hash.x
     let b = hash.y
     let c = hash.z
     let d = hash.w
 
-    let u = noiseInterpolate(f)
+    let u = noiseInterpolate([f[0], f[1]])
     let value = simd_mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y
     return value * 2.0 - 1.0
 }
@@ -114,53 +104,37 @@ func noise(pos: float2, scale: float2, seed: Float) -> Float
 // @return Value of the noise, range: [-1, 1]
 func gradientNoise(pos: float2, scale: float2, seed: Float) -> Float
 {
-    let _pos = pos * scale
+    let _pos = [pos.x * scale.x, pos.y * scale.y]
 
     // based on Modifications to Classic Perlin Noise by Brian Sharpe: https://archive.is/cJtlS
     //vec4 i = floor(pos).xyxy + vec2(0.0, 1.0).xxyy;
-    let _pos_floor = floor(_pos)
-    var i : float4 = float4( _pos_floor.x + 0,
-                             _pos_floor.y + 0,
-                             _pos_floor.x + 1,
-                             _pos_floor.y + 1)
+    let _pos_floor = Surge.floor(_pos)
+    var i = Surge.add([_pos_floor[0], _pos_floor[1], _pos_floor[0], _pos_floor[1]], [0, 0, 1, 1])
 
     //vec4 f = (pos.xyxy - i.xyxy) - vec2(0.0, 1.0).xxyy;
+    let f = Surge.sub(Surge.sub([_pos[0], _pos[1], _pos[0], _pos[1]], [i[0], i[1], i[0], i[1]]), [0,0,1,1])
 
-    let f : float4 = float4((_pos.x - i.x),
-                            (_pos.y - i.y),
-                            (_pos.x - i.x) - 1,
-                            (_pos.y - i.y) - 1)
-
-    
     //i = mod(i, scale.xyxy) + seed
-    i.x = i.x.truncatingRemainder(dividingBy: scale.x) + seed
-    i.y = i.y.truncatingRemainder(dividingBy: scale.y) + seed
-    i.z = i.z.truncatingRemainder(dividingBy: scale.x) + seed
-    i.w = i.w.truncatingRemainder(dividingBy: scale.y) + seed
+    i = Surge.add(Surge.mod(i, [scale.x, scale.y, scale.x, scale.y]), seed)
     
     // grid gradients
     var hashX: float4 = float4(0,0,0,0)
     var hashY: float4 = float4(0,0,0,0)
     
-    permuteHash2D(i, &hashX, &hashY)
+    permuteHash2D(float4(i[0], i[1], i[2], i[3]), &hashX, &hashY)
     
     //vec4 gradients = hashX * f.xzxz + hashY * f.yyww;
-    let gradients : float4 = float4(
-        (hashX .x * f.x + hashY.x * f.y),
-        (hashX .y * f.z + hashY.y * f.y),
-        (hashX .z * f.x + hashY.z * f.w),
-        (hashX .w * f.z + hashY.w * f.w)
-        )
+    var gradients = Surge.elmul([hashX.x, hashX.y, hashX.z, hashX.w], [f[0], f[2], f[0], f[2]])
+    gradients = Surge.add(gradients, Surge.elmul([hashY.y, hashY.y, hashY.w, hashY.w], [f[1], f[1], f[3], f[3]]))
     
-    let u = noiseInterpolate(float2(f.x, f.y))
+    let u = noiseInterpolate(float2(f[0], f[1]))
     //vec2 g = mix(gradients.xz, gradients.yw, u.x);
     let g = float2(
-        simd_mix(gradients.x, gradients.y, u.x),
-        simd_mix(gradients.z, gradients.w, u.x)
+        simd_mix(gradients[0], gradients[1], u.x),
+        simd_mix(gradients[2], gradients[3], u.x)
     )
     return 1.4142135623730950 * simd_mix(g.x, g.y, u.y);
 }
-
 
 // 2D Perlin noise.
 // @param scale Number of tiles, must be  integer for tileable results, range: [2, inf]
@@ -168,33 +142,24 @@ func gradientNoise(pos: float2, scale: float2, seed: Float) -> Float
 // @return Value of the noise, range: [-1, 1]
 func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
 {
-    let _pos = pos * scale
+    let _pos = [pos.x * scale.x, pos.y * scale.y]
 
     // based on Modifications to Classic Perlin Noise by Brian Sharpe: https://archive.is/cJtlS
     //vec4 i = floor(pos).xyxy + vec2(0.0, 1.0).xxyy;
-    let _pos_floor = floor(_pos)
-    var i : float4 = float4( _pos_floor.x + 0,
-                             _pos_floor.y + 0,
-                             _pos_floor.x + 1,
-                             _pos_floor.y + 1)
+    let _pos_floor = Surge.floor(_pos)
+    var i = Surge.add([_pos_floor[0], _pos_floor[1], _pos_floor[0], _pos_floor[1]], [0, 0, 1, 1])
 
     //vec4 f = (pos.xyxy - i.xyxy) - vec2(0.0, 1.0).xxyy;
-    let f : float4 = float4((_pos.x - i.x),
-                            (_pos.y - i.y),
-                            (_pos.x - i.x) - 1,
-                            (_pos.y - i.y) - 1)
+    let f = Surge.sub(Surge.sub([_pos[0], _pos[1], _pos[0], _pos[1]], [i[0], i[1], i[0], i[1]]), [0,0,1,1])
 
     //i = mod(i, scale.xyxy) + seed
-    i.x = i.x.truncatingRemainder(dividingBy: scale.x) + seed
-    i.y = i.y.truncatingRemainder(dividingBy: scale.y) + seed
-    i.z = i.z.truncatingRemainder(dividingBy: scale.x) + seed
-    i.w = i.w.truncatingRemainder(dividingBy: scale.y) + seed
+    i = Surge.add(Surge.mod(i, [scale.x, scale.y, scale.x, scale.y]), seed)
     
     // grid gradients
     var gradientX: float4 = float4(0,0,0,0)
     var gradientY: float4 = float4(0,0,0,0)
     
-    permuteHash2D(i, &gradientX, &gradientY)
+    permuteHash2D(float4(i[0], i[1], i[2], i[3]), &gradientX, &gradientY)
     gradientX -= 0.49999
     gradientY -= 0.49999
     
@@ -212,21 +177,18 @@ func perlinNoise(pos: float2, scale: float2, seed: Float) -> Float
     // perlin surflet
     //vec4 gradients = inversesqrt(gradientX * gradientX + gradientY * gradientY) * (gradientX * f.xzxz + gradientY * f.yyww);
     var gradients : float4 = float4(
-        (invSqrt(gradientX.x * gradientX.x + gradientY.x * gradientY.x)) * (gradientX.x * f.x + gradientY.x * f.y),
-        (invSqrt(gradientX.y * gradientX.y + gradientY.y * gradientY.y)) * (gradientX.y * f.z + gradientY.y * f.y),
-        (invSqrt(gradientX.z * gradientX.z + gradientY.z * gradientY.z)) * (gradientX.z * f.x + gradientY.z * f.w),
-        (invSqrt(gradientX.w * gradientX.w + gradientY.w * gradientY.w)) * (gradientX.w * f.z + gradientY.w * f.w)
+        (invSqrt(gradientX.x * gradientX.x + gradientY.x * gradientY.x)) * (gradientX.x * f[0] + gradientY.x * f[1]),
+        (invSqrt(gradientX.y * gradientX.y + gradientY.y * gradientY.y)) * (gradientX.y * f[2] + gradientY.y * f[1]),
+        (invSqrt(gradientX.z * gradientX.z + gradientY.z * gradientY.z)) * (gradientX.z * f[0] + gradientY.z * f[3]),
+        (invSqrt(gradientX.w * gradientX.w + gradientY.w * gradientY.w)) * (gradientX.w * f[2] + gradientY.w * f[3])
         )
     
     // normalize: 1.0 / 0.75^3
     gradients *= 2.3703703703703703703703703703704
-    var lengthSq = f * f
+    var lengthSq = Surge.elmul(f, f)
     //lengthSq = lengthSq.xzxz + lengthSq.yyww
-    lengthSq.x = lengthSq.x + lengthSq.y
-    lengthSq.y = lengthSq.z + lengthSq.y
-    lengthSq.z = lengthSq.x + lengthSq.w
-    lengthSq.w = lengthSq.z + lengthSq.w
-    var xSq = 1.0 - min(float4(1.0, 1.0, 1.0, 1.0), lengthSq)
+    lengthSq = Surge.add([lengthSq[0], lengthSq[2], lengthSq[0], lengthSq[2]], [lengthSq[1], lengthSq[1], lengthSq[3], lengthSq[3]])
+    var xSq = 1.0 - min(float4(1.0, 1.0, 1.0, 1.0), f42a(lengthSq))
     xSq = xSq * xSq * xSq
     return dot(xSq, gradients)
 }
