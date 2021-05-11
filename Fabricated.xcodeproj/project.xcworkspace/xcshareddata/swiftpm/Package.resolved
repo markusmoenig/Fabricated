@@ -9,6 +9,15 @@
           "revision": "6e4a47e63da8801afe6188cf039e9f04eb577721",
           "version": "2.3.2"
         }
+      },
+      {
+        "package": "SwiftNoise",
+        "repositoryURL": "https://github.com/markusmoenig/SwiftNoise/",
+        "state": {
+          "branch": null,
+          "revision": "1f3a9ed3515483b7c76e217b0bb0f5d6456a5301",
+          "version": "0.1.1"
+        }
       }
     ]
   },
