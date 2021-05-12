@@ -51,14 +51,14 @@ class TilePixelContext
         self.areaOffset = areaOffset
         self.areaSize = areaSize
         
-        areaUV = areaOffset / areaSize - float2(0.5, 0.5)
+        areaUV = areaOffset / areaSize
         
         offset = float2(areaOffset.x - Float(tileRect.x), areaOffset.y - Float(tileRect.y))
         
         width = Float(tileRect.width)
         height = Float(tileRect.height)
         
-        uv = offset / float2(width, height)// - float2(0.5, 0.5)
+        uv = offset / float2(width, height)
         distance = 10000
     }
 }
@@ -163,7 +163,7 @@ class Renderer
                                 let x : Float = Float(abs(dims.1.x - w)) * tileSize
                                 let y : Float = Float(abs(dims.1.y - h)) * tileSize
                                 
-                                let rect = TileRect(Int(x), Int(y), Int(tileSize), Int(tileSize))
+                                let rect = TileRect(Int(x.rounded()), Int(y.rounded()), Int(tileSize), Int(tileSize))
                                 //renderTile(tileContext, rect)
                                 tileJobs.append(TileJob(tileContext, rect))
                             }
@@ -211,7 +211,7 @@ class Renderer
                     startThread()
                 }
             }
-            print("Cores", cores, "Jobs", tileJobs.count, "Core started:", coresActive)
+            print("Cores", cores, "Jobs", tileJobs.count, "Cores started:", coresActive)
         }
     }
     

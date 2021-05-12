@@ -45,9 +45,10 @@ class Core
     
     let screenChanged = PassthroughSubject<Screen?, Never>()
     let layerChanged = PassthroughSubject<Layer?, Never>()
+    let areaChanged = PassthroughSubject<Void, Never>()
 
     let tileSetChanged = PassthroughSubject<TileSet?, Never>()
-    
+
     let startupSignal = PassthroughSubject<Void, Never>()
 
     // Preview Rendering
@@ -341,6 +342,40 @@ class Core
         }
     }
     
+    func getAreaData(_ area: TileInstanceArea)
+    {
+        let dims = renderer.calculateTextureSizeForScreen()
+        let tileSize = project.getTileSize()
+
+        let x : Float = Float(abs(dims.1.x - area.area.x)) * tileSize
+        let y : Float = Float(abs(dims.1.y - area.area.y)) * tileSize
+        let width : Float = Float(area.area.z) * tileSize
+        let height : Float = Float(area.area.w) * tileSize
+        
+        print("tileSize", tileSize)
+        print("rect", x, y, width, height)
+        
+        if let layer = project.currentLayer {
+            if let texture = layer.texture {
+                let pixelCount = width * height
+                let region = MTLRegionMake2D(Int(x), Int(y), Int(width), Int(height))
+
+                var array = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(pixelCount))
+
+                array.withUnsafeMutableBytes {
+                    texture.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(width)), from: region, mipmapLevel: 0)
+                }
+                
+                print(array[0])
+                
+                if let image = createCGIImage(array, SIMD2<Int>(Int(width), Int(height))) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.writeObjects([NSImage(cgImage: image, size: .zero)])
+                }
+            }
+        }
+    }
+    
     /// Stops the preview rendering thread
     func stopUpdateThread()
     {
@@ -378,6 +413,53 @@ class Core
                                   bitsPerComponent: bitsPerComponent,
                                   bitsPerPixel: bitsPerPixel,
                                   bytesPerRow: tileSize * MemoryLayout<PixelData>.stride,
+                                  space: rgbColorSpace,
+                                  bitmapInfo: bitmapInfo,
+                                  provider: providerRef,
+                                  decode: nil,
+                                  shouldInterpolate: true,
+                                  intent: .defaultIntent)
+        else {
+            return nil
+        }
+        
+        return cgImage
+    }
+    
+    /// Creates an CGIImage from an float4 array
+    func createCGIImage(_ array: Array<SIMD4<Float>>,_ tileSize: SIMD2<Int>) -> CGImage?
+    {
+        struct PixelData {
+            let r: UInt8
+            let g: UInt8
+            let b: UInt8
+            let a: UInt8
+        }
+        
+        let data = array.map { pixel -> PixelData in
+            
+            var merged : float4 = simd_mix(float4(0,0,0,1), pixel, float4(pixel.w, pixel.w, pixel.w, pixel.w))
+            merged.w = 1
+            
+            let red = UInt8(merged.x * 255)
+            let green = UInt8(merged.y * 255)
+            let blue = UInt8(merged.z * 255)
+            let alpha = UInt8(255)//UInt8(pixel.w * 255)
+            return PixelData(r: red, g: green, b: blue, a: alpha)
+        }.withUnsafeBytes { Data($0) }
+        
+        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        let bitsPerComponent = 8
+        let bitsPerPixel = 32
+
+        guard
+            let providerRef = CGDataProvider(data: data as CFData),
+            let cgImage = CGImage(width: tileSize.x,
+                                  height: tileSize.y,
+                                  bitsPerComponent: bitsPerComponent,
+                                  bitsPerPixel: bitsPerPixel,
+                                  bytesPerRow: tileSize.x * MemoryLayout<PixelData>.stride,
                                   space: rgbColorSpace,
                                   bitmapInfo: bitmapInfo,
                                   provider: providerRef,

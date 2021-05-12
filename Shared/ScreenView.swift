@@ -478,7 +478,8 @@ class ScreenView
 
                     // Assemble all areas in which the tile is included and select them
                     layer.selectedAreas = getAreasOfTileInstance(layer, instance)
-                    
+                    core.areaChanged.send()
+
                     //
                     if let tileSet = core.project.getTileSet(instance.tileSetId) {
                         if let newTile = core.project.getTileOfTileSet(instance.tileSetId, instance.tileId) {
@@ -495,6 +496,7 @@ class ScreenView
                     }
                 } else {
                     layer.selectedAreas = []
+                    core.areaChanged.send()
                     update()
                 }
             } else

@@ -27,6 +27,7 @@ struct ContentView: View {
     @State var gridIsOn                     : Bool = true
     @State var areasAreOn                   : Bool = false
 
+    @State var areaMenuText                 : String = "Area: None"
 
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
     @Environment(\.undoManager) var undoManager
@@ -75,6 +76,8 @@ struct ContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
                 
+                toolAreaMenu
+                
                 Button(action: {
                     showSettingsPopover = true
                 }) {
@@ -105,6 +108,12 @@ struct ContentView: View {
                             })
                             Button("128x128", action: {
                                 document.core.project.writeFloat("tileSize", value: 128)
+                                tileSizeText = getTileSizeText()
+                                document.core.project.setHasChanged(true)
+                                document.core.renderer.render()
+                            })
+                            Button("256x256", action: {
+                                document.core.project.writeFloat("tileSize", value: 256)
                                 tileSizeText = getTileSizeText()
                                 document.core.project.setHasChanged(true)
                                 document.core.renderer.render()
@@ -189,6 +198,16 @@ struct ContentView: View {
             }
         }
         
+        .onReceive(self.document.core.areaChanged) { _ in
+            areaMenuText = "Area: None"
+            if let layer = document.core.project.currentLayer {
+                if layer.selectedAreas.isEmpty == false {
+                    let area = layer.selectedAreas[0]
+                    areaMenuText = "Area: \(area.area.z)x\(area.area.w)"
+                }
+            }
+        }
+        
         .onReceive(self.document.core.startupSignal) { _ in
             if undoManager != nil && document.core.undoManager == nil {
                 document.core.undoManager = undoManager
@@ -199,6 +218,33 @@ struct ContentView: View {
     func getTileSizeText() -> String {
         let size = Int(document.core.project.readFloat("tileSize"))
         return "Tile Size: \(size)x\(size)"
+    }
+    
+    func isAreaDisabled() -> Bool
+    {
+        return areaMenuText == "Area: None"
+    }
+    
+    // tool bar menus
+    
+    var toolAreaMenu : some View {
+        Menu {
+            Section(header: Text("Export")) {
+                Button("Copy to Clipboard", action: {
+                    if let layer = document.core.project.currentLayer {
+                        if layer.selectedAreas.isEmpty == false {
+                            document.core.getAreaData(layer.selectedAreas[0])
+                        }
+                    }
+                })
+                Button("Export...", action: {
+                })
+            }
+        }
+        label: {
+            Text(areaMenuText)
+        }
+        .disabled(isAreaDisabled())
     }
 }
 

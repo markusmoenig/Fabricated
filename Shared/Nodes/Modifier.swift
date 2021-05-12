@@ -64,17 +64,17 @@ class ModifierNoise : TileNode {
         } else {
             uv = uvType == 0 ? pixelCtx.uv : pixelCtx.areaUV
         }
-            
+                    
         let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise")
 
         let n : Float
         if noiseType == 1 {
-            n = gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
+            n = gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         } else
         if noiseType == 2 {
-                n = perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
+                n = perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         } else {
-            n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * (scale / 2.0)
+            n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         }
         return n
     }
