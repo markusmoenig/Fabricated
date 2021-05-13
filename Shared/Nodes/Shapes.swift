@@ -42,7 +42,7 @@ final class ShapeDisk : ShapeTileNode {
     override func setup()
     {
         type = "ShapeDisk"
-        toolShape = .Disc
+        tool = .Offset
         optionGroups.append(TileNodeOptionsGroup("Disk Shape Options", [
             TileNodeOption(self, "Radius", .Float, defaultFloat: 1)
         ]))
@@ -89,7 +89,7 @@ final class ShapeBox : ShapeTileNode {
     override func setup()
     {
         type = "ShapeBox"
-        toolShape = .Box
+        tool = .Offset
         optionGroups.append(TileNodeOptionsGroup("Box Shape Options", [
             TileNodeOption(self, "Width", .Float, defaultFloat: 1),
             TileNodeOption(self, "Height", .Float, defaultFloat: 1),
@@ -159,7 +159,7 @@ final class ShapeGround : ShapeTileNode {
     override func setup()
     {
         type = "ShapeGround"
-        toolShape = .QuadraticSpline
+        tool = .QuadraticSpline
         optionGroups.append(createShapeOptionsGroup())
     }
     

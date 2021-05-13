@@ -10,6 +10,8 @@ import SwiftNoise
 
 class ModifierNoise : TileNode {
     
+    var swiftNoise  : SwiftNoise!
+    
     private enum CodingKeys: String, CodingKey {
         case type
     }
@@ -21,6 +23,7 @@ class ModifierNoise : TileNode {
     
     override func setup()
     {
+        swiftNoise = SwiftNoise()
         type = "ModifierNoise"
         optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
             TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
@@ -69,12 +72,12 @@ class ModifierNoise : TileNode {
 
         let n : Float
         if noiseType == 1 {
-            n = gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
+            n = swiftNoise.gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         } else
         if noiseType == 2 {
-                n = perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
+            n = swiftNoise.perlinNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         } else {
-            n = noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
+            n = swiftNoise.noise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale
         }
         return n
     }

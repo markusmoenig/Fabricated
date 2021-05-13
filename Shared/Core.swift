@@ -437,14 +437,10 @@ class Core
         }
         
         let data = array.map { pixel -> PixelData in
-            
-            var merged : float4 = simd_mix(float4(0,0,0,1), pixel, float4(pixel.w, pixel.w, pixel.w, pixel.w))
-            merged.w = 1
-            
-            let red = UInt8(merged.x * 255)
-            let green = UInt8(merged.y * 255)
-            let blue = UInt8(merged.z * 255)
-            let alpha = UInt8(255)//UInt8(pixel.w * 255)
+            let red = UInt8(pixel.x * 255)
+            let green = UInt8(pixel.y * 255)
+            let blue = UInt8(pixel.z * 255)
+            let alpha = UInt8(pixel.w * 255)
             return PixelData(r: red, g: green, b: blue, a: alpha)
         }.withUnsafeBytes { Data($0) }
         

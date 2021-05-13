@@ -299,7 +299,14 @@ struct NodeToolbar: View {
                             document.core.nodeView.update()
                         }
                     })
-                    Button("TilesAndBricks", action: {
+                    Button("Gradient", action: {
+                        if let tile = document.core.project.currentTileSet?.openTile {
+                            tile.nodes.append(DecoratorGradient())
+                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
+                            document.core.nodeView.update()
+                        }
+                    })
+                    Button("Tiles & Bricks", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
                             tile.nodes.append(DecoratorTilesAndBricks())
                             document.core.nodeView.setCurrentNode(tile.nodes.last!)

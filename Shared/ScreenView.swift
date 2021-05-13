@@ -147,7 +147,7 @@ class ScreenView
             // Draw tool shape(s)
             if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
                 if let area = getCurrentArea() {
-                    if currentNode.toolShape != .None || nodeHasDecoratorDepthRange(currentNode, area) {
+                    if currentNode.tool != .None {
                         
                         let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
                         let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
@@ -158,19 +158,6 @@ class ScreenView
             }
         }
         drawables.encodeEnd()
-    }
-    
-    /// Returns true if the node is a decorator and has the depth range enabled
-    func nodeHasDecoratorDepthRange(_ node: TileNode,_ area: TileInstanceArea) -> Bool {
-        
-        if node.role == .Decorator {
-            let depthRange = node.readFloatFromInstanceAreaIfExists(area, node, "Depth Range", 0)
-            if depthRange == 1 {
-                return true
-            }
-        }
-        
-        return false
     }
     
     /// Draw the current tool shape of the currently selected shape node
@@ -208,7 +195,7 @@ class ScreenView
         let r = convertFloat(0.08)
         let off = r / 2 + r / 3
         
-        if node.toolShape == .QuadraticSpline {
+        if node.tool == .QuadraticSpline {
             
             let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5)))
             let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501)))
@@ -239,7 +226,7 @@ class ScreenView
             
             //drawables.drawBezier(p1: p1, p2: p2, p3: p3, borderSize: 2 * graphZoom)
         } else
-        if node.role == .Shape && node.toolShape != .None {
+        if node.tool == .Offset {
             
             if toolControl != .None {
                 swapColor()
@@ -247,16 +234,31 @@ class ScreenView
             
             let p = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5)))
             drawables.drawDisk(position: p - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
-        } /*else
-        if nodeHasDecoratorDepthRange(node, area) {
-            // Depth Range
+        } else
+        if node.tool == .Range {
+            
+            let bColor = borderColor
+
+            fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color1", float4(0,0,0,1))
+            
+            if toolControl != .None {
+                swapColor()
+            }
             
             let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range1", float2(0.5, 0.3)))
             let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7)))
             
             drawables.drawDisk(position: p1 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+            
+            borderColor = bColor
+            fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color2", float4(1,1,1,1))
+            
+            if toolControl != .None {
+                swapColor()
+            }
+            
             drawables.drawDisk(position: p2 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
-        }*/
+        }
     }
     
     /// Returns the tool control for the current normalized touch offset
@@ -276,35 +278,30 @@ class ScreenView
             if let area = getCurrentArea() {
                 
                 // Shape Controls
-                if currentNode.toolShape != . None{
-                    if currentNode.toolShape == .QuadraticSpline {
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
-                            control = .BezierControl1
-                        } else
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
-                            control = .BezierControl2
-                        } else
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
-                            control = .BezierControl3
-                        }
+                if currentNode.tool == .QuadraticSpline {
+                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
+                        control = .BezierControl1
                     } else
-                    if currentNode.toolShape != .None {
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
-                            control = .MoveControl
-                        }
+                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
+                        control = .BezierControl2
+                    } else
+                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
+                        control = .BezierControl3
                     }
-                }
-                
-                /*
-                // Decorator Depth Control
-                if control == .None && nodeHasDecoratorDepthRange(currentNode, area) {
+                } else
+                if currentNode.tool == .Offset {
+                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
+                        control = .MoveControl
+                    }
+                } else
+                if currentNode.tool == .Range {
                     if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range1", float2(0.5, 0.3)), 0.08) {
                         control = .Range1Control
                     }
                     if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range2", float2(0.5, 0.7)), 0.08) {
                         control = .Range2Control
                     }
-                }*/
+                }
                 
                 if control != .None {
                     actionArea = area

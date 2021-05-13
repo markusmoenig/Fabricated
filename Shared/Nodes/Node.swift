@@ -9,7 +9,6 @@ import MetalKit
 
 class TileNodeOptionsGroup
 {
-    
     var id                  = UUID()
     var name                = ""
         
@@ -83,8 +82,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         case Tile, Shape, Modifier, Decorator
     }
     
-    enum TileNodeToolShape {
-        case None, Tile, Disc, Box, QuadraticSpline
+    enum TileNodeTool {
+        case None, Offset, QuadraticSpline, Range
     }
     
     var id                  = UUID()
@@ -93,7 +92,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var type                : String = "" // To identify the node when loading via JSON
     
     var role                : TileNodeRole = .Tile
-    var toolShape           : TileNodeToolShape = .None
+    var tool                : TileNodeTool = .None
 
     var nodeRect            = MMRect()
     var nodePreviewRect     = MMRect()
@@ -244,7 +243,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     {
         var color = prevColor
         
-        func appyModifier(_ node: TileNode, prevColor: float4) -> float4 {
+        func applyModifier(_ node: TileNode, prevColor: float4) -> float4 {
             var color = prevColor
             if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
                 let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
@@ -398,7 +397,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     func createDefaultDecoratorOptionsGroup() -> TileNodeOptionsGroup {
         return TileNodeOptionsGroup("Default Options", [
             TileNodeOption(self, "Shape", .Menu, menuEntries: ["Inside", "Outside"], defaultFloat: 0),
-            TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Mask"], defaultFloat: 0),
+            TileNodeOption(self, "Modifier", .Menu, menuEntries: ["Add", "Mix"], defaultFloat: 0),
             TileNodeOption(self, "Depth Range", .Switch, exclusionTrigger: true, defaultFloat: 0),
             TileNodeOption(self, "Depth Start", .Float, exclusion: TileNodeOptionExclusion("Depth Range", 0), defaultFloat: 0),
             TileNodeOption(self, "Depth End", .Float, exclusion: TileNodeOptionExclusion("Depth Range", 0), defaultFloat: 1)
@@ -407,11 +406,6 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         
     static func ==(lhs:TileNode, rhs:TileNode) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
-    }
-    
-    ///
-    func getToolShapes() -> [TileNodeToolShape] {
-        return []
     }
 }
 
@@ -440,7 +434,7 @@ class TiledNode : TileNode {
     override func setup()
     {
         type = "TiledNode"
-        toolShape = .Tile
+        tool = .Offset
     }
     
     required init(from decoder: Decoder) throws
