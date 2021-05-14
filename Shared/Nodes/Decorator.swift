@@ -142,6 +142,7 @@ class DecoratorGradient : DecoratorTileNode {
         tool = .Range
         optionGroups.append(TileNodeOptionsGroup("Gradient Decorator Options", [
             TileNodeOption(self, "Gradient", .Menu, menuEntries: ["Linear", "Radial", "Angle"], defaultFloat: 0),
+            TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
 
             TileNodeOption(self, "Color1", .Color, defaultFloat4: float4(0.0, 0.0, 0.0, 1)),
             TileNodeOption(self, "Color2", .Color, defaultFloat4: float4(1.0, 1.0, 1.0, 1))
@@ -189,12 +190,12 @@ class DecoratorGradient : DecoratorTileNode {
         }
         
         let gradientMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Gradient")
+        let pixelise : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Pixelise")
 
-        let uvMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
-        let uv = uvMode == 0 ? pixelCtx.uv : pixelCtx.areaUV
-
-        let p1 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_range1", float2(0.5, 0.3))
-        let p2 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_range2", float2(0.5, 0.7))
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: pixelise == 1, centered: false, areaAdjust: true)
+        
+        let p1 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_range1", float2(0.5, 0.3)) * tileCtx.areaSize
+        let p2 = readFloat2FromInstanceAreaIfExists(tileCtx.tileArea, self, "_range2", float2(0.5, 0.7)) * tileCtx.areaSize
         
         let s : Float
             
