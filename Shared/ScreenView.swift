@@ -11,7 +11,7 @@ import Combine
 class ScreenView
 {
     enum Action {
-        case None, DragTool, DragInsert
+        case None, DragTool, DragInsert, DragResize
     }
     
     enum ToolControl {
@@ -39,6 +39,9 @@ class ScreenView
     var dragId              = SIMD2<Int>(0, 0)
     var mouseMovedPos       : float2? = nil
     
+    var resizeToolPos1      = float2(0, 0)
+    var resizeToolPos2      = float2(0, 0)
+
     var firstDraw           = true
     
     static var selectionColor = SIMD4<Float>(0.494, 0.455, 0.188, 1.000)
@@ -89,7 +92,7 @@ class ScreenView
             let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
-            drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+            drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
         }
                 
         // Selected areas
@@ -150,7 +153,14 @@ class ScreenView
             
             let currentNode = core.nodeView?.currentNode
             if (currentNode != nil && core.project.currentTileSet?.openTile != nil ) || core.currentTool == .Resize {
-                if let area = getCurrentArea() {
+                
+                var area = getCurrentArea()
+                
+                if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 {
+                    area = actionArea
+                }
+                
+                if let area = area {
                     if currentNode?.tool != .None || core.currentTool == .Resize {
                         
                         let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
@@ -264,6 +274,21 @@ class ScreenView
         if core.currentTool == .Resize {
             
             let rectBorderSize : Float = 3 * graphZoom
+            
+            /*
+            var areaToUse = area
+            var posToUse = pos
+            
+            if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 {
+                areaToUse = TileInstanceArea(area.tileSetId, area.tileId)
+                areaToUse.area = core.project.selectedRect!
+                posToUse.x = drawables.viewSize.x / 2 + Float(areaToUse.area.x) * tileSize * graphZoom + graphOffset.x
+                posToUse.y = drawables.viewSize.y / 2 + Float(areaToUse.area.y) * tileSize * graphZoom + graphOffset.y
+            }
+            
+            func convertPos(_ p: float2) -> float2 {
+                return posToUse + p * tileSize * float2(Float(areaToUse.area.z), Float(areaToUse.area.w)) * graphZoom
+            }*/
 
             let p1 = convertPos(float2(0.0, 0.0)) - float2(rectBorderSize, 30 * graphZoom)
             var p2 = convertPos(float2(1.0, 1.0))
@@ -280,6 +305,7 @@ class ScreenView
                 swapColor()
             }
             
+            resizeToolPos1 = p1
             drawables.drawDisk(position: p1 - r, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
             
             fillColor = ScreenView.selectionColor
@@ -289,6 +315,7 @@ class ScreenView
                 swapColor()
             }
             
+            resizeToolPos2 = p2
             drawables.drawDisk(position: p2 - r, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
         }
     }
@@ -344,25 +371,28 @@ class ScreenView
             }
         } else
         if core.currentTool == .Resize {
-            let rectBorderSize : Float = 3 * graphZoom
-
-            let p1 = float2(0.0, 0.0) - float2(rectBorderSize, 30 * graphZoom)
-            let p2 = float2(1.0, 1.0) + float2(0, 30 * graphZoom)
-            
-            if checkForDisc(nPos, p1, 0.08) {
-                control = .ResizeControl1
-            } else
-            if checkForDisc(nPos, p2, 0.08) {
-                control = .ResizeControl2
-            }
             
             if let area = getCurrentArea() {
+
+                let tileSize = core.project.getTileSize()
+
+                func convertFloat(_ v: Float) -> Float {
+                    return v * tileSize * Float(area.area.w) * graphZoom
+                }
+                
+                let r = convertFloat(0.08)
+                
+                if checkForDisc(pos, resizeToolPos1, r) {
+                    control = .ResizeControl1
+                } else
+                if checkForDisc(pos, resizeToolPos2, r) {
+                    control = .ResizeControl2
+                }
+                
                 if control != .None {
                     actionArea = area
                 }
             }
-            
-            print("1", control)
         }
         
         return control
@@ -508,7 +538,27 @@ class ScreenView
                     dragId = tileId
                     dragStart = nAreaPos
                     
-                    core.startLayerUndo(layer, "Area Control Changed")
+                    core.startLayerUndo(layer, toolControl == .ResizeControl1 || toolControl == .ResizeControl2 ? "Area Resize" : "Area Control Changed")
+                    
+                    if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 {
+                        
+                        layer.selectedAreas = []
+                        core.project.selectedRect = actionArea?.area
+
+                        if let area = actionArea {
+                            for (pos, inst) in layer.tileInstances {
+                                if inst.tileAreas.contains(area.id) {
+                                    if let index = inst.tileAreas.firstIndex(of: area.id) {
+                                        inst.tileAreas.remove(at: index)
+
+                                        if inst.tileAreas.isEmpty {
+                                            layer.tileInstances[pos] = nil
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
@@ -525,7 +575,7 @@ class ScreenView
                     core.startLayerUndo(layer, "Area Creation")
                 }
             } else
-            if core.currentTool == .Select {
+            if core.currentTool == .Select || (core.currentTool == .Resize && toolControl == .None) {
                 if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
 
                     // Assemble all areas in which the tile is included and select them
@@ -599,37 +649,98 @@ class ScreenView
                 if let area = actionArea {
                     let nAreaPos = getNormalizedAreaPos(pos, area)
                     let diff = nAreaPos - dragStart
-                    let node = core.nodeView.currentNode!
                     
-                    if toolControl == .BezierControl1 {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_control1", value: p)
+                    if let node = core.nodeView?.currentNode {
+                        if toolControl == .BezierControl1 {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_control1", value: p)
+                        } else
+                        if toolControl == .BezierControl2 {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_control2", value: p)
+                        } else
+                        if toolControl == .BezierControl3 {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_control3", value: p)
+                        } else
+                        if toolControl == .MoveControl {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_offset", value: p)
+                        } else
+                        if toolControl == .Range1Control {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_range1", float2(0.5, 0.3))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_range1", value: p)
+                        } else
+                        if toolControl == .Range2Control {
+                            var p = node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7))
+                            p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
+                            node.writeOptionalFloat2InstanceArea(core, node, "_range2", value: p)
+                        }
+                    }
+                    
+                    if toolControl == .ResizeControl1 {
+                        if let area = actionArea {
+                            let rect = area.area
+                            
+                            let areaPos = SIMD2<Int>(area.area.x, area.area.y)
+                                                        
+                            let x = rect.x + tileId.x - areaPos.x
+                            let y = rect.y + tileId.y - areaPos.y
+                            var width = rect.z
+                            var height = rect.w
+                            
+                            if tileId.x > areaPos.x {
+                                width -= tileId.x - areaPos.x
+                            } else {
+                                width += areaPos.x - tileId.x
+                            }
+                            
+                            if tileId.y > areaPos.y {
+                                height -= tileId.y - areaPos.y
+                            } else {
+                                height += areaPos.y - tileId.y
+                            }
+                            
+                            if width > 0 && height > 0 {
+                                core.project.selectedRect = SIMD4<Int>(x, y, width, height)
+                            }
+                        }
                     } else
-                    if toolControl == .BezierControl2 {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_control2", value: p)
-                    } else
-                    if toolControl == .BezierControl3 {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_control3", value: p)
-                    } else
-                    if toolControl == .MoveControl {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_offset", value: p)
-                    } else
-                    if toolControl == .Range1Control {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_range1", float2(0.5, 0.3))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_range1", value: p)
-                    } else
-                    if toolControl == .Range2Control {
-                        var p = node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7))
-                        p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
-                        node.writeOptionalFloat2InstanceArea(core, node, "_range2", value: p)
+                    if toolControl == .ResizeControl2 {
+                        if let area = actionArea {
+                            let rect = area.area
+                            
+                            let areaPos = SIMD2<Int>(area.area.x + area.area.z, area.area.y + area.area.w)
+                                                        
+                            let x = rect.x
+                            let y = rect.y
+                            var width = rect.z
+                            var height = rect.w
+                            
+                            if tileId.x > areaPos.x {
+                                width += tileId.x - areaPos.x
+                            } else {
+                                width -= areaPos.x - tileId.x
+                            }
+                            
+                            if tileId.y > areaPos.y {
+                                height += tileId.y - areaPos.y
+                            } else {
+                                height -= areaPos.y - tileId.y
+                            }
+                            
+                            width += 1
+                            height += 1
+                            
+                            if width > 0 && height > 0 {
+                                core.project.selectedRect = SIMD4<Int>(x, y, width, height)
+                            }
+                        }
                     }
                     
                     dragStart = nAreaPos
@@ -696,6 +807,38 @@ class ScreenView
                         core.renderer.render()
                     }
                 }
+            } else
+            if action == .DragTool && (toolControl == .ResizeControl1 || toolControl == .ResizeControl2) {
+
+                var ids : [SIMD2<Int>] = []
+                
+                // Collect all tileIds inside the currently selected rect
+                let rect = core.project.selectedRect!
+                for h in rect.y..<(rect.y + rect.w) {
+                    for w in rect.x..<(rect.x + rect.z) {
+                        ids.append(SIMD2<Int>(w, h))
+                    }
+                }
+                
+                // Iterate the tileIds and assign the area
+                let area = actionArea!
+                for tileId in ids {
+                    if let instance = layer.tileInstances[tileId] {
+                        instance.tileAreas.append(area.id)
+                    } else {
+                        let instance = TileInstance(area.tileSetId, area.tileId)
+                        instance.tileAreas.append(area.id)
+                        layer.tileInstances[tileId] = instance
+                    }
+                }
+                
+                area.area = core.project.selectedRect!
+                core.project.selectedRect = nil
+                
+                layer.selectedAreas = [area]
+                
+                core.currentLayerUndo?.end()
+                core.renderer.render()
             } else
             if action == .DragTool {
                 core.currentLayerUndo?.end()
