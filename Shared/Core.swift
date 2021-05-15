@@ -12,7 +12,7 @@ import AVFoundation
 class Core
 {
     enum DrawingTool {
-        case Select, Apply, Clear
+        case Select, Apply, Resize, Clear
     }
     
     enum NodeContext {
@@ -43,13 +43,15 @@ class Core
     /// Send when the current tile node in the NodeView changed
     let tileNodeChanged = PassthroughSubject<TileNode?, Never>()
     
-    let screenChanged = PassthroughSubject<Screen?, Never>()
-    let layerChanged = PassthroughSubject<Layer?, Never>()
-    let areaChanged = PassthroughSubject<Void, Never>()
+    let screenChanged   = PassthroughSubject<Screen?, Never>()
+    let layerChanged    = PassthroughSubject<Layer?, Never>()
+    let areaChanged     = PassthroughSubject<Void, Never>()
 
-    let tileSetChanged = PassthroughSubject<TileSet?, Never>()
+    let tileSetChanged  = PassthroughSubject<TileSet?, Never>()
 
-    let startupSignal = PassthroughSubject<Void, Never>()
+    let updateTools     = PassthroughSubject<Void, Never>()
+    
+    let startupSignal   = PassthroughSubject<Void, Never>()
 
     // Preview Rendering
     var semaphore       : DispatchSemaphore!
@@ -342,7 +344,7 @@ class Core
         }
     }
     
-    func getAreaData(_ area: TileInstanceArea)
+    func getAreaData(_ area: TileInstanceArea) -> (Int, Int, Array<float4>)?
     {
         let dims = renderer.calculateTextureSizeForScreen()
         let tileSize = project.getTileSize()
@@ -351,9 +353,6 @@ class Core
         let y : Float = Float(abs(dims.1.y - area.area.y)) * tileSize
         let width : Float = Float(area.area.z) * tileSize
         let height : Float = Float(area.area.w) * tileSize
-        
-        print("tileSize", tileSize)
-        print("rect", x, y, width, height)
         
         if let layer = project.currentLayer {
             if let texture = layer.texture {
@@ -366,14 +365,11 @@ class Core
                     texture.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(width)), from: region, mipmapLevel: 0)
                 }
                 
-                print(array[0])
-                
-                if let image = createCGIImage(array, SIMD2<Int>(Int(width), Int(height))) {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.writeObjects([NSImage(cgImage: image, size: .zero)])
-                }
+                return (Int(width), Int(height), array)
             }
         }
+        
+        return nil
     }
     
     /// Stops the preview rendering thread

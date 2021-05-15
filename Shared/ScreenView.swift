@@ -15,7 +15,7 @@ class ScreenView
     }
     
     enum ToolControl {
-        case None, BezierControl1, BezierControl2, BezierControl3, MoveControl, Range1Control, Range2Control
+        case None, BezierControl1, BezierControl2, BezierControl3, MoveControl, Range1Control, Range2Control, ResizeControl1, ResizeControl2
     }
     
     var showGrid            : Bool = true
@@ -82,14 +82,14 @@ class ScreenView
             }
         }
         
-        let rectBorderSize : Float = 3
+        let rectBorderSize : Float = 3 * graphZoom
         
         // Selected rectangle
         if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
             let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
             let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
-            drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom - rectBorderSize / 2, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
+            drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,1))
         }
                 
         // Selected areas
@@ -103,7 +103,7 @@ class ScreenView
                         let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
                         let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
                         
-                        drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom - rectBorderSize / 2, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
+                        drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
                     }
                 }
             }
@@ -113,7 +113,7 @@ class ScreenView
                 let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
                 let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
                 
-                drawables.drawBox(position: float2(x,y), size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom - rectBorderSize / 2, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
+                drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
             }
         }
             
@@ -147,14 +147,16 @@ class ScreenView
             }
 
             // Draw tool shape(s)
-            if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
+            
+            let currentNode = core.nodeView?.currentNode
+            if (currentNode != nil && core.project.currentTileSet?.openTile != nil ) || core.currentTool == .Resize {
                 if let area = getCurrentArea() {
-                    if currentNode.tool != .None {
+                    if currentNode?.tool != .None || core.currentTool == .Resize {
                         
                         let x = drawables.viewSize.x / 2 + Float(area.area.x) * tileSize * graphZoom + graphOffset.x
                         let y = drawables.viewSize.y / 2 + Float(area.area.y) * tileSize * graphZoom + graphOffset.y
                         
-                        drawToolShapes(true, currentNode, area, float2(x, y), skin)
+                        drawToolShapes(currentNode, area, float2(x, y), skin)
                     }
                 }
             }
@@ -163,10 +165,10 @@ class ScreenView
     }
     
     /// Draw the current tool shape of the currently selected shape node
-    func drawToolShapes(_ editable: Bool,_ node: TileNode,_ area: TileInstanceArea,_ pos: float2,_ skin: NodeSkin)
+    func drawToolShapes(_ node: TileNode?,_ area: TileInstanceArea,_ pos: float2,_ skin: NodeSkin)
     {
         let tileSize = core.project.getTileSize()
-
+        
         func convertPos(_ p: float2) -> float2 {
             return pos + p * tileSize * float2(Float(area.area.z), Float(area.area.w)) * graphZoom
         }
@@ -178,7 +180,7 @@ class ScreenView
         var borderColor = float4(0,0,0,1)
         var fillColor = skin.selectedBorderColor
 
-        if node === core.nodeView.currentNode {
+        if node === core.nodeView?.currentNode {
             if core.currentContext == .Tile {
                 borderColor = skin.variablesColor
             } else {
@@ -197,14 +199,12 @@ class ScreenView
         let r = convertFloat(0.08)
         let off = r / 2 + r / 3
         
-        if node.tool == .QuadraticSpline {
-            
-            let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5)))
-            let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501)))
-            let p3 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5)))
-            
-            if editable {
-
+        if let node = node, core.currentTool == .Select {
+            if node.tool == .QuadraticSpline {
+                
+                let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control1", float2(0.0, 0.5)))
+                let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control2", float2(0.5, 0.501)))
+                let p3 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_control3", float2(1.0, 0.5)))
                 
                 if toolControl == .BezierControl1 {
                     swapColor()
@@ -224,42 +224,72 @@ class ScreenView
                 } else {
                    drawables.drawDisk(position: p3 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
                }
-            }
-            
-            //drawables.drawBezier(p1: p1, p2: p2, p3: p3, borderSize: 2 * graphZoom)
-        } else
-        if node.tool == .Offset {
-            
-            if toolControl != .None {
-                swapColor()
-            }
-            
-            let p = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5)))
-            drawables.drawDisk(position: p - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
-        } else
-        if node.tool == .Range {
-            
-            let bColor = borderColor
+                
+                //drawables.drawBezier(p1: p1, p2: p2, p3: p3, borderSize: 2 * graphZoom)
+            } else
+            if node.tool == .Offset {
+                
+                if toolControl != .None {
+                    swapColor()
+                }
+                
+                let p = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5)))
+                drawables.drawDisk(position: p - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+            } else
+            if node.tool == .Range {
+                
+                let bColor = borderColor
 
-            fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color1", float4(0,0,0,1))
+                fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color1", float4(0,0,0,1))
+                
+                if toolControl != .None {
+                    swapColor()
+                }
+                
+                let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range1", float2(0.5, 0.3)))
+                let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7)))
+                
+                drawables.drawDisk(position: p1 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+                
+                borderColor = bColor
+                fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color2", float4(1,1,1,1))
+                
+                if toolControl != .None {
+                    swapColor()
+                }
+                
+                drawables.drawDisk(position: p2 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+            }
+        } else
+        if core.currentTool == .Resize {
             
-            if toolControl != .None {
+            let rectBorderSize : Float = 3 * graphZoom
+
+            let p1 = convertPos(float2(0.0, 0.0)) - float2(rectBorderSize, 30 * graphZoom)
+            var p2 = convertPos(float2(1.0, 1.0))
+
+            drawables.drawBox(position: p1, size: float2(rectBorderSize, 30 * graphZoom), fillColor: ScreenView.selectionColor)
+            drawables.drawBox(position: p2, size: float2(rectBorderSize, 30 * graphZoom), fillColor: ScreenView.selectionColor)
+            
+            p2.y += 30 * graphZoom
+            
+            fillColor = ScreenView.selectionColor
+            borderColor = skin.selectedBorderColor
+            
+            if toolControl == .ResizeControl1 {
                 swapColor()
             }
             
-            let p1 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range1", float2(0.5, 0.3)))
-            let p2 = convertPos(node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7)))
+            drawables.drawDisk(position: p1 - r, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
             
-            drawables.drawDisk(position: p1 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+            fillColor = ScreenView.selectionColor
+            borderColor = skin.selectedBorderColor
             
-            borderColor = bColor
-            fillColor = node.readFloat4FromInstanceAreaIfExists(area, node, "Color2", float4(1,1,1,1))
-            
-            if toolControl != .None {
+            if toolControl == .ResizeControl2 {
                 swapColor()
             }
             
-            drawables.drawDisk(position: p2 - off, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
+            drawables.drawDisk(position: p2 - r, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
         }
     }
     
@@ -279,37 +309,60 @@ class ScreenView
         if let currentNode = core.nodeView?.currentNode, core.project.currentTileSet?.openTile != nil {
             if let area = getCurrentArea() {
                 
-                // Shape Controls
-                if currentNode.tool == .QuadraticSpline {
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
-                        control = .BezierControl1
+                if core.currentTool == .Select {
+                    
+                    // Tool controls available in .Select Mode
+                    if currentNode.tool == .QuadraticSpline {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
+                            control = .BezierControl1
+                        } else
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
+                            control = .BezierControl2
+                        } else
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
+                            control = .BezierControl3
+                        }
                     } else
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
-                        control = .BezierControl2
+                    if currentNode.tool == .Offset {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
+                            control = .MoveControl
+                        }
                     } else
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
-                        control = .BezierControl3
-                    }
-                } else
-                if currentNode.tool == .Offset {
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
-                        control = .MoveControl
-                    }
-                } else
-                if currentNode.tool == .Range {
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range1", float2(0.5, 0.3)), 0.08) {
-                        control = .Range1Control
-                    }
-                    if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range2", float2(0.5, 0.7)), 0.08) {
-                        control = .Range2Control
+                    if currentNode.tool == .Range {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range1", float2(0.5, 0.3)), 0.08) {
+                            control = .Range1Control
+                        }
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range2", float2(0.5, 0.7)), 0.08) {
+                            control = .Range2Control
+                        }
                     }
                 }
                 
                 if control != .None {
                     actionArea = area
-                    print( control )
                 }
             }
+        } else
+        if core.currentTool == .Resize {
+            let rectBorderSize : Float = 3 * graphZoom
+
+            let p1 = float2(0.0, 0.0) - float2(rectBorderSize, 30 * graphZoom)
+            let p2 = float2(1.0, 1.0) + float2(0, 30 * graphZoom)
+            
+            if checkForDisc(nPos, p1, 0.08) {
+                control = .ResizeControl1
+            } else
+            if checkForDisc(nPos, p2, 0.08) {
+                control = .ResizeControl2
+            }
+            
+            if let area = getCurrentArea() {
+                if control != .None {
+                    actionArea = area
+                }
+            }
+            
+            print("1", control)
         }
         
         return control
@@ -667,9 +720,10 @@ class ScreenView
         } else {
             graphZoom += delta.y * 0.003
             graphZoom = max(0.2, graphZoom)
-            graphZoom = min(1, graphZoom)
+            graphZoom = min(2, graphZoom)
         }
         
+        core.updateTools.send()
         update()
     }
     

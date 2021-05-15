@@ -29,6 +29,8 @@ struct ContentView: View {
 
     @State var areaMenuText                 : String = "Area: None"
 
+    @State var showAreaExporter             : Bool = false
+
     @Environment(\.colorScheme) var deviceColorScheme: ColorScheme
     @Environment(\.undoManager) var undoManager
 
@@ -77,6 +79,10 @@ struct ContentView: View {
             ToolbarItemGroup(placement: .automatic) {
                 
                 toolAreaMenu
+                
+                Divider()
+                    .padding(.horizontal, 10)
+                    .opacity(0)
                 
                 Button(action: {
                     showSettingsPopover = true
@@ -233,11 +239,20 @@ struct ContentView: View {
                 Button("Copy to Clipboard", action: {
                     if let layer = document.core.project.currentLayer {
                         if layer.selectedAreas.isEmpty == false {
-                            document.core.getAreaData(layer.selectedAreas[0])
+                            if let rc = document.core.getAreaData(layer.selectedAreas[0]) {
+                                
+                                if let image = document.core.createCGIImage(rc.2, SIMD2<Int>(rc.0, rc.1)) {
+                                    #if os(macOS)
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.writeObjects([NSImage(cgImage: image, size: .zero)])
+                                    #endif
+                                }
+                            }
                         }
                     }
                 })
                 Button("Export...", action: {
+                    showAreaExporter = true
                 })
             }
         }
@@ -245,6 +260,33 @@ struct ContentView: View {
             Text(areaMenuText)
         }
         .disabled(isAreaDisabled())
+        // Export Image
+        .fileExporter(
+            isPresented: $showAreaExporter,
+            document: document,
+            contentType: .png,
+            defaultFilename: "AreaImage"
+        ) { result in
+            do {
+                let url = try result.get()
+                
+                if let layer = document.core.project.currentLayer {
+                    if layer.selectedAreas.isEmpty == false {
+                        if let rc = document.core.getAreaData(layer.selectedAreas[0]) {
+                            
+                            if let image = document.core.createCGIImage(rc.2, SIMD2<Int>(rc.0, rc.1)) {
+                                if let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypePNG, 1, nil) {
+                                    CGImageDestinationAddImage(imageDestination, image, nil)
+                                    CGImageDestinationFinalize(imageDestination)
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch {
+                // Handle failure.
+            }
+        }
     }
 }
 
