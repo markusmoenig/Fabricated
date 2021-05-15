@@ -93,12 +93,12 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
     override func renderDecorator(pixelCtx: TilePixelContext, tileCtx: TileContext) -> float4
     {
         let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
-        let uv = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: false, centered: false, areaAdjust: true)
 
         let CELL : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Size"))
         let RATIO : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Ratio"))
     
-        var U = uv == 0 ? pixelCtx.uv : pixelCtx.areaUV
+        var U = uv
 
         let BEVEL_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Bevel")
         let BEVEL = float2(BEVEL_X, BEVEL_X)
