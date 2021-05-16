@@ -63,7 +63,6 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
         
         optionGroups.append(TileNodeOptionsGroup("Tiles & Bricks Decorator Options", [
             TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.682, 0.408, 0.373, 1.000)),
-            TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Area"], defaultFloat: 0),
             TileNodeOption(self, "Size", .Int, range: float2(1, 40), defaultFloat: 20),
             TileNodeOption(self, "Ratio", .Int, range: float2(1, 20), defaultFloat: 3),
             TileNodeOption(self, "Bevel", .Float, range: float2(0, 1), defaultFloat: 0.2),
@@ -93,8 +92,8 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
     override func renderDecorator(pixelCtx: TilePixelContext, tileCtx: TileContext) -> float4
     {
         let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
-        let ratio = tileCtx.areaSize.x / tileCtx.areaSize.y
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: false, centered: false, areaAdjust: true) - (tileCtx.areaSize-1) * ratio
+        var uv = pixelCtx.uv//transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: false, centered: false, areaAdjust: false)
+        uv += tileCtx.tileId
 
         let CELL : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Size"))
         let RATIO : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Ratio"))

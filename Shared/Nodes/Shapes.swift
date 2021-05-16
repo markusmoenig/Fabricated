@@ -69,8 +69,8 @@ final class ShapeDisk : ShapeTileNode {
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
         let ratio = tileCtx.areaSize.x / tileCtx.areaSize.y
-        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize - 1) / 2 * ratio
-        let radius = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Radius") / 2 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
+        let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize - 1) / 2
+        let radius = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Radius") / 2 * min(tileCtx.areaSize.x, tileCtx.areaSize.y) * ratio
 
         return modifyDistance(pixelCtx: pixelCtx, tileCtx: tileCtx, distance: length(uv) - radius)
     }
@@ -137,9 +137,18 @@ final class ShapeBox : ShapeTileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let ratio = tileCtx.areaSize.x / tileCtx.areaSize.y
-        let width : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Width", 1) / 2 * tileCtx.areaSize.x * ratio
-        let height : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Height", 1) / 2  * tileCtx.areaSize.y * ratio
+        let ratio : Float = tileCtx.areaSize.x / tileCtx.areaSize.y
+        var width : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Width", 1) / 2 * tileCtx.areaSize.x
+        var height : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Height", 1) / 2 * tileCtx.areaSize.y
+
+        if width > height {
+            width *= ratio
+        }
+    
+        if height < width {
+            height *= ratio
+        }
+        
         let rounding : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rounding", 0) / 2.0 * max(tileCtx.areaSize.x, tileCtx.areaSize.y)
         
         let uv = transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, areaAdjust: true) - (tileCtx.areaSize-1) / 2
