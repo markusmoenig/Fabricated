@@ -156,6 +156,26 @@ struct ToolsView: View {
             .padding(.top, 0)
             
             Button(action: {
+                document.core.currentTool = .Move
+                document.core.screenView.update()
+                updateView.toggle()
+            })
+            {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(document.core.currentTool == .Move ? Color.primary : Color.secondary, lineWidth: 2)
+                        .frame(width: 30, height: 30)
+                    Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(minWidth: 22, maxWidth: 22, minHeight: 22, maxHeight: 22)
+                        .foregroundColor(document.core.currentTool == .Move ? Color.primary : Color.secondary)
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .padding(.top, 0)
+            
+            Button(action: {
                 document.core.currentTool = .Resize
                 document.core.screenView.update()
                 updateView.toggle()

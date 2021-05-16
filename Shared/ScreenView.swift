@@ -15,7 +15,7 @@ class ScreenView
     }
     
     enum ToolControl {
-        case None, BezierControl1, BezierControl2, BezierControl3, MoveControl, Range1Control, Range2Control, ResizeControl1, ResizeControl2
+        case None, BezierControl1, BezierControl2, BezierControl3, OffsetControl, Range1Control, Range2Control, ResizeControl1, ResizeControl2, MoveControl
     }
     
     var showGrid            : Bool = true
@@ -274,21 +274,6 @@ class ScreenView
         if core.currentTool == .Resize {
             
             let rectBorderSize : Float = 3 * graphZoom
-            
-            /*
-            var areaToUse = area
-            var posToUse = pos
-            
-            if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 {
-                areaToUse = TileInstanceArea(area.tileSetId, area.tileId)
-                areaToUse.area = core.project.selectedRect!
-                posToUse.x = drawables.viewSize.x / 2 + Float(areaToUse.area.x) * tileSize * graphZoom + graphOffset.x
-                posToUse.y = drawables.viewSize.y / 2 + Float(areaToUse.area.y) * tileSize * graphZoom + graphOffset.y
-            }
-            
-            func convertPos(_ p: float2) -> float2 {
-                return posToUse + p * tileSize * float2(Float(areaToUse.area.z), Float(areaToUse.area.w)) * graphZoom
-            }*/
 
             let p1 = convertPos(float2(0.0, 0.0)) - float2(rectBorderSize, 30 * graphZoom)
             var p2 = convertPos(float2(1.0, 1.0))
@@ -352,7 +337,7 @@ class ScreenView
                     } else
                     if currentNode.tool == .Offset {
                         if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
-                            control = .MoveControl
+                            control = .OffsetControl
                         }
                     } else
                     if currentNode.tool == .Range {
@@ -369,8 +354,9 @@ class ScreenView
                     actionArea = area
                 }
             }
-        } else
-        if core.currentTool == .Resize {
+        }
+        
+        if control == .None && core.currentTool == .Resize {
             
             if let area = getCurrentArea() {
 
@@ -388,6 +374,17 @@ class ScreenView
                 if checkForDisc(pos, resizeToolPos2, r) {
                     control = .ResizeControl2
                 }
+                
+                if control != .None {
+                    actionArea = area
+                }
+            }
+        }
+        
+        if control == .None && core.currentTool == .Move {
+            if let area = getCurrentArea() {
+
+                control = .MoveControl
                 
                 if control != .None {
                     actionArea = area
@@ -538,9 +535,17 @@ class ScreenView
                     dragId = tileId
                     dragStart = nAreaPos
                     
-                    core.startLayerUndo(layer, toolControl == .ResizeControl1 || toolControl == .ResizeControl2 ? "Area Resize" : "Area Control Changed")
-                    
+                    var undoText = "Area Control Changed"
                     if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 {
+                        undoText = "Area Resize"
+                    } else
+                    if toolControl == .MoveControl {
+                        undoText = "Area Move"
+                    }
+                    
+                    core.startLayerUndo(layer, undoText)
+                    
+                    if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl {
                         
                         layer.selectedAreas = []
                         core.project.selectedRect = actionArea?.area
@@ -575,7 +580,7 @@ class ScreenView
                     core.startLayerUndo(layer, "Area Creation")
                 }
             } else
-            if core.currentTool == .Select || (core.currentTool == .Resize && toolControl == .None) {
+            if core.currentTool == .Select || (core.currentTool == .Resize && toolControl == .None) || core.currentTool == .Move {
                 if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
 
                     // Assemble all areas in which the tile is included and select them
@@ -666,7 +671,7 @@ class ScreenView
                             p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
                             node.writeOptionalFloat2InstanceArea(core, node, "_control3", value: p)
                         } else
-                        if toolControl == .MoveControl {
+                        if toolControl == .OffsetControl {
                             var p = node.readOptionalFloat2InstanceArea(core, node, "_offset", float2(0.5, 0.5))
                             p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
                             node.writeOptionalFloat2InstanceArea(core, node, "_offset", value: p)
@@ -680,6 +685,23 @@ class ScreenView
                             var p = node.readOptionalFloat2InstanceArea(core, node, "_range2", float2(0.5, 0.7))
                             p += diff; p.clamp(lowerBound: float2(0,0), upperBound: float2(1,1))
                             node.writeOptionalFloat2InstanceArea(core, node, "_range2", value: p)
+                        }
+                    }
+                    
+                    if toolControl == .MoveControl {
+                        if let area = actionArea {
+                            let rect = area.area
+                            
+                            let areaPos = SIMD2<Int>(area.area.x, area.area.y)
+                                                        
+                            let x = rect.x + tileId.x - areaPos.x
+                            let y = rect.y + tileId.y - areaPos.y
+                            let width = rect.z
+                            let height = rect.w
+                            
+                            if width > 0 && height > 0 {
+                                core.project.selectedRect = SIMD4<Int>(x, y, width, height)
+                            }
                         }
                     }
                     
@@ -808,7 +830,7 @@ class ScreenView
                     }
                 }
             } else
-            if action == .DragTool && (toolControl == .ResizeControl1 || toolControl == .ResizeControl2) {
+            if action == .DragTool && (toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl) {
 
                 var ids : [SIMD2<Int>] = []
                 
@@ -838,7 +860,13 @@ class ScreenView
                 layer.selectedAreas = [area]
                 
                 core.currentLayerUndo?.end()
-                core.renderer.render()
+                
+                if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl {
+                    core.project.setHasChanged(true)
+                    core.renderer.render(forceTextureClear: true)
+                } else {
+                    core.renderer.render()
+                }
             } else
             if action == .DragTool {
                 core.currentLayerUndo?.end()

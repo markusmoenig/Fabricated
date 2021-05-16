@@ -12,7 +12,7 @@ import AVFoundation
 class Core
 {
     enum DrawingTool {
-        case Select, Apply, Resize, Clear
+        case Select, Apply, Move, Resize, Clear
     }
     
     enum NodeContext {
