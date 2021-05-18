@@ -78,6 +78,13 @@ struct ContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
                 
+                toolGridTypeMenu
+                
+                Spacer()
+                Divider()
+                    .padding(.horizontal, 10)
+                    .opacity(0)
+                
                 toolAreaMenu
                 
                 Divider()
@@ -233,6 +240,50 @@ struct ContentView: View {
     
     // tool bar menus
     
+    var toolGridTypeMenu : some View {
+        Menu {
+            Button(action: {
+                
+                if let currentLayer = document.core.project.currentLayer {
+                    currentLayer.gridType = .rectFront
+                }
+                document.core.project.setHasChanged(true)
+                document.core.renderer.render(forceTextureClear: true)
+                updateView.toggle()
+                
+            })
+            {
+                Text("Layer Grid")
+                Image(systemName: "squareshape")
+            }
+            Button(action: {
+            
+                if let currentLayer = document.core.project.currentLayer {
+                    currentLayer.gridType = .rectIso
+                }
+                document.core.project.setHasChanged(true)
+                document.core.renderer.render(forceTextureClear: true)
+                updateView.toggle()
+            })
+            {
+                Text("Layer Grid")
+                Image(systemName: "cube")
+            }
+        }
+        label: {
+            if let currentLayer = document.core.project.currentLayer {
+                if currentLayer.gridType == .rectFront {
+                    Text("Layer Grid")
+                    Image(systemName: "squareshape")
+                } else {
+                    Text("Layer Grid")
+                    Image(systemName: "cube")
+                    //Label("Rect Iso", systemImage: "cube")
+                }
+            }
+        }
+    }
+
     var toolAreaMenu : some View {
         Menu {
             Section(header: Text("Export")) {

@@ -73,10 +73,8 @@ class Core
         
         let tileSet = TileSet("Tiles #1")
         let tile = Tile("Tile")
-        let tiledNode = TiledNode()
         
         tileSet.tiles.append(tile)
-        tile.nodes.append(tiledNode)
         
         project.screens.append(screen)
         project.tileSets.append(tileSet)

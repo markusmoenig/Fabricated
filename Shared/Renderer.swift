@@ -389,6 +389,46 @@ class Renderer
         
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
     }
+    
+    /// isoCamera
+    func isoCamera(uv: float2, tileSize: float2, origin: float3, lookAt: float3, fov: Float, offset: float2) -> (float3, float3)
+    {
+        let ratio : Float = tileSize.x / tileSize.y
+        let pixelSize : float2 = float2(1.0, 1.0) / tileSize
+
+        let camOrigin = origin
+        let camLookAt = lookAt
+
+        let halfWidth : Float = tan(fov.degreesToRadians * 0.5) * fov
+        let halfHeight : Float = halfWidth / ratio
+        
+        let upVector = float3(0.0, 1.0, 0.0)
+
+        let w : float3 = simd_normalize(camOrigin - camLookAt)
+        let u : float3 = simd_cross(upVector, w)
+        let v : float3 = simd_cross(w, u)
+
+        /*
+        var lowerLeft : float3 = camOrigin - halfWidth * u
+        lowerLeft -= halfHeight * v - w
+        
+        let horizontal : float3 = u * halfWidth * 2.0
+        
+        let vertical : float3 = v * halfHeight * 2.0
+        var dir : float3 = lowerLeft - camOrigin
+
+        dir += horizontal * (pixelSize.x * offset.x + uv.x)
+        dir += vertical * (pixelSize.y * offset.y + uv.y)*/
+        
+        let horizontal = u * halfWidth * 2.0
+        let vertical = v * halfHeight * 2.0
+                
+        var outOrigin = camOrigin
+        outOrigin += horizontal * (pixelSize.x * offset.x + uv.x - 0.5)
+        outOrigin += vertical * (pixelSize.y * offset.y + (1.0 - uv.y) - 0.5)
+        
+        return (outOrigin, simd_normalize(-w))
+    }
         
     func allocateTexture(_ device: MTLDevice, width: Int, height: Int) -> MTLTexture?
     {

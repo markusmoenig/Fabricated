@@ -72,6 +72,8 @@ class NodeView
         
     var currentNode         : TileNode? = nil
     
+    var previewTexture      : MTLTexture! = nil
+    
     // For connecting terminals
     var connectingNode      : TileNode? = nil
 
@@ -88,6 +90,8 @@ class NodeView
         self.core = core
         view = core.nodesView
         drawables = MetalDrawables(core.nodesView)
+        
+        previewTexture = core.renderer.allocateTexture(view.device!, width: 100, height: 100)
     }
     
     func getCurrentTile() -> Tile? {
@@ -135,6 +139,11 @@ class NodeView
                 }
             }
         }
+        
+        /*
+        drawPreview()
+        drawables.drawBox(position: drawables.viewSize - float2(Float(previewTexture.width), Float(previewTexture.height)), size: float2(Float(previewTexture.width), Float(previewTexture.height)), rounding: 0, borderSize: 0, fillColor: float4(1,1,1,1), texture: previewTexture)
+        */
         
         drawables.encodeEnd()
     }
@@ -575,5 +584,119 @@ class NodeView
     /// Updates the display
     func update() {
         drawables.update()
+    }
+    
+    func drawPreview()
+    {
+        let width  : Float = Float(previewTexture.width)
+        let height : Float = Float(previewTexture.height)
+        
+        let widthInt  = previewTexture.width
+        let heightInt = previewTexture.height
+        
+        let AA = 2
+        
+        func sdBox(_ p: float3) -> Float
+        {
+            let size = float3(1,1,1)
+            let q : float3 = abs(p - float3(0,0,0)) - size
+            return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0)
+        }
+        
+        func calcNormal(position: float3) -> float3
+        {
+            /*
+            vec3 epsilon = vec3(0.001, 0., 0.);
+            
+            vec3 n = vec3(map(p + epsilon.xyy).x - map(p - epsilon.xyy).x,
+                          map(p + epsilon.yxy).x - map(p - epsilon.yxy).x,
+                          map(p + epsilon.yyx).x - map(p - epsilon.yyx).x);
+            
+            return normalize(n);*/
+
+            let e = float3(0.001, 0.0, 0.0)
+
+            var eOff : float3 = position + float3(e.x, e.y, e.y)
+            var n1 = sdBox(eOff)
+            
+            eOff = position - float3(e.x, e.y, e.y)
+            n1 = n1 - sdBox(eOff)
+            
+            eOff = position + float3(e.y, e.x, e.y)
+            var n2 = sdBox(eOff)
+            
+            eOff = position - float3(e.y, e.x, e.y)
+            n2 = n2 - sdBox(eOff)
+            
+            eOff = position + float3(e.y, e.y, e.x)
+            var n3 = sdBox(eOff)
+            
+            eOff = position - float3(e.y, e.y, e.x)
+            n3 = n3 - sdBox(eOff)
+            
+            return simd_normalize(float3(n1, n2, n3))
+        }
+        
+        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: widthInt * heightInt)
+        
+        for h in 0..<heightInt {
+
+            let fh : Float = Float(h) / height
+            for w in 0..<widthInt {
+                
+                let uv = float2(Float(w) / width, fh)
+
+                var total = float4(0,0,0,0)
+                
+                for m in 0..<AA {
+                    for n in 0..<AA {
+
+                        let camOffset = float2(Float(m), Float(n)) / Float(AA) - 0.5
+
+                        //func isoCamera(uv: float2, tileSize: float2, origin: float3, lookAt: float3, fov: Float, offset: float2) -> (float3, float3)
+
+                        let camera = core.renderer.isoCamera(uv: uv, tileSize: float2(width, height), origin: float3(8,8,8), lookAt: float3(0,0,0), fov: 15.2, offset: camOffset)
+                        
+                        // Raymarch
+                        var hit = false
+                        var t : Float = 0.001;
+
+                        for _ in 0..<70
+                        {
+                            let pos = camera.0 + t * camera.1
+                            //executeSDF(camOrigin + t * camDir)
+
+                            let d = sdBox(pos)
+                            
+                            if abs(d) < (0.0001*t) {
+                                hit = true
+                                break
+                            } /*else
+                            if t > maxDist {
+                                break
+                            }*/
+                            
+                            t += d
+                        }
+                        
+                        if hit == true {
+                            let normal = calcNormal(position: camera.0 + t * camera.1)
+                            total.x += normal.x
+                            total.y += normal.y
+                            total.z += normal.z
+                            total.w += 1
+                        }
+                    }
+                }
+                
+                texArray[h * widthInt + w] = total / Float(AA*AA)
+            }
+        }
+        
+        let region = MTLRegionMake2D(0, 0, widthInt, heightInt)
+            
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            previewTexture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * widthInt))
+        }
     }
 }

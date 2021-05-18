@@ -147,7 +147,6 @@ class Project           : MMValues, Codable
 
 class Screen        : Codable, Equatable
 {
-    
     var layers      : [Layer] = []
     var id          = UUID()
     var name        = ""
@@ -185,7 +184,13 @@ class Screen        : Codable, Equatable
 }
 
 class Layer             : MMValues, Codable, Equatable
-{
+{    
+    enum GridType : Int, CodingKey {
+        case rectFront, rectIso
+    }
+    
+    var gridType        : GridType = .rectFront
+    
     var layers          : [Layer] = []
     var id              = UUID()
     var name            = ""
@@ -295,21 +300,28 @@ class TileSet      : Codable, Equatable
     }
 }
 
-class Tile         : Codable, Equatable
+class Tile              : Codable, Equatable
 {
     enum TileRole {
         case Fill
     }
     
-    var nodes      : [TileNode] = []
+    var nodes           : [TileNode] = [TiledNode()]
 
-    var id          = UUID()
-    var name        = ""
+    var isoNodesTop     : [TileNode] = [TiledNode()]
+    var isoNodesLeft    : [TileNode] = [TiledNode()]
+    var isoNodesRight   : [TileNode] = [TiledNode()]
+
+    var id              = UUID()
+    var name            = ""
     
     private enum CodingKeys: String, CodingKey {
         case id
         case name
         case nodes
+        case isoNodesTop
+        case isoNodesLeft
+        case isoNodesRight
     }
     
     init(_ name: String = "Unnamed")
@@ -321,6 +333,9 @@ class Tile         : Codable, Equatable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         nodes = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .nodes)
+        isoNodesTop = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesTop)
+        isoNodesLeft = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesLeft)
+        isoNodesRight = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesRight)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
     }
@@ -331,6 +346,9 @@ class Tile         : Codable, Equatable
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(nodes, forKey: .nodes)
+        try container.encode(isoNodesTop, forKey: .isoNodesTop)
+        try container.encode(isoNodesLeft, forKey: .isoNodesLeft)
+        try container.encode(isoNodesRight, forKey: .isoNodesRight)
     }
     
     static func ==(lhs:Tile, rhs:Tile) -> Bool { // Implement Equatable
