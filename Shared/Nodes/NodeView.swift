@@ -47,7 +47,7 @@ class NodeSkin {
     let tHalfSize               : Float = 15 / 2
     
     let itemListWidth           : Float
-        
+            
     init(_ font: Font, fontScale: Float = 0.4, graphZoom: Float) {
         self.font = font
         self.fontScale = fontScale
@@ -63,7 +63,12 @@ class NodeView
         case None, DragNode, DragConnect
     }
     
+    enum IsoFace {
+        case Top, Left, Right
+    }
+    
     var action              : Action = .None
+    var isoFace             : IsoFace = .Left
     
     var core                : Core
     var view                : DMTKView!
@@ -73,7 +78,10 @@ class NodeView
     var currentNode         : TileNode? = nil
     
     var previewTexture      : MTLTexture! = nil
-    
+    var isoCubePreviewTop   : MTLTexture! = nil
+    var isoCubePreviewLeft  : MTLTexture! = nil
+    var isoCubePreviewRight : MTLTexture! = nil
+
     // For connecting terminals
     var connectingNode      : TileNode? = nil
 
@@ -85,13 +93,26 @@ class NodeView
         
     var firstDraw           = true
         
+    let isoCubeSize         : Int = 80
+
+    var isoCubeNormalArray  : Array<SIMD4<Float>>
+    
     init(_ core: Core)
     {
         self.core = core
         view = core.nodesView
         drawables = MetalDrawables(core.nodesView)
         
-        previewTexture = core.renderer.allocateTexture(view.device!, width: 100, height: 100)
+        previewTexture = core.renderer.allocateTexture(view.device!, width: isoCubeSize, height: isoCubeSize)
+        isoCubePreviewTop = core.renderer.allocateTexture(view.device!, width: isoCubeSize, height: isoCubeSize)
+        isoCubePreviewLeft = core.renderer.allocateTexture(view.device!, width: isoCubeSize, height: isoCubeSize)
+        isoCubePreviewRight = core.renderer.allocateTexture(view.device!, width: isoCubeSize, height: isoCubeSize)
+
+        isoCubeNormalArray =  Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: isoCubeSize * isoCubeSize)
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.renderIsoCube()
+        }
     }
     
     func getCurrentTile() -> Tile? {
@@ -110,7 +131,9 @@ class NodeView
         
         let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
 
-        for node in tile.nodes {
+        let nodes = getNodes(tile)
+
+        for node in nodes {
             drawNode(node, node === currentNode, skin)
         }
         
@@ -126,7 +149,7 @@ class NodeView
         }
         
         // Draw Connections
-        for node in tile.nodes {
+        for node in nodes {
             for (index, nodeUUID) in node.terminalsOut {
                 if let connTo = tile.getNodeById(nodeUUID) {
                     let dRect = getTerminal(connTo, id: -1)
@@ -140,12 +163,49 @@ class NodeView
             }
         }
         
-        /*
-        drawPreview()
-        drawables.drawBox(position: drawables.viewSize - float2(Float(previewTexture.width), Float(previewTexture.height)), size: float2(Float(previewTexture.width), Float(previewTexture.height)), rounding: 0, borderSize: 0, fillColor: float4(1,1,1,1), texture: previewTexture)
-        */
+        if core.project.getCurrentScreen()?.gridType == .rectIso {
+            var texture : MTLTexture? = nil
+            if isoFace == .Top {
+                texture = isoCubePreviewTop
+            } else
+            if isoFace == .Left {
+                texture = isoCubePreviewLeft
+            }
+            if isoFace == .Right {
+                texture = isoCubePreviewRight
+            }
+            
+            if let texture = texture {
+                drawables.drawBox(position: drawables.viewSize - float2(Float(texture.width), Float(texture.height)), size: float2(Float(texture.width), Float(texture.height)), rounding: 0, borderSize: 0, fillColor: float4(1,1,1,1), texture: texture)
+            }
+        }
         
         drawables.encodeEnd()
+    }
+    
+    // Returns the nodes for the current screen mode
+    func getNodes(_ tile: Tile) -> [TileNode]
+    {
+        if let screen = core.project.getCurrentScreen() {
+            if screen.gridType == .rectFront {
+                return tile.nodes
+            } else
+            if screen.gridType == .rectIso {
+                if isoFace == .Top {
+                    tile.isoNodesTop[0].name = "Iso Top"
+                    return tile.isoNodesTop
+                } else
+                if isoFace == .Left {
+                    tile.isoNodesLeft[0].name = "Iso Left"
+                    return tile.isoNodesLeft
+                } else
+                if isoFace == .Right {
+                    tile.isoNodesRight[0].name = "Iso Right"
+                    return tile.isoNodesRight
+                }
+            }
+        }
+        return []
     }
     
     // Gets the terminal rect for the given node and id
@@ -342,7 +402,8 @@ class NodeView
             return false
         }
         
-        for n in tile.nodes {
+        let nodes = getNodes(tile)
+        for n in nodes {
             if n !== node {
                 for (index, nodeUUID) in n.terminalsOut {
                     if nodeUUID == node.id {
@@ -357,9 +418,39 @@ class NodeView
     
     func touchDown(_ pos: float2)
     {
+        // Click on Iso Cube ?
+        if let screen = core.project.getCurrentScreen() {
+            if screen.gridType == .rectIso {
+                let corner = drawables.viewSize - Float(isoCubeSize)
+                if pos.x > corner.x && pos.y > corner.y {
+
+                    let x : Int = Int(pos.x - corner.x)
+                    let y : Int = Int(pos.y - corner.y)
+                    
+                    let n = isoCubeNormalArray[y * isoCubeSize + x]
+                    
+                    if (n.z > 0.5) {
+                        isoFace = .Left
+                        update()
+                    } else
+                    if (n.y > 0.5) {
+                        isoFace = .Top
+                        update()
+                    } else
+                    if (n.x > 0.5) {
+                        isoFace = .Right
+                        update()
+                    }
+                    
+                    return
+                }
+            }
+        }
+        
         if view.hasDoubleTap == true {
             if let tile = getCurrentTile() {
-                for node in tile.nodes {
+                let nodes = getNodes(tile)
+                for node in nodes {
                     if node.nodePreviewRect.contains(pos.x, pos.y) {
                         core.startTileUndo(tile, "Node Disconnected")
                         if nodeIsAboutToBeDeleted(node) {
@@ -379,7 +470,8 @@ class NodeView
         
         connectingNode = nil
         if let tile = getCurrentTile() {
-            for node in tile.nodes {
+            let nodes = getNodes(tile)
+            for node in nodes {
                 var freshlySelectedNode : TileNode? = nil
                 if node.nodeRect.contains(pos.x, pos.y) {
                     action = .DragNode
@@ -446,7 +538,8 @@ class NodeView
             }
             
             if let tile = getCurrentTile() {
-                for node in tile.nodes {
+                let nodes = getNodes(tile)
+                for node in nodes {
                     if node !== currentNode && node.nodePreviewRect.contains(pos.x, pos.y) && canConnect(currentNode!, node) {
                         connectingNode = node
                         
@@ -586,7 +679,7 @@ class NodeView
         drawables.update()
     }
     
-    func drawPreview()
+    func renderIsoCube()
     {
         let width  : Float = Float(previewTexture.width)
         let height : Float = Float(previewTexture.height)
@@ -637,8 +730,10 @@ class NodeView
             return simd_normalize(float3(n1, n2, n3))
         }
         
-        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: widthInt * heightInt)
-        
+        var isoTopArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: widthInt * heightInt)
+        var isoLeftArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: widthInt * heightInt)
+        var isoRightArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: widthInt * heightInt)
+                
         for h in 0..<heightInt {
 
             let fh : Float = Float(h) / height
@@ -647,7 +742,11 @@ class NodeView
                 let uv = float2(Float(w) / width, fh)
 
                 var total = float4(0,0,0,0)
-                
+                var totalIsoTop = float4(0,0,0,0)
+                var totalIsoLeft = float4(0,0,0,0)
+                var totalIsoRight = float4(0,0,0,0)
+                var totalIsoNormal = float4(0,0,0,0)
+
                 for m in 0..<AA {
                     for n in 0..<AA {
 
@@ -680,23 +779,84 @@ class NodeView
                         }
                         
                         if hit == true {
+                            
+                            let selectedColor : Float = 0.8
+                            let normalColor : Float = 0.3
+
                             let normal = calcNormal(position: camera.0 + t * camera.1)
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
                             total.w += 1
+                            
+                            totalIsoNormal.x += normal.x
+                            totalIsoNormal.y += normal.y
+                            totalIsoNormal.z += normal.z
+
+                            totalIsoTop.w += 1
+                            totalIsoLeft.w += 1
+                            totalIsoRight.w += 1
+
+                            if normal.y > 0.5 {
+                                totalIsoTop.x += selectedColor
+                                totalIsoTop.y += selectedColor
+                                totalIsoTop.z += selectedColor
+                            } else {
+                                totalIsoTop.x += normalColor
+                                totalIsoTop.y += normalColor
+                                totalIsoTop.z += normalColor
+                            }
+                            
+                            if normal.z > 0.5 {
+                                totalIsoLeft.x += selectedColor
+                                totalIsoLeft.y += selectedColor
+                                totalIsoLeft.z += selectedColor
+                            } else {
+                                totalIsoLeft.x += normalColor
+                                totalIsoLeft.y += normalColor
+                                totalIsoLeft.z += normalColor
+                            }
+                            
+                            if normal.x > 0.5 {
+                                totalIsoRight.x += selectedColor
+                                totalIsoRight.y += selectedColor
+                                totalIsoRight.z += selectedColor
+                            } else {
+                                totalIsoRight.x += normalColor
+                                totalIsoRight.y += normalColor
+                                totalIsoRight.z += normalColor
+                            }
                         }
                     }
                 }
                 
-                texArray[h * widthInt + w] = total / Float(AA*AA)
+                isoTopArray[h * widthInt + w] = totalIsoTop / Float(AA*AA)
+                isoLeftArray[h * widthInt + w] = totalIsoLeft / Float(AA*AA)
+                isoRightArray[h * widthInt + w] = totalIsoRight / Float(AA*AA)
+                
+                isoCubeNormalArray[h * widthInt + w] = totalIsoNormal / Float(AA*AA)
             }
         }
         
-        let region = MTLRegionMake2D(0, 0, widthInt, heightInt)
+        DispatchQueue.main.sync {
+            let region = MTLRegionMake2D(0, 0, widthInt, heightInt)
             
-        texArray.withUnsafeMutableBytes { texArrayPtr in
-            previewTexture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * widthInt))
+            // Iso Top
+            isoTopArray.withUnsafeMutableBytes { texArrayPtr in
+                isoCubePreviewTop.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * widthInt))
+            }
+            
+            // Iso Left
+            isoLeftArray.withUnsafeMutableBytes { texArrayPtr in
+                isoCubePreviewLeft.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * widthInt))
+            }
+            
+            // Iso Right
+            isoRightArray.withUnsafeMutableBytes { texArrayPtr in
+                isoCubePreviewRight.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * widthInt))
+            }
+            
+            drawables.update()
         }
     }
 }

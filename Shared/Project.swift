@@ -146,7 +146,13 @@ class Project           : MMValues, Codable
 }
 
 class Screen        : Codable, Equatable
-{
+{    
+    enum GridType : Int, CodingKey {
+        case rectFront, rectIso
+    }
+    
+    var gridType        : GridType = .rectFront
+    
     var layers      : [Layer] = []
     var id          = UUID()
     var name        = ""
@@ -184,13 +190,7 @@ class Screen        : Codable, Equatable
 }
 
 class Layer             : MMValues, Codable, Equatable
-{    
-    enum GridType : Int, CodingKey {
-        case rectFront, rectIso
-    }
-    
-    var gridType        : GridType = .rectFront
-    
+{
     var layers          : [Layer] = []
     var id              = UUID()
     var name            = ""

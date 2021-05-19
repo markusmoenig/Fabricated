@@ -244,39 +244,41 @@ struct ContentView: View {
         Menu {
             Button(action: {
                 
-                if let currentLayer = document.core.project.currentLayer {
-                    currentLayer.gridType = .rectFront
+                if let currentScreen = document.core.project.getCurrentScreen() {
+                    currentScreen.gridType = .rectFront
                 }
                 document.core.project.setHasChanged(true)
+                document.core.nodeView?.update()
                 document.core.renderer.render(forceTextureClear: true)
                 updateView.toggle()
                 
             })
             {
-                Text("Layer Grid")
+                Text("Screen Grid")
                 Image(systemName: "squareshape")
             }
             Button(action: {
             
-                if let currentLayer = document.core.project.currentLayer {
-                    currentLayer.gridType = .rectIso
+                if let currentScreen = document.core.project.getCurrentScreen() {
+                    currentScreen.gridType = .rectIso
                 }
                 document.core.project.setHasChanged(true)
+                document.core.nodeView?.update()
                 document.core.renderer.render(forceTextureClear: true)
                 updateView.toggle()
             })
             {
-                Text("Layer Grid")
+                Text("Screen Grid")
                 Image(systemName: "cube")
             }
         }
         label: {
-            if let currentLayer = document.core.project.currentLayer {
-                if currentLayer.gridType == .rectFront {
-                    Text("Layer Grid")
+            if let currentScreen = document.core.project.getCurrentScreen() {
+                if currentScreen.gridType == .rectFront {
+                    Text("Screen Grid")
                     Image(systemName: "squareshape")
                 } else {
-                    Text("Layer Grid")
+                    Text("Screen Grid")
                     Image(systemName: "cube")
                     //Label("Rect Iso", systemImage: "cube")
                 }
