@@ -130,11 +130,13 @@ class Renderer
     {
         stop()
                 
+        let renderType = core.project.getCurrentScreen()?.gridType
+        
         let tileSize = core.project.getTileSize()
         tileJobs = []
 
         let dims = calculateTextureSizeForScreen()
-        let texSize = SIMD2<Int>(dims.0.x * Int(tileSize), dims.0.y * Int(tileSize))
+        let texSize = SIMD2<Int>(dims.0.x * Int(tileSize) * 2, dims.0.y * Int(tileSize) * 2)
         
         func collectJobsForLayer(_ layer: Layer) {
             checkIfLayerTextureIsValid(layer: layer, size: texSize, forceTextureClear: forceTextureClear)
@@ -202,7 +204,12 @@ class Renderer
                 coresActive += 1
                 dispatchGroup.enter()
                 DispatchQueue.global(qos: .userInitiated).async {
-                    self.renderTile()
+                    if renderType == .rectFront {
+                        self.renderTile()
+                    } else
+                    if renderType == .rectIso {
+                        self.renderIsoCube()
+                    }
                 }
             }
 
@@ -233,6 +240,7 @@ class Renderer
         dispatchGroup.wait()
     }
     
+    /// MARK: Render Tile
     func renderTile()
     {
         var inProgressArray : Array<SIMD4<Float>>? = nil
@@ -257,7 +265,6 @@ class Renderer
                 DispatchQueue.main.async {
                     self.core.updatePreviewOnce()
                 }
-                
                 semaphore.signal()
             }
             
@@ -305,6 +312,142 @@ class Renderer
                     texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
                 }
             }
+            
+            if stopRunning {
+                break
+            }
+            
+            updateTexture(texArray)
+        }
+        
+        coresActive -= 1
+        if coresActive == 0 && stopRunning == false {
+            
+            let myTime = Double(Date().timeIntervalSince1970) - startTime
+            totalTime += myTime
+            
+            isRunning = false
+            print(totalTime)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
+                self.core.updatePreviewOnce()
+            }
+            
+            core.project.setHasChanged(false)
+        }
+        
+        dispatchGroup.leave()
+    }
+    
+    /// MARK: Render IsoCube
+    func renderIsoCube()
+    {
+        var inProgressArray : Array<SIMD4<Float>>? = nil
+        let isoCubeRenderer = IsoCubeRenderer()
+
+        while let tileJob = getNextTile() {
+            
+            guard let texture = tileJob.tileContext.layer.texture else {
+                return
+            }
+            
+            let tileId = tileJob.tileContext.tileId
+            
+            func updateTexture(_ a: Array<SIMD4<Float>>)
+            {
+                var array = a
+                
+                let x1 = tileId.x
+                let y1 = tileId.y
+                
+                let width : Float = Float(tileRect.width)
+                let height : Float = Float(tileRect.height)
+
+                let x = (x1 - y1) * width / (2 * 1.3) + 40
+                let y = (y1 + x1) * height / (3.4 * 1.3) + 40// - (y1 * tileRect.height / 2)
+                
+                print(tileId, "conv", x, y)
+
+                semaphore.wait()
+                
+                let region = MTLRegionMake2D(Int(x), Int(y), tileRect.width, tileRect.height)
+                                
+                var texArray = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(tileRect.width * tileRect.height))
+
+                texArray.withUnsafeMutableBytes {
+                    texture.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(tileRect.width)), from: region, mipmapLevel: 0)
+                }
+                
+                for h in 0..<tileRect.height {
+                    for w in 0..<tileRect.width {
+                        let existing = texArray[h * tileRect.width + w]
+                        let replacing = array[h * tileRect.width + w]
+                        
+                        if replacing.w < existing.w {
+                            array[h * tileRect.width + w] = simd_mix(replacing, existing, float4(repeating: existing.w))
+                        } else {
+                            array[h * tileRect.width + w] = simd_mix(existing, replacing, float4(repeating: replacing.w))
+                        }
+                    }
+                }
+                
+                array.withUnsafeMutableBytes { texArrayPtr in
+                    texture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
+                }
+                
+                DispatchQueue.main.async {
+                    self.core.updatePreviewOnce()
+                }
+                
+                semaphore.signal()
+            }
+            
+            //let tileContext = tileJob.tileContext
+            let tileRect = tileJob.tileRect
+            
+            var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
+            if inProgressArray == nil {
+                inProgressArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0)/*ScreenView.selectionColor*/, count: tileRect.size)
+            }
+            
+            updateTexture(inProgressArray!)
+            
+            //let tile = tileContext.tile!
+                            
+            isoCubeRenderer.render(self, tileJob, &texArray)
+            /*
+            for h in tileRect.y..<tileRect.bottom {
+
+                for w in tileRect.x..<tileRect.right {
+                    
+                    if stopRunning {
+                        break
+                    }
+                    
+                    let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
+                    let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
+
+                    let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
+                    //pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
+                    
+                    if tile.nodes.count > 0 {
+                        let noded = tile.nodes[0]
+                        let offset = noded.readFloat2FromInstanceAreaIfExists(tileContext.tileArea, noded, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
+                        pixelContext.uv -= offset
+                        pixelContext.areaUV -= offset
+                    }
+                    
+                    var color = float4(0, 0, 0, 0)
+                    
+                    var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                    while node !== nil {
+                        color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
+                        node = tile.getNextInChain(node!, .Shape)
+                    }
+
+                    texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+                }
+            }*/
             
             if stopRunning {
                 break
