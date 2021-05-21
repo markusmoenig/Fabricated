@@ -299,11 +299,7 @@ struct NodeToolbar: View {
             Menu {
                 Menu {
                     Button("Box", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(ShapeBox())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(ShapeBox())
                     })
                     Button("Disk", action: {
                         if let tile = document.core.project.currentTileSet?.openTile {
@@ -353,11 +349,7 @@ struct NodeToolbar: View {
                         }
                     })
                     Button("Tiles & Bricks", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(DecoratorTilesAndBricks())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(DecoratorTilesAndBricks())
                     })
                 }
                 label: {
@@ -436,6 +428,16 @@ struct NodeToolbar: View {
         }
         .padding(4)
         .frame(minHeight: 30)
+    }
+    
+    func addNodeToTile(_ node: TileNode) {
+        if let tile = document.core.project.currentTileSet?.openTile {
+            var nodes = document.core.nodeView.getNodes(tile)
+            nodes.append(node)
+            document.core.nodeView.setNodes(tile, nodes)
+            document.core.nodeView.setCurrentNode(nodes.last!)
+            document.core.nodeView.update()
+        }
     }
 }
 

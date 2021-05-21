@@ -363,6 +363,21 @@ class Tile              : Codable, Equatable
                 return node
             }
         }
+        for node in isoNodesTop {
+            if node.id == id {
+                return node
+            }
+        }
+        for node in isoNodesLeft {
+            if node.id == id {
+                return node
+            }
+        }
+        for node in isoNodesRight {
+            if node.id == id {
+                return node
+            }
+        }
         return nil
     }
     

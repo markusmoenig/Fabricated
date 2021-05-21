@@ -65,8 +65,11 @@ class ScreenView
 
         // Render Texture
         
-        let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
-        let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
+        //let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
+        //let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
+        
+        let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * graphZoom + graphOffset.x
+        let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * graphZoom + graphOffset.y
         
         if core.renderer.renderMode == .Screen {
             if let currentScreen = core.project.getCurrentScreen() {

@@ -130,13 +130,20 @@ class Renderer
     {
         stop()
                 
-        let renderType = core.project.getCurrentScreen()?.gridType
+        let gridType = core.project.getCurrentScreen()?.gridType
         
         let tileSize = core.project.getTileSize()
         tileJobs = []
 
         let dims = calculateTextureSizeForScreen()
-        let texSize = SIMD2<Int>(dims.0.x * Int(tileSize) * 2, dims.0.y * Int(tileSize) * 2)
+        let texSize : SIMD2<Int>
+        
+        if gridType == .rectFront {
+            texSize = SIMD2<Int>(dims.0.x * Int(tileSize) * 2, dims.0.y * Int(tileSize) * 2)
+        } else {
+            texSize = SIMD2<Int>(dims.0.x * 2 + Int(tileSize), dims.0.y * 2 + Int(tileSize))
+        }
+        print(texSize)
         
         func collectJobsForLayer(_ layer: Layer) {
             checkIfLayerTextureIsValid(layer: layer, size: texSize, forceTextureClear: forceTextureClear)
@@ -162,8 +169,21 @@ class Renderer
 
                                 tileContext.tileId = SIMD2<Float>(Float(w),Float(h))
 
-                                let x : Float = Float(abs(dims.1.x - w)) * tileSize
-                                let y : Float = Float(abs(dims.1.y - h)) * tileSize
+                                let x : Float
+                                let y : Float
+                                
+                                if gridType == .rectFront {
+                                    x = Float(abs(dims.1.x - w)) * tileSize
+                                    y = Float(abs(dims.1.y - h)) * tileSize
+                                } else {
+                                    let offX = Float(tileContext.tileId.x)
+                                    let offY = Float(tileContext.tileId.y)
+                                    
+                                    let isoP = toIso(float2(offX, offY), float2(tileSize, tileSize))
+                                    x = abs(Float(dims.1.x) - isoP.x)
+                                    y = abs(Float(dims.1.y) - isoP.y)
+                                    print("isoP", x, y)
+                                }
                                 
                                 let rect = TileRect(Int(x.rounded()), Int(y.rounded()), Int(tileSize), Int(tileSize))
                                 //renderTile(tileContext, rect)
@@ -204,10 +224,10 @@ class Renderer
                 coresActive += 1
                 dispatchGroup.enter()
                 DispatchQueue.global(qos: .userInitiated).async {
-                    if renderType == .rectFront {
+                    if gridType == .rectFront {
                         self.renderTile()
                     } else
-                    if renderType == .rectIso {
+                    if gridType == .rectIso {
                         self.renderIsoCube()
                     }
                 }
@@ -363,14 +383,15 @@ class Renderer
                 let width : Float = Float(tileRect.width)
                 let height : Float = Float(tileRect.height)
 
-                let x = (x1 - y1) * width / (2 * 1.3) + 40
-                let y = (y1 + x1) * height / (3.4 * 1.3) + 40// - (y1 * tileRect.height / 2)
+                
+                let x = (x1 - y1) * width / (2 * 1.3)// + 40
+                let y = (y1 + x1) * height / (3.4 * 1.3)// + 40// - (y1 * tileRect.height / 2)
                 
                 print(tileId, "conv", x, y)
 
                 semaphore.wait()
                 
-                let region = MTLRegionMake2D(Int(x), Int(y), tileRect.width, tileRect.height)
+                let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
                                 
                 var texArray = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(tileRect.width * tileRect.height))
 
@@ -503,8 +524,16 @@ class Renderer
                 for layer in screen.layers {
                     for (index, _) in layer.tileInstances {
                         
-                        let x = index.x
-                        let y = index.y
+                        var x = index.x
+                        var y = index.y
+                        
+                        if screen.gridType == .rectIso {
+                            let tileSize = core.project.getTileSize()
+                            let iso = toIso(float2(Float(x),Float(y)), float2(tileSize, tileSize))
+                            print("00", x,y, Int(iso.x), Int(iso.y))
+                            x = Int(iso.x)
+                            y = Int(iso.y)
+                        }
                         
                         if x < minX {
                             minX = x
@@ -530,7 +559,17 @@ class Renderer
             height = (abs(maxY - minY) + 1)
         }
         
+        print(SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
+    }
+    
+    // Converts a screen position to an isometric coordinate
+    func toIso(_ p: float2,_ tileSize: float2) -> float2
+    {
+        var isoP = float2()
+        isoP.x = (p.x - p.y) * tileSize.x / (2 * 1.3)// + 40
+        isoP.y = (p.y + p.x) * tileSize.y / (3.4 * 1.3)// + 40// - (y1 * tileRect.height / 2)
+        return isoP
     }
     
     /// isoCamera

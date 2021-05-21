@@ -102,12 +102,59 @@ class IsoCubeRenderer
                         }
                         
                         if hit == true {
-                            let normal = calcNormal(position: camera.0 + t * camera.1)
+                            let hp = camera.0 + t * camera.1
+                            let normal = calcNormal(position: hp)
 
+                            /*
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
                             total.w += 1
+                            */
+
+                            let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
+                            let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
+
+                            let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
+                            let tile = tileContext.tile!
+                            
+                            var nodes   : [TileNode] = []
+                            var uv      = float2(0,0)
+                            
+                            if normal.y > 0.5 {
+                                nodes = tileJob.tileContext.tile.isoNodesTop
+                                //uv = (float2(hp.x, hp.z) + 1.0) / 2.0
+                            } else
+                            if normal.z > 0.5 {
+                                nodes = tileJob.tileContext.tile.isoNodesLeft
+                                uv = (float2(hp.x, hp.y) + 1.0) / 2.0
+                                uv /= 3
+                                pixelContext.uv = uv
+                            } else
+                            if normal.x > 0.5 {
+                                nodes = tileJob.tileContext.tile.isoNodesRight
+                                uv = (float2(hp.z, hp.y) + 1.0) / 2.0
+                                uv /= 3
+                                pixelContext.uv = uv
+                            }
+                            
+                            var color = float4(0, 0, 0, 0)
+
+                            if nodes.count > 0 {
+                                /*
+                                let noded = nodes[0]
+                                let offset = noded.readFloat2FromInstanceAreaIfExists(tileContext.tileArea, noded, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
+                                pixelContext.uv -= offset
+                                pixelContext.areaUV -= offset*/
+                                                                                            
+                                var node = tile.getNextInChain(nodes[0], .Shape)
+                                while node !== nil {
+                                    color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
+                                    node = tile.getNextInChain(node!, .Shape)
+                                }
+                                
+                                total += color
+                            }
                         }
                     }
                 }

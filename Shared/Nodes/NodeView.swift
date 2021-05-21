@@ -208,6 +208,30 @@ class NodeView
         return []
     }
     
+    // Sets the nodes for the current screen mode
+    func setNodes(_ tile: Tile,_ nodes: [TileNode])
+    {
+        if let screen = core.project.getCurrentScreen() {
+            if screen.gridType == .rectFront {
+                tile.nodes = nodes
+            } else
+            if screen.gridType == .rectIso {
+                if isoFace == .Top {
+                    tile.isoNodesTop[0].name = "Iso Top"
+                    tile.isoNodesTop = nodes
+                } else
+                if isoFace == .Left {
+                    tile.isoNodesLeft[0].name = "Iso Left"
+                    tile.isoNodesLeft = nodes
+                } else
+                if isoFace == .Right {
+                    tile.isoNodesRight[0].name = "Iso Right"
+                    tile.isoNodesRight = nodes
+                }
+            }
+        }
+    }
+    
     // Gets the terminal rect for the given node and id
     func getTerminal(_ node: TileNode, id: Int) -> MMRect
     {
@@ -585,6 +609,7 @@ class NodeView
                 }
             }
             
+            print("done")
             core.currentTileUndo?.end()
             
             core.updateTilePreviews()
