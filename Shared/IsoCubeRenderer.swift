@@ -77,7 +77,7 @@ class IsoCubeRenderer
                     for n in 0..<AA {
 
                         let camOffset = float2(Float(m), Float(n)) / Float(AA) - 0.5
-                        let camera = isoCamera(uv: pixelContext.uv, tileSize: tileSize, origin: float3(8,8,8), lookAt: float3(0,0,0), fov: 15.5, offset: camOffset)
+                        let camera = isoCamera(uv: pixelContext.uv, tileSize: tileSize, origin: float3(8,8,8), lookAt: float3(0,0,0), fov: 15.1, offset: camOffset)
                         
                         // Raymarch
                         var hit = false
@@ -105,12 +105,12 @@ class IsoCubeRenderer
                             let hp = camera.0 + t * camera.1
                             let normal = calcNormal(position: hp)
 
-                            /*
+                            
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
                             total.w += 1
-                            */
+                            /*
 
                             let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
                             let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
@@ -155,6 +155,7 @@ class IsoCubeRenderer
                                 
                                 total += color
                             }
+                            */
                         }
                     }
                 }

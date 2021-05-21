@@ -62,14 +62,17 @@ class ScreenView
         //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
         
         let tileSize = core.project.getTileSize()
+        let gridType = core.project.getCurrentScreen()?.gridType
 
         // Render Texture
         
-        //let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * tileSize * graphZoom + graphOffset.x
-        //let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * tileSize * graphZoom + graphOffset.y
+        var texMulty = tileSize
+        if gridType == .rectIso {
+            texMulty = 1
+        }
         
-        let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * graphZoom + graphOffset.x
-        let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * graphZoom + graphOffset.y
+        let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * texMulty * graphZoom + graphOffset.x
+        let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * texMulty * graphZoom + graphOffset.y
         
         if core.renderer.renderMode == .Screen {
             if let currentScreen = core.project.getCurrentScreen() {
@@ -126,7 +129,7 @@ class ScreenView
         let center = drawables.viewSize / 2.0 + graphOffset
         
         if showGrid == true {
-            // Grid
+            // Rect Front Grid
             var xOffset    : Float = 0
             var yOffset    : Float = 0
             let radius     : Float = 0.5

@@ -143,7 +143,6 @@ class Renderer
         } else {
             texSize = SIMD2<Int>(dims.0.x * 2 + Int(tileSize), dims.0.y * 2 + Int(tileSize))
         }
-        print(texSize)
         
         func collectJobsForLayer(_ layer: Layer) {
             checkIfLayerTextureIsValid(layer: layer, size: texSize, forceTextureClear: forceTextureClear)
@@ -182,7 +181,6 @@ class Renderer
                                     let isoP = toIso(float2(offX, offY), float2(tileSize, tileSize))
                                     x = abs(Float(dims.1.x) - isoP.x)
                                     y = abs(Float(dims.1.y) - isoP.y)
-                                    print("isoP", x, y)
                                 }
                                 
                                 let rect = TileRect(Int(x.rounded()), Int(y.rounded()), Int(tileSize), Int(tileSize))
@@ -370,24 +368,10 @@ class Renderer
             guard let texture = tileJob.tileContext.layer.texture else {
                 return
             }
-            
-            let tileId = tileJob.tileContext.tileId
-            
+                        
             func updateTexture(_ a: Array<SIMD4<Float>>)
             {
                 var array = a
-                
-                let x1 = tileId.x
-                let y1 = tileId.y
-                
-                let width : Float = Float(tileRect.width)
-                let height : Float = Float(tileRect.height)
-
-                
-                let x = (x1 - y1) * width / (2 * 1.3)// + 40
-                let y = (y1 + x1) * height / (3.4 * 1.3)// + 40// - (y1 * tileRect.height / 2)
-                
-                print(tileId, "conv", x, y)
 
                 semaphore.wait()
                 
@@ -567,8 +551,8 @@ class Renderer
     func toIso(_ p: float2,_ tileSize: float2) -> float2
     {
         var isoP = float2()
-        isoP.x = (p.x - p.y) * tileSize.x / (2 * 1.3)// + 40
-        isoP.y = (p.y + p.x) * tileSize.y / (3.4 * 1.3)// + 40// - (y1 * tileRect.height / 2)
+        isoP.x = (p.x - p.y) * tileSize.x / (2 * 1.22)// + 40
+        isoP.y = (p.y + p.x) * tileSize.y / (3.4 * 1.26)// + 40// - (y1 * tileRect.height / 2)
         return isoP
     }
     
