@@ -61,7 +61,7 @@ class IsoCubeRenderer
         
         let AA = max(Int(renderer.core.project.getAntiAliasing()), 1)
         let tileSize = float2(Float(tileRect.width), Float(tileRect.height))
-
+        
         for h in tileRect.y..<tileRect.bottom {
 
             for w in tileRect.x..<tileRect.right {
@@ -181,20 +181,8 @@ class IsoCubeRenderer
         let w : float3 = simd_normalize(camOrigin - camLookAt)
         let u : float3 = simd_cross(upVector, w)
         let v : float3 = simd_cross(w, u)
-
-        /*
-        var lowerLeft : float3 = camOrigin - halfWidth * u
-        lowerLeft -= halfHeight * v - w
         
-        let horizontal : float3 = u * halfWidth * 2.0
-        
-        let vertical : float3 = v * halfHeight * 2.0
-        var dir : float3 = lowerLeft - camOrigin
-
-        dir += horizontal * (pixelSize.x * offset.x + uv.x)
-        dir += vertical * (pixelSize.y * offset.y + uv.y)*/
-        
-        let horizontal = u * halfWidth * 2.0
+        let horizontal = u * halfWidth * 1.72
         let vertical = v * halfHeight * 2.0
                 
         var outOrigin = camOrigin

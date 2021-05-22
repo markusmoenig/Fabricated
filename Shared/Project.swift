@@ -147,19 +147,20 @@ class Project           : MMValues, Codable
 
 class Screen        : Codable, Equatable
 {    
-    enum GridType : Int, CodingKey {
+    enum GridType : Int, Codable {
         case rectFront, rectIso
     }
     
     var gridType        : GridType = .rectFront
     
-    var layers      : [Layer] = []
-    var id          = UUID()
-    var name        = ""
+    var layers          : [Layer] = []
+    var id              = UUID()
+    var name            = ""
     
     private enum CodingKeys: String, CodingKey {
         case id
         case name
+        case gridType
         case layers
     }
     
@@ -173,6 +174,9 @@ class Screen        : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        if let gridType = try container.decodeIfPresent(GridType.self, forKey: .gridType) {
+            self.gridType = gridType
+        }
         layers = try container.decode([Layer].self, forKey: .layers)
     }
     
@@ -181,6 +185,7 @@ class Screen        : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
+        try container.encode(gridType, forKey: .gridType)
         try container.encode(layers, forKey: .layers)
     }
     

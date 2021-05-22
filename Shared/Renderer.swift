@@ -178,7 +178,7 @@ class Renderer
                                     let offX = Float(tileContext.tileId.x)
                                     let offY = Float(tileContext.tileId.y)
                                     
-                                    let isoP = toIso(float2(offX, offY), float2(tileSize, tileSize))
+                                    let isoP = toIso(float2(offX, offY))
                                     x = abs(Float(dims.1.x) - isoP.x)
                                     y = abs(Float(dims.1.y) - isoP.y)
                                 }
@@ -512,9 +512,7 @@ class Renderer
                         var y = index.y
                         
                         if screen.gridType == .rectIso {
-                            let tileSize = core.project.getTileSize()
-                            let iso = toIso(float2(Float(x),Float(y)), float2(tileSize, tileSize))
-                            print("00", x,y, Int(iso.x), Int(iso.y))
+                            let iso = toIso(float2(Float(x),Float(y)))
                             x = Int(iso.x)
                             y = Int(iso.y)
                         }
@@ -543,16 +541,17 @@ class Renderer
             height = (abs(maxY - minY) + 1)
         }
         
-        print(SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
         return (SIMD2<Int>(width, height), SIMD4<Int>(minX, minY, maxX, maxY))
     }
     
     // Converts a screen position to an isometric coordinate
-    func toIso(_ p: float2,_ tileSize: float2) -> float2
+    func toIso(_ p: float2) -> float2
     {
+        let tileSize = core.project.getTileSize()
+
         var isoP = float2()
-        isoP.x = (p.x - p.y) * tileSize.x / (2 * 1.22)// + 40
-        isoP.y = (p.y + p.x) * tileSize.y / (3.4 * 1.26)// + 40// - (y1 * tileRect.height / 2)
+        isoP.x = (p.x - p.y) * tileSize / (2 * 1.06)//2.6//2.44//(2 * 1.22)// + 40/ 2.12
+        isoP.y = (p.y + p.x) * tileSize / (3.4 * 1.26)//(2.6 * 1.75)//4.284//(3.4 * 1.26)// + 40// - (y1 * tileRect.height / 2)/ 3.71
         return isoP
     }
     

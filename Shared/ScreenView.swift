@@ -56,6 +56,24 @@ class ScreenView
     func draw()
     {
         drawables.encodeStart()
+        
+        /// Convert a tileId to the screen position
+        func tileIdToScreen(_ tileId: SIMD2<Int>) -> float2
+        {
+            let x : Float
+            let y : Float
+
+            if gridType == .rectFront {
+                x = drawables.viewSize.x / 2 + Float(tileId.x) * tileSize * graphZoom + graphOffset.x
+                y = drawables.viewSize.y / 2 + Float(tileId.y) * tileSize * graphZoom + graphOffset.y
+            } else {
+                let iso = core.renderer.toIso(float2(Float(tileId.x), Float(tileId.y)))
+                x = drawables.viewSize.x / 2 + iso.x * graphZoom + graphOffset.x
+                y = drawables.viewSize.y / 2 + iso.y * graphZoom + graphOffset.y
+            }
+            
+            return float2(x,y)
+        }
      
         let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
 
@@ -95,10 +113,10 @@ class ScreenView
         
         // Selected rectangle
         if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
-            let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
-            let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
             
-            drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
+            let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
+            
+            drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
         }
                 
         // Selected areas
@@ -109,20 +127,20 @@ class ScreenView
                     
                     if currentLayer.selectedAreas.contains(area) == false {
                         let selection = area.area
-                        let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
-                        let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
                         
-                        drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
+                        let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
+                        
+                        drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
                     }
                 }
             }
 
             for area in currentLayer.selectedAreas {
                 let selection = area.area
-                let x = drawables.viewSize.x / 2 + Float(selection.x) * tileSize * graphZoom + graphOffset.x
-                let y = drawables.viewSize.y / 2 + Float(selection.y) * tileSize * graphZoom + graphOffset.y
                 
-                drawables.drawBox(position: float2(x,y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
+                let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
+                
+                drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
             }
         }
             
@@ -135,24 +153,68 @@ class ScreenView
             let radius     : Float = 0.5
             let gridColor  = float4(0.5, 0.5, 0.5, 0.5)
 
-            while center.y - yOffset >= 0 || center.y + yOffset <= drawables.viewSize.x {
-                var r = radius
-                if yOffset == 0 {
-                    r *= 1.5
+            if gridType == .rectFront {
+                while center.y - yOffset >= 0 || center.y + yOffset <= drawables.viewSize.x {
+                    var r = radius
+                    if yOffset == 0 {
+                        r *= 1.5
+                    }
+                    drawables.drawLine(startPos: float2(0, center.y + yOffset), endPos: float2(drawables.viewSize.x, center.y + yOffset), radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: float2(0, center.y - yOffset), endPos: float2(drawables.viewSize.x, center.y - yOffset), radius: r, fillColor: gridColor)
+                    yOffset += tileSize * graphZoom
                 }
-                drawables.drawLine(startPos: float2(0, center.y + yOffset), endPos: float2(drawables.viewSize.x, center.y + yOffset), radius: r, fillColor: gridColor)
-                drawables.drawLine(startPos: float2(0, center.y - yOffset), endPos: float2(drawables.viewSize.x, center.y - yOffset), radius: r, fillColor: gridColor)
-                yOffset += tileSize * graphZoom
-            }
-            
-            while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x {
-                var r = radius
-                if xOffset == 0 {
-                    r *= 1.5
+                
+                while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x {
+                    var r = radius
+                    if xOffset == 0 {
+                        r *= 1.5
+                    }
+                    drawables.drawLine(startPos: float2(center.x + xOffset, 0), endPos: float2(center.x + xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
+                    xOffset += tileSize * graphZoom
                 }
-                drawables.drawLine(startPos: float2(center.x + xOffset, 0), endPos: float2(center.x + xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
-                drawables.drawLine(startPos: float2(center.x - xOffset, 0), endPos: float2(center.x - xOffset, drawables.viewSize.y), radius: r, fillColor: gridColor)
-                xOffset += tileSize * graphZoom
+            } else
+            if gridType == .rectIso {
+                
+                let halfTileSize = tileSize / 2 * graphZoom
+                
+                while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x * 2 {
+                    var r = radius
+                    if xOffset == 0 {
+                        r *= 1.5
+                    }
+                    
+                    let p1 = float2(center.x + xOffset + halfTileSize, center.y)
+                    let p11 = float2(center.x - xOffset + halfTileSize, center.y)
+                    let p2Norm = simd_normalize(float2(center.x + xOffset, center.y + halfTileSize / 2) - p1)
+                    let p3Norm = simd_normalize(float2(center.x - xOffset, center.y + halfTileSize / 2) - p11)
+                    let p2 = p1 + p2Norm * 100000
+                    let p3 = p1 + p2Norm * -100000
+                    let p4 = p11 + p3Norm * 100000
+                    let p5 = p11 + p3Norm * -100000
+                    
+                    drawables.drawLine(startPos: p1, endPos: p2, radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: p1, endPos: p3, radius: r, fillColor: gridColor)
+                    
+                    drawables.drawLine(startPos: p11, endPos: p4, radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: p11, endPos: p5, radius: r, fillColor: gridColor)
+
+                    let p6Norm = simd_normalize(float2(center.x + xOffset + halfTileSize * 2, center.y + halfTileSize / 2) - p1)
+                    let p7Norm = simd_normalize(float2(center.x - xOffset + halfTileSize * 2, center.y + halfTileSize / 2) - p11)
+                    
+                    let p6 = p1 + p6Norm * 100000
+                    let p7 = p1 + p6Norm * -100000
+                    let p8 = p11 + p7Norm * 100000
+                    let p9 = p11 + p7Norm * -100000
+                    
+                    drawables.drawLine(startPos: p1, endPos: p6, radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: p1, endPos: p7, radius: r, fillColor: gridColor)
+                    
+                    drawables.drawLine(startPos: p11, endPos: p8, radius: r, fillColor: gridColor)
+                    drawables.drawLine(startPos: p11, endPos: p9, radius: r, fillColor: gridColor)
+                    
+                    xOffset += tileSize * graphZoom
+                }
             }
 
             // Draw tool shape(s)
@@ -428,17 +490,33 @@ class ScreenView
         let center = size / 2 + graphOffset
         
         let p = pos - center
-        tileId = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
         
-        // Calculate the tilePos, the normalized offset from the upper left tile corner
-        tilePos = SIMD2<Float>(fmod(p.x / graphZoom, tileSize), fmod(p.y / graphZoom, tileSize))
-        if tilePos.x < 0 {
-            tilePos.x = tileSize + tilePos.x
+        let gridType = core.project.getCurrentScreen()?.gridType
+        
+        if gridType == .rectFront {
+            tileId = SIMD2<Int>(Int(floor(p.x / tileSize / graphZoom)), Int(floor(p.y / tileSize / graphZoom)))
+            
+            // Calculate the tilePos, the normalized offset from the upper left tile corner
+            tilePos = SIMD2<Float>(fmod(p.x / graphZoom, tileSize), fmod(p.y / graphZoom, tileSize))
+            if tilePos.x < 0 {
+                tilePos.x = tileSize + tilePos.x
+            }
+            if tilePos.y < 0 {
+                tilePos.y = tileSize + tilePos.y
+            }
+            tilePos /= tileSize
+        } else
+        if gridType == .rectIso {
+            let tileAspectX = tileSize / (2 * 1.06) // * graphZoom
+            let tileAspectY = tileSize / (3.4 * 1.26)// * graphZoom
+            
+            print(p)
+            let mapX = (p.x / tileAspectX + p.y / tileAspectX) / 2
+            let mapY = (p.y / tileAspectY - (p.x / tileAspectY)) / 2
+            
+            print("1111", mapX, mapY)
+            tileId = SIMD2<Int>(Int(mapX), Int(mapY))
         }
-        if tilePos.y < 0 {
-            tilePos.y = tileSize + tilePos.y
-        }
-        tilePos /= tileSize
     }
     
     /// Returns the normalized position inside an area
@@ -522,6 +600,12 @@ class ScreenView
     func touchDown(_ pos: float2)
     {
         actionArea = nil
+                
+        //isoP.x = (p.x - p.y) * tileSize.x / (2 * 1.06)//2.6//2.44//(2 * 1.22)// + 40/ 2.12
+        //isoP.y = (p.y + p.x) * tileSize.y / (3.4 * 1.26)//(2.6 * 1.75)//4.284//(3.4 * 1.26)// + 40// - (y1 * tileRect.height / 2)/ 3.71
+        
+        //map.x = (screen.x / TILE_WIDTH_HALF + screen.y / TILE_HEIGHT_HALF) /2;
+        //map.y = (screen.y / TILE_HEIGHT_HALF -(screen.x / TILE_WIDTH_HALF)) /2;
         
         if let layer = core.project.currentLayer {
 
