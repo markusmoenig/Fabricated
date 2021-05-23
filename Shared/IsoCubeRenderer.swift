@@ -20,7 +20,7 @@ class IsoCubeRenderer
         
         func sdBox(_ p: float3) -> Float
         {
-            let size = float3(1,1,1)
+            let size = float3(1.02,1.02,1.06)
             let q : float3 = abs(p - float3(0,0,0)) - size
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0)
         }
@@ -105,12 +105,11 @@ class IsoCubeRenderer
                             let hp = camera.0 + t * camera.1
                             let normal = calcNormal(position: hp)
 
-                            
+                            /*
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
-                            total.w += 1
-                            /*
+                            total.w += 1*/
 
                             let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
                             let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
@@ -155,7 +154,7 @@ class IsoCubeRenderer
                                 
                                 total += color
                             }
-                            */
+    
                         }
                     }
                 }

@@ -15,6 +15,9 @@ struct ProjectView: View {
     @State      var currentLayer                : Layer? = nil
     @State      var currentTileSet              : TileSet? = nil
     
+    @State      var debugText1                  : String = "2.12"
+    @State      var debugText2                  : String = "3.71"
+
     var body: some View {
         VStack {
             List() {
@@ -98,7 +101,22 @@ struct ProjectView: View {
                 #if os(macOS)
                 Divider()
                 #endif
+                
+                // MARK: Debug Entries
+            
             }
+            
+            
+            
+            TextField("Debug1", text: $debugText1, onEditingChanged: { (changed) in
+                document.core.project.debug1 = Float(debugText1)!
+                document.core.renderer.render()
+            })
+            
+            TextField("Debug2", text: $debugText2, onEditingChanged: { (changed) in
+                document.core.project.debug2 = Float(debugText2)!
+                document.core.renderer.render()
+            })
             
             //.listStyle(InsetGroupedListStyle()) // ENABLE_IOS
             

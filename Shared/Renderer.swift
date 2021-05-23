@@ -550,8 +550,8 @@ class Renderer
         let tileSize = core.project.getTileSize()
 
         var isoP = float2()
-        isoP.x = (p.x - p.y) * tileSize / (2 * 1.06)//2.6//2.44//(2 * 1.22)// + 40/ 2.12
-        isoP.y = (p.y + p.x) * tileSize / (3.4 * 1.26)//(2.6 * 1.75)//4.284//(3.4 * 1.26)// + 40// - (y1 * tileRect.height / 2)/ 3.71
+        isoP.x = (p.x - p.y) * tileSize / core.project.debug1
+        isoP.y = (p.y + p.x) * tileSize / core.project.debug2
         return isoP
     }
     
@@ -572,18 +572,6 @@ class Renderer
         let w : float3 = simd_normalize(camOrigin - camLookAt)
         let u : float3 = simd_cross(upVector, w)
         let v : float3 = simd_cross(w, u)
-
-        /*
-        var lowerLeft : float3 = camOrigin - halfWidth * u
-        lowerLeft -= halfHeight * v - w
-        
-        let horizontal : float3 = u * halfWidth * 2.0
-        
-        let vertical : float3 = v * halfHeight * 2.0
-        var dir : float3 = lowerLeft - camOrigin
-
-        dir += horizontal * (pixelSize.x * offset.x + uv.x)
-        dir += vertical * (pixelSize.y * offset.y + uv.y)*/
         
         let horizontal = u * halfWidth * 2.0
         let vertical = v * halfHeight * 2.0

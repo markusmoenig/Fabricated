@@ -56,6 +56,13 @@ class ScreenView
     func draw()
     {
         drawables.encodeStart()
+     
+        let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
+
+        //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
+        
+        let tileSize = core.project.getTileSize()
+        let gridType = core.project.getCurrentScreen()?.gridType
         
         /// Convert a tileId to the screen position
         func tileIdToScreen(_ tileId: SIMD2<Int>) -> float2
@@ -74,13 +81,7 @@ class ScreenView
             
             return float2(x,y)
         }
-     
-        let skin = NodeSkin(drawables.font, fontScale: 0.4, graphZoom: graphZoom)
-
-        //drawables.drawBoxPattern(position: float2(0,0), size: drawables.viewSize, fillColor: float4(0.12, 0.12, 0.12, 1), borderColor: float4(0.14, 0.14, 0.14, 1))
         
-        let tileSize = core.project.getTileSize()
-        let gridType = core.project.getCurrentScreen()?.gridType
         
         if showGrid == true {
             // Rect Front Grid
@@ -508,32 +509,22 @@ class ScreenView
             }
             tilePos /= tileSize
         } else
-        if gridType == .rectIso {
-            //let tileAspectX = tileSize / 2//(2 * 1.06)// * graphZoom
-            //let tileAspectY = tileSize / 2//(3.4 * 1.26)// * graphZoom
+        if gridType == .rectIso {            
+            let offset = (pos - graphOffset) / graphZoom - tileSize / 2
             
-            //print(p)
-            //var mapX = (p.x / tileAspectX + p.y / tileAspectX) / 2
-            //var mapY = (p.y / tileAspectY - (p.x / tileAspectY)) / 2
+            let tileAspectX = tileSize / 2
+            let tileAspectY = tileSize / 4
             
-            //p += tileSize / 2
-            
-            let mapX = (p.x / tileSize + p.y / tileSize)
-            let mapY = (p.y / tileSize - (p.x / tileSize))
-            //map.x = screen.x / TILE_WIDTH + screen.y / TILE_HEIGHT;
-            //map.y = screen.y / TILE_HEIGHT - screen.x / TILE_WIDTH;
-            
-            //mapX += 0.5
-            //mapY += 0.5
-            
-            print(mapX, mapY)
+            let center = size / 2 / graphZoom + tileSize / 2
+            let centerX = (center.x / tileAspectX + center.y / tileAspectY) / 2.0
+            let centerY = (center.y / tileAspectY - (center.x / tileAspectX)) / 2.0
+                                    
+            let mapX = (offset.x / tileAspectX + offset.y / tileAspectY) / 2.0
+            let mapY = (offset.y / tileAspectY - (offset.x / tileAspectX)) / 2.0
+                        
+            tileId = SIMD2<Int>(Int(round(mapX - centerX)), Int(round(mapY - centerY)))
 
-            tileId = SIMD2<Int>(Int(round(mapX)), Int(round(mapY)))
-            
-            //tileId.x -= 1
-            //tileId.y -= 1
-
-            print("1111", tileId)
+            tileId.x += 1
         }
     }
     
