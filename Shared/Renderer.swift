@@ -136,10 +136,14 @@ class Renderer
     
     func render()
     {
+        print("isRunning", isRunning)
         if stop() {
             return
         }
                 
+        isRunning = true
+        stopRunning = false
+        
         let gridType = core.project.getCurrentScreen()?.gridType
         
         let tileSize = core.project.getTileSize()
@@ -230,15 +234,13 @@ class Renderer
         
         if tileJobs.isEmpty {
             core.updatePreviewOnce()
+            isRunning = false
         } else {
             let cores = ProcessInfo().activeProcessorCount// + 1
             
             startTime = Double(Date().timeIntervalSince1970)
             totalTime = 0
             coresActive = 0
-                    
-            isRunning = true
-            stopRunning = false
             
             func startThread() {
                 coresActive += 1
@@ -276,7 +278,9 @@ class Renderer
     
     /// Sends the signal to stop rendering and returns the rendering state
     func stop() -> Bool {
+        semaphore.wait()
         let busy = isRunning
+        semaphore.signal()
 
         if busy {
             stopRunning = true
@@ -369,10 +373,13 @@ class Renderer
             updateTexture(texArray)
             tileJob.tileContext.tileInstance?.tileData = texArray
         }
-        
+                
+        semaphore.wait()
         coresActive -= 1
+        semaphore.signal()
+
         if coresActive == 0  {
-            
+                    
             if stopRunning == false {
                 
                 drawJobPurge()
@@ -388,12 +395,14 @@ class Renderer
                 
                 core.project.setHasChanged(false)
             } else {
-                DispatchQueue.main.async {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     self.render()
                 }
             }
             
+            semaphore.wait()
             isRunning = false
+            semaphore.signal()
         }
         
         dispatchGroup.leave()
@@ -424,7 +433,10 @@ class Renderer
             drawJobAddTileInstanceData(layer: tileJob.tileContext.layer, tileId: SIMD2<Int>(tileJob.tileContext.tileId), tileRect: tileJob.tileRect, data: texArray)
         }
         
+        semaphore.wait()
         coresActive -= 1
+        semaphore.signal()
+
         if coresActive == 0  {
             
             if stopRunning == false {
@@ -447,7 +459,9 @@ class Renderer
                 }
             }
             
+            semaphore.wait()
             isRunning = false
+            semaphore.signal()
         }
         
         dispatchGroup.leave()

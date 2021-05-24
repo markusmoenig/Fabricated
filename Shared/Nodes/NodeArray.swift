@@ -29,6 +29,7 @@ enum NodeFamily: String, NodeClassFamily {
     case shapeGround = "ShapeGround"
 
     case modifierNoise = "ModifierNoise"
+    case modifierTiledNoise = "ModifierTiledNoise"
 
     case decoratorColor = "DecoratorColor"
     case decoratorGradient = "DecoratorGradient"
@@ -52,6 +53,8 @@ enum NodeFamily: String, NodeClassFamily {
                 
             case .modifierNoise:
                 return ModifierNoise.self
+            case .modifierTiledNoise:
+                return ModifierTiledNoise.self
                 
             case .decoratorColor:
                 return DecoratorColor.self

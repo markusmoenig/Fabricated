@@ -340,11 +340,10 @@ struct NodeToolbar: View {
                 }
                 Menu {
                     Button("Noise", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(ModifierNoise())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(ModifierNoise())
+                    })
+                    Button("Tiled Noise", action: {
+                        addNodeToTile(ModifierTiledNoise())
                     })
                 }
                 label: {
