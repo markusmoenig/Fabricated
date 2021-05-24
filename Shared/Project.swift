@@ -211,6 +211,9 @@ class Layer             : MMValues, Codable, Equatable
     
     // The layer renders into this texture
     var texture         : MTLTexture? = nil
+    
+    // The draw jobs for this layer during rendering (some gridTypes need sorted rendering)
+    var drawJobs        : [DrawJob] = []
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -476,6 +479,8 @@ class TileInstance : MMValues, Codable, Equatable
     var tileId      : UUID
     
     var tileAreas   : [UUID] = []
+    
+    var tileData    : [SIMD4<Float>]? = nil
 
     private enum CodingKeys: String, CodingKey {
         case id

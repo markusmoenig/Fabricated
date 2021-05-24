@@ -249,7 +249,7 @@ struct ContentView: View {
                 }
                 document.core.project.setHasChanged(true)
                 document.core.nodeView?.update()
-                document.core.renderer.render(forceTextureClear: true)
+                document.core.renderer.render()
                 updateView.toggle()
                 
             })
@@ -264,7 +264,7 @@ struct ContentView: View {
                 }
                 document.core.project.setHasChanged(true)
                 document.core.nodeView?.update()
-                document.core.renderer.render(forceTextureClear: true)
+                document.core.renderer.render()
                 updateView.toggle()
             })
             {

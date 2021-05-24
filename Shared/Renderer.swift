@@ -91,6 +91,13 @@ class TileJob
     }
 }
 
+struct DrawJob {
+    let layer       : Layer
+    let tileId      : SIMD2<Int>
+    let tileRect    : TileRect
+    let data        : [float4]
+}
+
 class Renderer
 {
     enum RenderMode {
@@ -115,8 +122,9 @@ class Renderer
     
     var isRunning       : Bool = false
     var stopRunning     : Bool = false
-
+    
     var tileJobs        : [TileJob] = []
+    var renderedLayers  : [Layer] = []
 
     init(_ core: Core)
     {
@@ -126,14 +134,16 @@ class Renderer
         dispatchGroup = DispatchGroup()
     }
     
-    func render(forceTextureClear: Bool = false)
+    func render()
     {
         stop()
                 
         let gridType = core.project.getCurrentScreen()?.gridType
         
         let tileSize = core.project.getTileSize()
+        
         tileJobs = []
+        renderedLayers = []
 
         let dims = calculateTextureSizeForScreen()
         let texSize : SIMD2<Int>
@@ -145,47 +155,55 @@ class Renderer
         }
         
         func collectJobsForLayer(_ layer: Layer) {
-            checkIfLayerTextureIsValid(layer: layer, size: texSize, forceTextureClear: forceTextureClear)
+            checkIfLayerTextureIsValid(layer: layer, size: texSize)
             
             for area in layer.tileAreas {
                 if let tile = core.project.getTileOfTileSet(area.tileSetId, area.tileId) {
-                    if tile.hasChanged() || area.hasChanged {
-                        let rect = area.area
-                        for h in rect.y..<(rect.y + rect.w) {
-                            for w in rect.x..<(rect.x + rect.z) {
-                                //ids.append(SIMD2<Int>(w, h))
+                    let rect = area.area
+                    for h in rect.y..<(rect.y + rect.w) {
+                        for w in rect.x..<(rect.x + rect.z) {
+                            //ids.append(SIMD2<Int>(w, h))
+                            
+                            let tileContext = TileContext()
+                            tileContext.tileInstance = layer.tileInstances[SIMD2<Int>(w,h)]
+                            tileContext.tileId = SIMD2<Float>(Float(w),Float(h))
+
+                            // Calculate tileRect
+                            let x : Float
+                            let y : Float
+                            
+                            if gridType == .rectFront {
+                                x = Float(abs(dims.1.x - w)) * tileSize
+                                y = Float(abs(dims.1.y - h)) * tileSize
+                            } else {
+                                let offX = Float(tileContext.tileId.x)
+                                let offY = Float(tileContext.tileId.y)
                                 
-                                let tileContext = TileContext()
+                                let isoP = toIso(float2(offX, offY))
+                                x = abs(Float(dims.1.x) - isoP.x)
+                                y = abs(Float(dims.1.y) - isoP.y)
+                            }
+                            
+                            let tileRect = TileRect(Int(x.rounded()), Int(y.rounded()), Int(tileSize), Int(tileSize))
+                            
+                            if tile.hasChanged() || area.hasChanged || tileContext.tileInstance?.tileData == nil {
+
                                 tileContext.layer = layer
                                 tileContext.pixelSize = core.project.getPixelSize()
                                 tileContext.antiAliasing = core.project.getAntiAliasing()
                                 tileContext.tile = copyTile(tile)
-                                tileContext.tileInstance = layer.tileInstances[SIMD2<Int>(w,h)]
                                 tileContext.tileArea = area
                                 
                                 tileContext.areaOffset = float2(Float(w - rect.x), Float(h - rect.y))
                                 tileContext.areaSize = float2(Float(area.area.z), Float(area.area.w))
 
-                                tileContext.tileId = SIMD2<Float>(Float(w),Float(h))
-
-                                let x : Float
-                                let y : Float
-                                
-                                if gridType == .rectFront {
-                                    x = Float(abs(dims.1.x - w)) * tileSize
-                                    y = Float(abs(dims.1.y - h)) * tileSize
-                                } else {
-                                    let offX = Float(tileContext.tileId.x)
-                                    let offY = Float(tileContext.tileId.y)
-                                    
-                                    let isoP = toIso(float2(offX, offY))
-                                    x = abs(Float(dims.1.x) - isoP.x)
-                                    y = abs(Float(dims.1.y) - isoP.y)
-                                }
-                                
-                                let rect = TileRect(Int(x.rounded()), Int(y.rounded()), Int(tileSize), Int(tileSize))
                                 //renderTile(tileContext, rect)
-                                tileJobs.append(TileJob(tileContext, rect))
+                                tileJobs.append(TileJob(tileContext, tileRect))
+                            } else {
+                                if let data = tileContext.tileInstance?.tileData {
+                                    // TileInstance is rendered, add it to the scheduler
+                                    drawJobAddTileInstanceData(layer: layer, tileId: SIMD2<Int>(w,h), tileRect: tileRect, data: data)
+                                }
                             }
                         }
                     }
@@ -197,12 +215,14 @@ class Renderer
             if let screen = core.project.getCurrentScreen() {
                 for layer in screen.layers {
                     collectJobsForLayer(layer)
+                    renderedLayers.append(layer)
                 }
             }
         } else
         if let layer = core.project.currentLayer {
             collectJobsForLayer(layer)
-        }        
+            renderedLayers.append(layer)
+        }
             
         screenDim = dims.1
         
@@ -258,7 +278,7 @@ class Renderer
         dispatchGroup.wait()
     }
     
-    /// MARK: Render Tile
+    /// MARK: Render Rectangular Tile
     func renderTile()
     {
         var inProgressArray : Array<SIMD4<Float>>? = nil
@@ -336,6 +356,7 @@ class Renderer
             }
             
             updateTexture(texArray)
+            tileJob.tileContext.tileInstance?.tileData = texArray
         }
         
         coresActive -= 1
@@ -360,105 +381,26 @@ class Renderer
     /// MARK: Render IsoCube
     func renderIsoCube()
     {
-        var inProgressArray : Array<SIMD4<Float>>? = nil
+        //var inProgressArray : Array<SIMD4<Float>>? = nil
         let isoCubeRenderer = IsoCubeRenderer()
 
         while let tileJob = getNextTile() {
             
-            guard let texture = tileJob.tileContext.layer.texture else {
+            guard let _ = tileJob.tileContext.layer.texture else {
                 return
             }
-                        
-            func updateTexture(_ a: Array<SIMD4<Float>>)
-            {
-                var array = a
-
-                semaphore.wait()
-                
-                let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
-                                
-                var texArray = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(tileRect.width * tileRect.height))
-
-                texArray.withUnsafeMutableBytes {
-                    texture.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(tileRect.width)), from: region, mipmapLevel: 0)
-                }
-                
-                for h in 0..<tileRect.height {
-                    for w in 0..<tileRect.width {
-                        let existing = texArray[h * tileRect.width + w]
-                        let replacing = array[h * tileRect.width + w]
-                        
-                        if replacing.w < existing.w {
-                            array[h * tileRect.width + w] = simd_mix(replacing, existing, float4(repeating: existing.w))
-                        } else {
-                            array[h * tileRect.width + w] = simd_mix(existing, replacing, float4(repeating: replacing.w))
-                        }
-                    }
-                }
-                
-                array.withUnsafeMutableBytes { texArrayPtr in
-                    texture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
-                }
-                
-                DispatchQueue.main.async {
-                    self.core.updatePreviewOnce()
-                }
-                
-                semaphore.signal()
-            }
             
-            //let tileContext = tileJob.tileContext
             let tileRect = tileJob.tileRect
             
             var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
-            if inProgressArray == nil {
-                inProgressArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0)/*ScreenView.selectionColor*/, count: tileRect.size)
-            }
-            
-            updateTexture(inProgressArray!)
-            
-            //let tile = tileContext.tile!
                             
             isoCubeRenderer.render(self, tileJob, &texArray)
-            /*
-            for h in tileRect.y..<tileRect.bottom {
-
-                for w in tileRect.x..<tileRect.right {
-                    
-                    if stopRunning {
-                        break
-                    }
-                    
-                    let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
-                    let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
-
-                    let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
-                    //pixelContext.pUV = tileContext.getPixelUV(pixelContext.uv)
-                    
-                    if tile.nodes.count > 0 {
-                        let noded = tile.nodes[0]
-                        let offset = noded.readFloat2FromInstanceAreaIfExists(tileContext.tileArea, noded, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
-                        pixelContext.uv -= offset
-                        pixelContext.areaUV -= offset
-                    }
-                    
-                    var color = float4(0, 0, 0, 0)
-                    
-                    var node = tile.getNextInChain(tile.nodes[0], .Shape)
-                    while node !== nil {
-                        color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
-                        node = tile.getNextInChain(node!, .Shape)
-                    }
-
-                    texArray[(h - tileRect.y) * tileRect.width + w - tileRect.x] = color.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
-                }
-            }*/
             
             if stopRunning {
                 break
             }
             
-            updateTexture(texArray)
+            drawJobAddTileInstanceData(layer: tileJob.tileContext.layer, tileId: SIMD2<Int>(tileJob.tileContext.tileId), tileRect: tileJob.tileRect, data: texArray)
         }
         
         coresActive -= 1
@@ -470,6 +412,8 @@ class Renderer
             isRunning = false
             print(totalTime)
             
+            drawJobPurge()
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
                 self.core.updatePreviewOnce()
             }
@@ -478,6 +422,81 @@ class Renderer
         }
         
         dispatchGroup.leave()
+    }
+    
+    /// Add a rendered tile instance to the draw scheduler
+    func drawJobAddTileInstanceData(layer: Layer, tileId: SIMD2<Int>, tileRect: TileRect, data: [float4])
+    {
+        let gridType = core.project.getCurrentScreen()?.gridType
+
+        if gridType == .rectFront {
+            var d = data
+            let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
+                
+            d.withUnsafeMutableBytes { texArrayPtr in
+                    layer.texture!.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
+            }
+        } else
+        if gridType == .rectIso {
+            let drawJob = DrawJob(layer: layer, tileId: tileId, tileRect: tileRect, data: data)
+            layer.drawJobs.append(drawJob)
+        }
+    }
+    
+    /// Everything has been rendered, draw depending on the grid type
+    func drawJobPurge()
+    {
+        let gridType = core.project.getCurrentScreen()?.gridType
+        if gridType == .rectIso {
+            
+            semaphore.wait()
+
+            for layer in renderedLayers {
+                
+                let sortedJobs = layer.drawJobs.sorted {
+                    $0.tileId.y < $1.tileId.y || $0.tileId.x < $1.tileId.x
+                }
+                                
+                for job in sortedJobs {
+
+                    var data = job.data
+                    let tileRect = job.tileRect
+                    
+                    let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
+                                    
+                    var texArray = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(tileRect.width * tileRect.height))
+
+                    texArray.withUnsafeMutableBytes {
+                        layer.texture!.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(tileRect.width)), from: region, mipmapLevel: 0)
+                    }
+                    
+                    for h in 0..<tileRect.height {
+                        for w in 0..<tileRect.width {
+                            let existing = texArray[h * tileRect.width + w]
+                            let replacing = data[h * tileRect.width + w]
+                            
+                            if replacing.w < existing.w {
+                                data[h * tileRect.width + w] = simd_mix(replacing, existing, float4(repeating: existing.w))
+                            } else {
+                                data[h * tileRect.width + w] = simd_mix(existing, replacing, float4(repeating: replacing.w))
+                            }
+                        }
+                    }
+                    
+                    data.withUnsafeMutableBytes { texArrayPtr in
+                        layer.texture!.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
+                    }
+                }
+                
+                layer.drawJobs = []
+            }
+            
+            DispatchQueue.main.async {
+                self.core.updatePreviewOnce()
+            }
+            
+            semaphore.signal()
+        }
     }
     
     /// Copiea a tile. Each thread during rendering gets a copy of the original tile to prevent race conditions
@@ -596,7 +615,7 @@ class Renderer
     }
     
     /// Checks if the texture is of the given size and if not reallocate, returns true if the texture has been reallocated
-    @discardableResult func checkIfLayerTextureIsValid(layer: Layer, size: SIMD2<Int>, forceTextureClear: Bool = false) -> Bool
+    @discardableResult func checkIfLayerTextureIsValid(layer: Layer, size: SIMD2<Int>) -> Bool
     {
         if size.x == 0 || size.y == 0 {
             return false
@@ -621,13 +640,11 @@ class Renderer
             layer.texture = allocateTexture(core.device, width: size.x, height: size.y)
             
             clear()
-            core.project.setHasChanged(true)
+            //core.project.setHasChanged(true)
             return true
         }
         
-        if forceTextureClear {
-            clear()
-        }
+        clear()
         
         return false
     }

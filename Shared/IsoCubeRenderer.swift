@@ -105,12 +105,13 @@ class IsoCubeRenderer
                             let hp = camera.0 + t * camera.1
                             let normal = calcNormal(position: hp)
 
-                            /*
+                            
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
-                            total.w += 1*/
+                            total.w += 1
 
+                            /*
                             let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
                             let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
 
@@ -154,7 +155,7 @@ class IsoCubeRenderer
                                 
                                 total += color
                             }
-    
+                            */
                         }
                     }
                 }

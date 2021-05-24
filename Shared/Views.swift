@@ -107,7 +107,7 @@ struct ProjectView: View {
             }
             
             
-            
+            /*
             TextField("Debug1", text: $debugText1, onEditingChanged: { (changed) in
                 document.core.project.debug1 = Float(debugText1)!
                 document.core.renderer.render()
@@ -116,7 +116,7 @@ struct ProjectView: View {
             TextField("Debug2", text: $debugText2, onEditingChanged: { (changed) in
                 document.core.project.debug2 = Float(debugText2)!
                 document.core.renderer.render()
-            })
+            })*/
             
             //.listStyle(InsetGroupedListStyle()) // ENABLE_IOS
             

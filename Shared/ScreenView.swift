@@ -727,7 +727,7 @@ class ScreenView
                 core.project.selectedRect = nil
                 core.project.setHasChanged(true)
                 layer.selectedAreas = []
-                core.renderer.render(forceTextureClear: true)
+                core.renderer.render()
                 core.currentLayerUndo?.end()
             }
         }
@@ -956,7 +956,7 @@ class ScreenView
                 
                 if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl {
                     core.project.setHasChanged(true)
-                    core.renderer.render(forceTextureClear: true)
+                    core.renderer.render()
                 } else {
                     core.renderer.render()
                 }
