@@ -136,7 +136,9 @@ class Renderer
     
     func render()
     {
-        stop()
+        if stop() {
+            return
+        }
                 
         let gridType = core.project.getCurrentScreen()?.gridType
         
@@ -272,10 +274,15 @@ class Renderer
         return tileJob
     }
     
-    func stop()
-    {
-        stopRunning = true
-        dispatchGroup.wait()
+    /// Sends the signal to stop rendering and returns the rendering state
+    func stop() -> Bool {
+        let busy = isRunning
+
+        if busy {
+            stopRunning = true
+        }
+        
+        return busy
     }
     
     /// MARK: Render Rectangular Tile
@@ -320,6 +327,10 @@ class Renderer
                             
             for h in tileRect.y..<tileRect.bottom {
 
+                if stopRunning {
+                    break
+                }
+                
                 for w in tileRect.x..<tileRect.right {
                     
                     if stopRunning {
@@ -360,19 +371,29 @@ class Renderer
         }
         
         coresActive -= 1
-        if coresActive == 0 && stopRunning == false {
+        if coresActive == 0  {
             
-            let myTime = Double(Date().timeIntervalSince1970) - startTime
-            totalTime += myTime
-            
-            isRunning = false
-            print(totalTime)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
-                self.core.updatePreviewOnce()
+            if stopRunning == false {
+                
+                drawJobPurge()
+
+                let myTime = Double(Date().timeIntervalSince1970) - startTime
+                totalTime += myTime
+                
+                print(totalTime)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
+                    self.core.updatePreviewOnce()
+                }
+                
+                core.project.setHasChanged(false)
+            } else {
+                DispatchQueue.main.async {
+                    self.render()
+                }
             }
             
-            core.project.setHasChanged(false)
+            isRunning = false
         }
         
         dispatchGroup.leave()
@@ -404,21 +425,29 @@ class Renderer
         }
         
         coresActive -= 1
-        if coresActive == 0 && stopRunning == false {
+        if coresActive == 0  {
             
-            let myTime = Double(Date().timeIntervalSince1970) - startTime
-            totalTime += myTime
-            
-            isRunning = false
-            print(totalTime)
-            
-            drawJobPurge()
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
-                self.core.updatePreviewOnce()
+            if stopRunning == false {
+                
+                drawJobPurge()
+                
+                let myTime = Double(Date().timeIntervalSince1970) - startTime
+                totalTime += myTime
+                
+                print(totalTime)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 / 60.0) {
+                    self.core.updatePreviewOnce()
+                }
+                
+                core.project.setHasChanged(false)
+            } else {
+                DispatchQueue.main.async {
+                    self.render()
+                }
             }
             
-            core.project.setHasChanged(false)
+            isRunning = false
         }
         
         dispatchGroup.leave()

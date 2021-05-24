@@ -314,6 +314,10 @@ class Core
                         while node !== nil {
                             color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
                             node = tile.getNextInChain(node!, .Shape)
+                            
+                            if stopRunning {
+                                break
+                            }
                         }
                     } else {
                         color = node.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
