@@ -233,7 +233,7 @@ class Core
     /// Renders the tile previews in a separate thread
     func renderTilePreview(_ tile: Tile, singleShot: Bool = true)
     {
-        //print("render update for tile", tile.name)
+        print("render update for tile", tile.name)
         
         let tileSize = 80
         

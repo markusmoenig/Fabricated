@@ -136,7 +136,8 @@ class Renderer
     
     func render()
     {
-        print("isRunning", isRunning)
+        print("render", "isRunning?", isRunning)
+        
         if stop() {
             return
         }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MarkdownUI
 
 /// ProjectView on the left
 struct ProjectView: View {
@@ -465,9 +466,20 @@ struct NodeSettingsView: View {
 
     @State var currentNode                  : TileNode? = nil
     
+    /*
+    @State var helpText                     : Document = Document(    #"""
+        This is a local image:
+
+        ![Dog](ref.jpeg)
+        """#)*/
+    
     var body: some View {
         VStack {
             if let currentNode = currentNode {
+                
+                //Markdown(helpText)
+                //.markdownBaseURL(Bundle.main.resourceURL)
+                
                 List() {
                     ForEach(currentNode.optionGroups, id: \.id) { group in
                         Section(header:
@@ -476,24 +488,29 @@ struct NodeSettingsView: View {
                                         Text(group.name)
                                     } ) {
                             ForEach(group.options, id: \.id) { option in
-                                if self.testExclusion(currentNode, option) == false {
+                                //if self.testExclusion(currentNode, option) == false {
                                     if option.type == .Int {
                                         ParamIntView(document.core, option)
+                                            .disabled(self.testExclusion(currentNode, option))
                                     } else
                                     if option.type == .Float {
                                         ParamFloatView(document.core, option)
+                                            .disabled(self.testExclusion(currentNode, option))
                                     } else
                                     if option.type == .Switch {
                                         ParamSwitchView(document.core, option)
+                                            .disabled(self.testExclusion(currentNode, option))
                                     } else
                                     if option.type == .Color {
                                         ParamColorView(document.core, option)
+                                            .disabled(self.testExclusion(currentNode, option))
                                     } else
                                     if option.type == .Menu {
                                         ParamMenuView(document.core, option)
+                                            .disabled(self.testExclusion(currentNode, option))
                                     }
                                 }
-                            }
+                            //}
                         }
                     }
                 }
@@ -698,8 +715,9 @@ struct ParamColorView: View {
     
     var body: some View {
         
-        VStack(alignment: .leading) {
+        HStack(alignment: .center) {
             Text(option.name)
+            Spacer()
             ColorPicker("", selection: $colorValue, supportsOpacity: true)
                 .onChange(of: colorValue) { color in
                     

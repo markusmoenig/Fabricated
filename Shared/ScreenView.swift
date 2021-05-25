@@ -184,7 +184,7 @@ class ScreenView
             }
         }
         
-        let rectBorderSize : Float = 3 * graphZoom
+        let rectBorderSize : Float = 3// * graphZoom
         
         // Selected rectangle
         if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
