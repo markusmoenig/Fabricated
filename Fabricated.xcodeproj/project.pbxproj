@@ -22,6 +22,9 @@
 		2B6B6D9F2655F52D0069191A /* IsoCubeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */; };
 		2B6B6DA02655F52D0069191A /* IsoCubeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */; };
 		2B6F846E265CC38600E3FFC7 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F846D265CC38600E3FFC7 /* MarkdownUI */; };
+		2B6F8474265CC8BF00E3FFC7 /* Surge in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8473265CC8BF00E3FFC7 /* Surge */; };
+		2B6F8476265CC8C300E3FFC7 /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8475265CC8C300E3FFC7 /* SwiftNoise */; };
+		2B6F8478265CC8C700E3FFC7 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8477265CC8C700E3FFC7 /* MarkdownUI */; };
 		2B70505C262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
 		2B70505D262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
 		2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
@@ -107,6 +110,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B6F8478265CC8C700E3FFC7 /* MarkdownUI in Frameworks */,
+				2B6F8474265CC8BF00E3FFC7 /* Surge in Frameworks */,
+				2B6F8476265CC8C300E3FFC7 /* SwiftNoise in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +129,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2B6F8472265CC8BF00E3FFC7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		2B7B1931261D4DC50027C905 = {
 			isa = PBXGroup;
 			children = (
@@ -130,6 +143,7 @@
 				2B7B1941261D4DC60027C905 /* iOS */,
 				2B7B1948261D4DC70027C905 /* macOS */,
 				2B7B1940261D4DC60027C905 /* Products */,
+				2B6F8472265CC8BF00E3FFC7 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -234,6 +248,11 @@
 			dependencies = (
 			);
 			name = "Fabricated (iOS)";
+			packageProductDependencies = (
+				2B6F8473265CC8BF00E3FFC7 /* Surge */,
+				2B6F8475265CC8C300E3FFC7 /* SwiftNoise */,
+				2B6F8477265CC8C700E3FFC7 /* MarkdownUI */,
+			);
 			productName = "Fabricated (iOS)";
 			productReference = 2B7B193F261D4DC60027C905 /* Fabricated.app */;
 			productType = "com.apple.product-type.application";
@@ -671,6 +690,21 @@
 			productName = Surge;
 		};
 		2B6F846D265CC38600E3FFC7 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B6F846C265CC38600E3FFC7 /* XCRemoteSwiftPackageReference "MarkdownUI" */;
+			productName = MarkdownUI;
+		};
+		2B6F8473265CC8BF00E3FFC7 /* Surge */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B6244B426492AE800CBDFEA /* XCRemoteSwiftPackageReference "Surge" */;
+			productName = Surge;
+		};
+		2B6F8475265CC8C300E3FFC7 /* SwiftNoise */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B5BDEBA264A921F00F84BA2 /* XCRemoteSwiftPackageReference "SwiftNoise" */;
+			productName = SwiftNoise;
+		};
+		2B6F8477265CC8C700E3FFC7 /* MarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2B6F846C265CC38600E3FFC7 /* XCRemoteSwiftPackageReference "MarkdownUI" */;
 			productName = MarkdownUI;
