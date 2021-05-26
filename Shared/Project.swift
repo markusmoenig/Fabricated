@@ -406,7 +406,10 @@ class Tile              : Codable, Equatable
             return rc.first
         } else {
             // TODO Multiple nodes, use the hash to identify
-            return nil
+            
+            let offset = node.hash * Float(rc.count)
+            
+            return rc[Int(offset)]
         }
     }
     

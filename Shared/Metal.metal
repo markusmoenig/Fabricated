@@ -76,49 +76,60 @@ float dot2( float2 v ) { return dot(v,v); }
 float cross2( float2 a, float2 b ) { return a.x*b.y - a.y*b.x; }
 
 // signed distance to a quadratic bezier, https://www.shadertoy.com/view/MlKcDD
-float sdBezier(float2 pos, float2 A, float2 B, float2 C )
+float sdBezier(float2 pos, float2 p0, float2 p1, float2 p2 )
 {
-    float2 a = B - A;
-    float2 b = A - 2.0*B + C;
-    float2 c = a * 2.0;
-    float2 d = A - pos;
-
-    float kk = 1.0/dot(b,b);
+    float2 a = p1 - p0;
+    float2 b = p0 - 2.0*p1 + p2;
+    float2 c = p0 - pos;
+    
+    float kk = 1.0 / dot(b,b);
     float kx = kk * dot(a,b);
-    float ky = kk * (2.0*dot(a,a)+dot(d,b))/3.0;
-    float kz = kk * dot(d,a);
-
-    float res = 0.0;
-    float sgn = 0.0;
-
+    float ky = kk * (2.0*dot(a,a)+dot(c,b)) / 3.0;
+    float kz = kk * dot(c,a);
+    
+    float2 res;
+    
     float p = ky - kx*kx;
     float p3 = p*p*p;
     float q = kx*(2.0*kx*kx - 3.0*ky) + kz;
     float h = q*q + 4.0*p3;
-
-    if( h>=0.0 )
-    {   // 1 root
+    
+    if(h >= 0.0)
+    {
         h = sqrt(h);
-        float2 x = (float2(h,-h)-q)/2.0;
+        float2 x = (float2(h, -h) - q) / 2.0;
         float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0));
-        float t = clamp( uv.x+uv.y-kx, 0.0, 1.0 );
-        float2  q = d+(c+b*t)*t;
-        res = dot2(q);
-        sgn = cross2(c+2.0*b*t,q);
-    }
-    else
-    {   // 3 roots
+        float t = uv.x + uv.y - kx;
+        t = clamp( t, 0.0, 1.0 );
+        
+        // 1 root
+        float2 qos = c + (2.0*a + b*t)*t;
+        res = float2( length(qos),t);
+    } else {
         float z = sqrt(-p);
-        float v = acos(q/(p*z*2.0))/3.0;
+        float v = acos( q/(p*z*2.0) ) / 3.0;
         float m = cos(v);
         float n = sin(v)*1.732050808;
-        float3  t = clamp( float3(m+m,-n-m,n-m)*z-kx, 0.0, 1.0 );
-        float2  qx=d+(c+b*t.x)*t.x; float dx=dot2(qx), sx = cross2(c+2.0*b*t.x,qx);
-        float2  qy=d+(c+b*t.y)*t.y; float dy=dot2(qy), sy = cross2(c+2.0*b*t.y,qy);
-        if( dx<dy ) { res=dx; sgn=sx; } else {res=dy; sgn=sy; }
+        float3 t = float3(m + m, -n - m, n - m) * z - kx;
+        t = clamp( t, 0.0, 1.0 );
+        
+        // 3 roots
+        float2 qos = c + (2.0*a + b*t.x)*t.x;
+        float dis = dot(qos,qos);
+        
+        res = float2(dis,t.x);
+        
+        qos = c + (2.0*a + b*t.y)*t.y;
+        dis = dot(qos,qos);
+        if( dis<res.x ) res = float2(dis,t.y );
+        
+        qos = c + (2.0*a + b*t.z)*t.z;
+        dis = dot(qos,qos);
+        if( dis<res.x ) res = float2(dis,t.z );
+        
+        res.x = sqrt( res.x );
     }
-    
-    return sqrt( res )*sign(sgn);
+    return res.x;
 }
 
 // Disc
@@ -227,7 +238,7 @@ fragment float4 m4mBezierDrawable(RasterizerData in [[stage_in]],
     float2 p2 = data->p2;
     float2 p3 = data->p3;
 
-    float dist = sdBezier(uv, p1, p2, p3);
+    float dist = sdBezier(uv, p1, p2, p3) - data->width;
 
     float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
     col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );

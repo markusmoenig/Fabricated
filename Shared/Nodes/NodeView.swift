@@ -159,7 +159,12 @@ class NodeView
                         
                         if sRect.x != 0.0 && sRect.y != 0.0 {
                             let color = terminalOutColor(node, index, skin, false).0
-                            drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 1, fillColor: color)
+                            //drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 1, fillColor: color)
+                            let p1 = sRect.middle()
+                            let p3 = dRect.middle()
+                            let p2 = (p1 + p3) / 2.0
+                            drawables.drawBezier(p1: p1, p2: p1 + float2(20, 0) * graphZoom, p3: p2, width: 1.5 * graphZoom, fillColor: color)
+                            drawables.drawBezier(p1: p2, p2: p3 - float2(20, 0) * graphZoom, p3: p3, width: 1.5 * graphZoom, fillColor: color)
                         }
                     }
                 }
@@ -302,7 +307,7 @@ class NodeView
                 fillColor = skin.modifierColor
             } else
             if terminalId == 1 {
-                fillColor = skin.shapeColor
+                fillColor = skin.decoratorColor
             }
         }
         
@@ -568,6 +573,9 @@ class NodeView
                 if from.role == .Tile {
                     if to.role == .Shape {
                         return true
+                    } else
+                    if to.role == .Pattern {
+                        return true
                     }
                 } else
                 if from.role == .Shape {
@@ -577,11 +585,19 @@ class NodeView
                     if to.role == .Decorator {
                         return true
                     } else
-                    if to.role == .Shape {
+                    if to.role == .Shape || to.role == .Pattern {
                         return true
                     }
                 } else
                 if from.role == .Decorator {
+                    if to.role == .Modifier {
+                        return true
+                    } else
+                    if to.role == .Decorator {
+                        return true
+                    }
+                } else
+                if from.role == .Pattern {
                     if to.role == .Modifier {
                         return true
                     } else
@@ -629,6 +645,9 @@ class NodeView
             if from.role == .Tile {
                 if to.role == .Shape {
                     addIdToTerminalIndex(0, to.id)
+                } else
+                if to.role == .Pattern {
+                    addIdToTerminalIndex(0, to.id)
                 }
             } else
             if from.role == .Shape {
@@ -638,11 +657,19 @@ class NodeView
                 if to.role == .Decorator {
                     addIdToTerminalIndex(1, to.id)
                 } else
-                if to.role == .Shape {
+                if to.role == .Shape || to.role == .Pattern {
                     addIdToTerminalIndex(2, to.id)
                 }
             } else
             if from.role == .Decorator {
+                if to.role == .Modifier {
+                    addIdToTerminalIndex(0, to.id)
+                } else
+                if to.role == .Decorator {
+                    addIdToTerminalIndex(1, to.id)
+                }
+            } else
+            if from.role == .Pattern {
                 if to.role == .Modifier {
                     addIdToTerminalIndex(0, to.id)
                 } else

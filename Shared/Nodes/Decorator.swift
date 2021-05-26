@@ -14,6 +14,66 @@ class DecoratorTileNode : TileNode {
         return float4(0,0,0,0)
     }
     
+    /// Computes the decorator mask
+    func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext, inside: Bool) -> Float
+    {
+        /*
+        float innerBorderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
+
+        float outerBorderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist, 0.0, 1.0) - clamp(dist - width, 0.0, 1.0);
+        }
+         
+         float fillMask(float dist)
+         {
+             return clamp(-dist, 0.0, 1.0);
+         }
+         
+         func innerBorderMask(_ dist: Float,_ width: Float) -> Float
+         {
+             //dist += 1.0;
+             return simd_clamp(dist + width, 0.0, 1.0) - simd_clamp(dist, 0.0, 1.0)
+         }
+         
+         func fillMask(_ dist: Float) -> Float
+         {
+             return simd_clamp(-dist, 0.0, 1.0)
+         }
+         
+         */
+        
+        let depthRange = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Range", 0)
+        
+        if depthRange == 0 {
+            return 1
+        }
+
+        let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Start", 0)
+        let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth End", 1)
+        
+        let d = pixelCtx.distance
+        
+        if inside {
+            if d <= -maskStart && d >= -(maskStart + maskEnd) {
+                return 1
+            } else {
+                return 0
+            }
+        } else {
+            if d >= maskStart && d <= (maskStart + maskEnd) {
+                return 1
+            } else {
+                return 0
+            }
+        }
+    }
+    
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
         let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
@@ -46,7 +106,7 @@ class DecoratorTileNode : TileNode {
     }
 }
 
-class DecoratorGradient : DecoratorTileNode {
+final class DecoratorGradient : DecoratorTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -136,7 +196,7 @@ class DecoratorGradient : DecoratorTileNode {
     }
 }
 
-class DecoratorColor : DecoratorTileNode {
+final class DecoratorColor : DecoratorTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type

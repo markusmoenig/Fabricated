@@ -357,6 +357,9 @@ class Renderer
                     var color = float4(0, 0, 0, 0)
                     
                     var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                    if let node = node, node.role == .Pattern {
+                        pixelContext.distance = -1
+                    }
                     while node !== nil {
                         color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
                         node = tile.getNextInChain(node!, .Shape)

@@ -6,8 +6,34 @@
 //
 
 import Foundation
+import simd
 
-class DecoratorTilesAndBricks : DecoratorTileNode {
+class PatternTileNode : TileNode {
+    
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        let alpha = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        
+        var color = prevColor
+
+        if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
+            color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+            //color = appyModifier(decoNode, prevColor: color)
+            
+            while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
+                color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                decoNode = nextDecoNode
+            }
+        }
+        
+        color.w *= alpha
+        
+        //print(alpha)
+        return color
+    }
+}
+
+final class DecoratorTilesAndBricks : PatternTileNode {
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -23,14 +49,15 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
         type = "DecoratorTilesAndBricks"
         
         optionGroups.append(TileNodeOptionsGroup("Tiles & Bricks Decorator Options", [
-            TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.682, 0.408, 0.373, 1.000)),
+            //TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.682, 0.408, 0.373, 1.000)),
             TileNodeOption(self, "Size", .Int, range: float2(1, 40), defaultFloat: 20),
             TileNodeOption(self, "Ratio", .Int, range: float2(1, 20), defaultFloat: 3),
             TileNodeOption(self, "Bevel", .Float, range: float2(0, 1), defaultFloat: 0.2),
             TileNodeOption(self, "Gap", .Float, range: float2(0, 1), defaultFloat: 0.1),
-            TileNodeOption(self, "Round", .Float, range: float2(0, 1), defaultFloat: 0.1)
+            TileNodeOption(self, "Round", .Float, range: float2(0, 1), defaultFloat: 0.1),
+            TileNodeOption(self, "Missing", .Float, range: float2(0, 1), defaultFloat: 0.0),
+            TileNodeOption(self, "Brick", .Switch, defaultFloat: 1)
         ]))
-        optionGroups.append(createDefaultDecoratorOptionsGroup())
     }
     
     required init(from decoder: Decoder) throws
@@ -50,15 +77,35 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
         try super.encode(to: superdecoder)
     }
     
-    override func renderDecorator(pixelCtx: TilePixelContext, tileCtx: TileContext) -> float4
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
-        let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
+        func missingHash(_ p: float2) -> Float { simd_fract(sin(simd_dot(p, float2(27.619, 57.583))) * 43758.5453) }
+
+        func hash21(_ p: float2) -> Float {
+            var p3  = fract(float3(p.x, p.y, p.x) * 0.1031)
+            p3 += simd_dot(p3, float3(p3.y, p3.z, p3.x) + 33.33)
+            return simd_fract((p3.x + p3.y) * p3.z)
+        }
+        
+        //let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
         var uv = pixelCtx.uv//transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: false, centered: false, areaAdjust: false)
         uv += tileCtx.tileId
+        
+        var wobble = float2(0,0)
+        if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+            let backup = pixelCtx.uv
+            wobble.x = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv += 7.23
+            wobble.y = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv = backup
+            
+            uv += wobble * 0.08
+        }
 
         let CELL : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Size"))
         let RATIO : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Ratio"))
-    
+        let BRICK : Float = round(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Brick"))
+
         var U = uv
 
         let BEVEL_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Bevel")
@@ -66,11 +113,16 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
         let GAP_X = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Gap")
         let GAP = float2(GAP_X, GAP_X)
         let ROUND = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Round")
+        let MISSING = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Missing")
 
         let W = float2(RATIO,1)
         U *= CELL / W
 
-        U.x += 0.5 * fmod(floor(U.y), 2.0)
+        if BRICK == 1.0 {
+            U.x += 0.5 * fmod(floor(U.y), 2.0)
+        }
+        
+        hash = hash21(floor(U))
 
         let S = W * (fract(U) - 1.0 / 2.0)
     
@@ -80,8 +132,11 @@ class DecoratorTilesAndBricks : DecoratorTileNode {
         if A.x < ROUND && A.y < ROUND {
             m = (ROUND - length(ROUND - A)) * 2.0 / dot(BEVEL,normalize(ROUND-A))
         }
+        
+        if MISSING > missingHash(floor(U)) {
+            m = 0
+        }
     
-        let alpha = simd_clamp( m, 0.0, 1.0)
-        return float4(color.x, color.y, color.z, alpha)
+        return simd_clamp( m, 0.0, 1.0)
     }
 }

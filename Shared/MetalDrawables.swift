@@ -243,7 +243,7 @@ class MetalDrawables
     }
     
     /// Draws a bezier
-    func drawBezier(p1: float2, p2: float2, p3: float2, borderSize: Float = 2, fillColor: float4 = float4(1,1,1,0), borderColor: float4 = float4(1,1,1,1))
+    func drawBezier(p1: float2, p2: float2, p3: float2, width: Float = 2, borderSize: Float = 0, fillColor: float4 = float4(1,1,1,0), borderColor: float4 = float4(1,1,1,1))
     {
         let sx = p1.x
         let sy = p1.y
@@ -252,20 +252,20 @@ class MetalDrawables
         let ex = p3.x
         let ey = p3.y
         
-        let minX = min(sx, mx, ex)
-        let maxX = max(sx, mx, ex)
-        let minY = min(sy, my, ey)
-        let maxY = max(sy, my, ey)
+        let minX = min(sx, ex)
+        let maxX = max(sx, ex)
+        let minY = min(sy, ey)
+        let maxY = max(sy, ey)
         
-        let areaWidth : Float = maxX - minX + borderSize
-        let areaHeight : Float = maxY - minY + borderSize
+        let areaWidth : Float = maxX - minX + borderSize + width * 2 + 100
+        let areaHeight : Float = maxY - minY + borderSize + width * 2 + 100
                 
-        let middleX : Float = (sx + mx + ex) / 3
-        let middleY : Float = (sy + my + ey) / 3
+        let middleX : Float = (sx + ex) / 2 + 50
+        let middleY : Float = (sy + ey) / 2 + 50
         
         var data = BezierUniform()
         data.size = float2(areaWidth, areaHeight)
-        data.width = 0
+        data.width = width
         data.borderSize = borderSize
         data.fillColor = fillColor
         data.borderColor = borderColor
@@ -273,7 +273,7 @@ class MetalDrawables
         data.p2 = float2(mx - middleX, middleY - my)
         data.p3 = float2(ex - middleX, middleY - ey)
 
-        let rect = MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth + data.borderSize * 2, areaHeight + data.borderSize * 2, scale: 1)
+        let rect = MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: 1)
         let vertexData = createVertexData(rect)
         
         renderEncoder.setVertexBytes(vertexData, length: vertexData.count * MemoryLayout<Float>.stride, index: 0)

@@ -26,6 +26,63 @@ class ShapeTileNode : TileNode {
         }
         return rc
     }
+    
+    /// Renders the chain of Decorators
+    func renderDecorators(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
+    {
+        var color = prevColor
+        
+        func applyModifier(_ node: TileNode, prevColor: float4) -> float4 {
+            var color = prevColor
+            if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
+                let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+
+                let modifierMode = node.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Mode")
+
+                if modifierMode == 0 {
+                    color.x += value
+                    color.y += value
+                    color.z += value
+                } else {
+                    let v = (value + 1) / 2
+                    color.x *= v
+                    color.y *= v
+                    color.z *= v
+                }
+                
+                color.clamp(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+            }
+            return color
+        }
+        
+        if role == .Shape {
+            if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
+                color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                //color = appyModifier(decoNode, prevColor: color)
+                
+                while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
+                    color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
+                    decoNode = nextDecoNode
+                }
+            } else {
+                let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.distance)
+                color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
+            }
+        }
+        
+        return color
+    }
+    
+    /// Modifies the distance (only available for shape nodes)
+    func modifyDistance(pixelCtx: TilePixelContext, tileCtx: TileContext, distance: Float) -> Float {
+        var dist = distance
+        if role == .Shape {
+            if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+                dist -= modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            }
+        }
+        return dist
+    }
 }
 
 final class ShapeDisk : ShapeTileNode {

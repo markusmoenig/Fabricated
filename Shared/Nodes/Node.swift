@@ -177,17 +177,6 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     {
         return 0
     }
-    
-    /// Modifies the distance (only available for shape nodes)
-    func modifyDistance(pixelCtx: TilePixelContext, tileCtx: TileContext, distance: Float) -> Float {
-        var dist = distance
-        if role == .Shape {
-            if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
-                dist -= modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-            }
-        }
-        return dist
-    }
 
     /// Pixelizes the UV coordinate based on the pixelSize
     func getPixelUV(pixelCtx: TilePixelContext, tileCtx: TileContext, uv: float2) -> float2
@@ -240,112 +229,6 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         
         return tUV
     }
-
-    /// Renders the chain of Decorators
-    func renderDecorators(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
-    {
-        var color = prevColor
-        
-        func applyModifier(_ node: TileNode, prevColor: float4) -> float4 {
-            var color = prevColor
-            if let modifierNode = tileCtx.tile.getNextInChain(node, .Modifier) {
-                let value = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
-
-                let modifierMode = node.readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Mode")
-
-                if modifierMode == 0 {
-                    color.x += value
-                    color.y += value
-                    color.z += value
-                } else {
-                    let v = (value + 1) / 2
-                    color.x *= v
-                    color.y *= v
-                    color.z *= v
-                }
-                
-                color.clamp(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
-            }
-            return color
-        }
-        
-        if role == .Shape {
-            if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
-                color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
-                //color = appyModifier(decoNode, prevColor: color)
-                
-                while let nextDecoNode = tileCtx.tile.getNextInChain(decoNode, .Decorator) {
-                    color = nextDecoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
-                    decoNode = nextDecoNode
-                }                
-            } else {
-                let step = simd_smoothstep(0, -tileCtx.antiAliasing / pixelCtx.width, pixelCtx.distance)
-                color = simd_mix(prevColor, float4(1,1,1,1), float4(step, step, step, step))
-            }
-        }
-        
-        return color
-    }
-    
-    /// Computes the decorator mask
-    func computeDecoratorMask(pixelCtx: TilePixelContext, tileCtx: TileContext, inside: Bool) -> Float
-    {
-        /*
-        float innerBorderMask(float dist, float width)
-        {
-            //dist += 1.0;
-            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
-        }
-
-        float outerBorderMask(float dist, float width)
-        {
-            //dist += 1.0;
-            return clamp(dist, 0.0, 1.0) - clamp(dist - width, 0.0, 1.0);
-        }
-         
-         float fillMask(float dist)
-         {
-             return clamp(-dist, 0.0, 1.0);
-         }
-         
-         func innerBorderMask(_ dist: Float,_ width: Float) -> Float
-         {
-             //dist += 1.0;
-             return simd_clamp(dist + width, 0.0, 1.0) - simd_clamp(dist, 0.0, 1.0)
-         }
-         
-         func fillMask(_ dist: Float) -> Float
-         {
-             return simd_clamp(-dist, 0.0, 1.0)
-         }
-         
-         */
-        
-        let depthRange = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Range", 0)
-        
-        if depthRange == 0 {
-            return 1
-        }
-
-        let maskStart = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth Start", 0)
-        let maskEnd = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Depth End", 1)
-        
-        let d = pixelCtx.distance
-        
-        if inside {
-            if d <= -maskStart && d >= -(maskStart + maskEnd) {
-                return 1
-            } else {
-                return 0
-            }
-        } else {
-            if d >= maskStart && d <= (maskStart + maskEnd) {
-                return 1
-            } else {
-                return 0
-            }
-        }
-    }
     
     /// Gets  the next optional id in the chain
     func getChainedNodeIdsForRole(_ connectedRole: TileNodeRole) -> [UUID]
@@ -374,7 +257,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
                 }
             }
         } else
-        if role == .Decorator {
+        if role == .Decorator || role == .Pattern {
             if connectedRole == .Modifier {
                 if let id = terminalsOut[0] {
                     return id

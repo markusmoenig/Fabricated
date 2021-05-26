@@ -301,7 +301,7 @@ class Core
                     let pixelContext = TilePixelContext(areaOffset: float2(Float(w), Float(h)), areaSize: float2(width, height), tileRect: tileRect)
                     
                     // Otherwise Decorator node previews are empty as no valid distance
-                    if node.role == .Decorator {
+                    if node.role == .Decorator || node.role == .Pattern {
                         pixelContext.distance = 0
                     }
                     
@@ -311,7 +311,15 @@ class Core
                     
                     if node.role == .Tile {
                         var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                        if let node = node, node.role == .Pattern {
+                            pixelContext.distance = -1
+                        }
                         while node !== nil {
+                            
+                            if node?.role == .Decorator {
+                                pixelContext.distance = -1
+                            }
+                            
                             color = node!.render(pixelCtx: pixelContext, tileCtx: tileContext, prevColor: color)
                             node = tile.getNextInChain(node!, .Shape)
                             
