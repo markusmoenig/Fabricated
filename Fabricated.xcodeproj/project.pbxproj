@@ -21,6 +21,8 @@
 		2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B23D6263FF0EE005D7F93 /* Undo.swift */; };
 		2B6B6D9F2655F52D0069191A /* IsoCubeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */; };
 		2B6B6DA02655F52D0069191A /* IsoCubeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */; };
+		2B6D6C45265DF06700D1FA7A /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D6C44265DF06700D1FA7A /* Patterns.swift */; };
+		2B6D6C46265DF06700D1FA7A /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D6C44265DF06700D1FA7A /* Patterns.swift */; };
 		2B6F846E265CC38600E3FFC7 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F846D265CC38600E3FFC7 /* MarkdownUI */; };
 		2B6F8474265CC8BF00E3FFC7 /* Surge in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8473265CC8BF00E3FFC7 /* Surge */; };
 		2B6F8476265CC8C300E3FFC7 /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8475265CC8C300E3FFC7 /* SwiftNoise */; };
@@ -76,6 +78,7 @@
 		2B1A6FCC262189A7005F65E6 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
 		2B6B23D6263FF0EE005D7F93 /* Undo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Undo.swift; sourceTree = "<group>"; };
 		2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoCubeRenderer.swift; sourceTree = "<group>"; };
+		2B6D6C44265DF06700D1FA7A /* Patterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
 		2B70505B262A95DA00E7E4A1 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		2B7B1937261D4DC50027C905 /* FabricatedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedApp.swift; sourceTree = "<group>"; };
 		2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedDocument.swift; sourceTree = "<group>"; };
@@ -226,6 +229,7 @@
 				2B1A6FC326214078005F65E6 /* Shapes.swift */,
 				2B70505B262A95DA00E7E4A1 /* Modifier.swift */,
 				2B81CBE3262D0AC0001EFB61 /* Decorator.swift */,
+				2B6D6C44265DF06700D1FA7A /* Patterns.swift */,
 				2B1A6FCC262189A7005F65E6 /* NodeView.swift */,
 				2B1A6FBE26213F60005F65E6 /* NodeArray.swift */,
 			);
@@ -352,6 +356,7 @@
 				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0755261EA0050097212F /* Classes.swift in Sources */,
+				2B6D6C45265DF06700D1FA7A /* Patterns.swift in Sources */,
 				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1978261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */,
@@ -383,6 +388,7 @@
 				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */,
 				2B7D0756261EA0050097212F /* Classes.swift in Sources */,
+				2B6D6C46265DF06700D1FA7A /* Patterns.swift in Sources */,
 				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,
 				2B7B1979261D851F0027C905 /* Metal.metal in Sources */,
 				2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */,

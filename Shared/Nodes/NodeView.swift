@@ -27,6 +27,7 @@ class NodeSkin {
     let shapeColor              = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
     let modifierColor           = SIMD4<Float>(0.631, 0.278, 0.506, 1.000)
     let decoratorColor          = SIMD4<Float>(0.765, 0.600, 0.365, 1.000)
+    let patternColor            = SIMD4<Float>(0.275, 0.439, 0.353, 1.000)
 
     let renderColor             = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
     let worldColor              = SIMD4<Float>(0.396, 0.749, 0.282, 1.000)
@@ -150,14 +151,16 @@ class NodeView
         
         // Draw Connections
         for node in nodes {
-            for (index, nodeUUID) in node.terminalsOut {
-                if let connTo = tile.getNodeById(nodeUUID) {
-                    let dRect = getTerminal(connTo, id: -1)
-                    let sRect = getTerminal(node, id: index)
-                    
-                    if sRect.x != 0.0 && sRect.y != 0.0 {
-                        let color = terminalOutColor(node, index, skin, false).0
-                        drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 1, fillColor: color)
+            for (index, nodeUUIDs) in node.terminalsOut {
+                for nodeUUID in nodeUUIDs {
+                    if let connTo = tile.getNodeById(nodeUUID) {
+                        let dRect = getTerminal(connTo, id: -1)
+                        let sRect = getTerminal(node, id: index)
+                        
+                        if sRect.x != 0.0 && sRect.y != 0.0 {
+                            let color = terminalOutColor(node, index, skin, false).0
+                            drawables.drawLine(startPos: sRect.middle(), endPos: dRect.middle(), radius: 1, fillColor: color)
+                        }
                     }
                 }
             }
@@ -257,6 +260,9 @@ class NodeView
         } else
         if node.role == .Decorator {
             color = skin.decoratorColor
+        } else
+        if node.role == .Pattern {
+            color = skin.patternColor
         }
         return color
     }
@@ -289,6 +295,14 @@ class NodeView
             } else
             if terminalId == 1 {
                 fillColor = skin.decoratorColor
+            }
+        } else
+        if node.role == .Pattern {
+            if terminalId == 0 {
+                fillColor = skin.modifierColor
+            } else
+            if terminalId == 1 {
+                fillColor = skin.shapeColor
             }
         }
         
@@ -343,7 +357,7 @@ class NodeView
         /// Get the colors for a terminal
         func terminalInColor() -> (float4, float4)
         {
-            let fillColor = getNodeColor(node, skin)
+            let fillColor = node.role != .Pattern ? getNodeColor(node, skin) : skin.shapeColor
             var borderColor = skin.normalBorderColor
             
             if selected {
@@ -392,6 +406,12 @@ class NodeView
             drawOutTerminal(0, y)
             y += 24 * graphZoom
             drawOutTerminal(1, y)
+        } else
+        if node.role == .Pattern {
+            drawInTerminal()
+            drawOutTerminal(0, y)
+            y += 24 * graphZoom
+            drawOutTerminal(1, y)
         }
     }
     
@@ -429,10 +449,21 @@ class NodeView
         let nodes = getNodes(tile)
         for n in nodes {
             if n !== node {
-                for (index, nodeUUID) in n.terminalsOut {
-                    if nodeUUID == node.id {
-                        n.terminalsOut[index] = nil
-                        return true
+                for (index, nodeUUIDs) in n.terminalsOut {
+                    // TODO
+                    for nodeUUID in nodeUUIDs {
+                        if nodeUUID == node.id {
+                            var t = n.terminalsOut[index]!
+                            if t.count == 1 {
+                                n.terminalsOut[index] = []
+                            } else {
+                                if let i = t.firstIndex(of: node.id) {
+                                    t.remove(at: i)
+                                    n.terminalsOut[index] = t
+                                }
+                            }
+                            return true
+                        }
                     }
                 }
             }
@@ -584,32 +615,42 @@ class NodeView
             
             core.startTileUndo(getCurrentTile()!, "Node Connect")
             
+            /// Adds the given id to the given terminalsOut index
+            func addIdToTerminalIndex(_ index: Int,_ id: UUID)
+            {
+                if var t = from.terminalsOut[index] {
+                    t.append(id)
+                    from.terminalsOut[index] = t
+                } else {
+                    from.terminalsOut[index] = [id]
+                }
+            }
+            
             if from.role == .Tile {
                 if to.role == .Shape {
-                    from.terminalsOut[0] = to.id
+                    addIdToTerminalIndex(0, to.id)
                 }
             } else
             if from.role == .Shape {
                 if to.role == .Modifier {
-                    from.terminalsOut[0] = to.id
+                    addIdToTerminalIndex(0, to.id)
                 } else
                 if to.role == .Decorator {
-                    from.terminalsOut[1] = to.id
+                    addIdToTerminalIndex(1, to.id)
                 } else
                 if to.role == .Shape {
-                    from.terminalsOut[2] = to.id
+                    addIdToTerminalIndex(2, to.id)
                 }
             } else
             if from.role == .Decorator {
                 if to.role == .Modifier {
-                    from.terminalsOut[0] = to.id
+                    addIdToTerminalIndex(0, to.id)
                 } else
                 if to.role == .Decorator {
-                    from.terminalsOut[1] = to.id
+                    addIdToTerminalIndex(1, to.id)
                 }
             }
             
-            print("done")
             core.currentTileUndo?.end()
             
             core.updateTilePreviews()

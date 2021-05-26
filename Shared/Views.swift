@@ -366,13 +366,19 @@ struct NodeToolbar: View {
                             document.core.nodeView.update()
                         }
                     })
+                }
+                label: {
+                    Text("Decorators")
+                        .foregroundColor(Color(.sRGB, red: 0.765, green: 0.600, blue: 0.365, opacity: 1))
+                }
+                Menu {
                     Button("Tiles & Bricks", action: {
                         addNodeToTile(DecoratorTilesAndBricks())
                     })
                 }
                 label: {
-                    Text("Decorators")
-                        .foregroundColor(Color(.sRGB, red: 0.765, green: 0.600, blue: 0.365, opacity: 1))
+                    Text("Patterns")
+                        .foregroundColor(Color(.sRGB, red: 0.275, green: 0.439, blue: 0.353, opacity: 1))
                 }
             }
             label: {

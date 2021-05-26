@@ -392,14 +392,22 @@ class Tile              : Codable, Equatable
         return nil
     }
     
-    /// Returns the next node of the given role in the chain
+    /// Returns the next nodes of the given role in the chain
     func getNextInChain(_ node: TileNode,_ role: TileNode.TileNodeRole) -> TileNode?
     {
-        if let id = node.getChainedNodeIdForRole(role) {
-            return getNodeById(id)
+        let ids = node.getChainedNodeIdsForRole(role)
+        var rc : [TileNode] = []
+        for id in ids {
+            if let node = getNodeById(id) {
+                rc.append(node)
+            }
         }
-        
-        return nil
+        if rc.count < 2 {
+            return rc.first
+        } else {
+            // TODO Multiple nodes, use the hash to identify
+            return nil
+        }
     }
     
     /// Returns true if one of the nodes in the tile has been changed

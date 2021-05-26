@@ -79,7 +79,7 @@ class TileNodeOption
 class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
-        case Tile, Shape, Modifier, Decorator
+        case Tile, Shape, Modifier, Decorator, Pattern
     }
     
     enum TileNodeTool {
@@ -94,6 +94,9 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var role                : TileNodeRole = .Tile
     var tool                : TileNodeTool = .None
 
+    /// Set by pattern nodes to identify the id
+    var hash                : Float = 0
+    
     var nodeRect            = MMRect()
     var nodePreviewRect     = MMRect()
 
@@ -103,8 +106,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     var texture             : MTLTexture? = nil
     
     // --- The terminals, nodes can have multiple outputs but only one input
-    var terminalsOut        : [Int: UUID] = [:]
-    var terminalIn          : UUID? = nil
+    var terminalsOut        : [Int: [UUID]] = [:]
+    var terminalIn          : [UUID] = []
 
     // --- For terminal drawing
     var terminalsOutRect    = [MMRect(), MMRect(),MMRect(),MMRect()]
@@ -136,8 +139,8 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
         name = try container.decode(String.self, forKey: .name)
         role = try container.decode(TileNodeRole.self, forKey: .role)
         values = try container.decode([String:Float].self, forKey: .values)
-        terminalsOut = try container.decode([Int:UUID].self, forKey: .terminalsOut)
-        terminalIn = try container.decode(UUID?.self, forKey: .terminalIn)
+        terminalsOut = try container.decode([Int:[UUID]].self, forKey: .terminalsOut)
+        terminalIn = try container.decode([UUID].self, forKey: .terminalIn)
         setup()
     }
     
@@ -345,7 +348,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     }
     
     /// Gets  the next optional id in the chain
-    func getChainedNodeIdForRole(_ connectedRole: TileNodeRole) -> UUID?
+    func getChainedNodeIdsForRole(_ connectedRole: TileNodeRole) -> [UUID]
     {
         if role == .Tile {
             if connectedRole == .Shape {
@@ -383,7 +386,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
                 }
             }
         }
-        return nil
+        return []
     }
     
     /// Creates the shape  options
