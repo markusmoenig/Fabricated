@@ -21,11 +21,11 @@ class IsoCubeRenderer
         func sdBox(_ p: float3) -> Float
         {
             let offset : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Offset")
-            let shapeHeight : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Height") + 0.02
-            let shapeSize : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Size") + 0.02
+            let shapeHeight : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Height")// + 0.02
+            let shapeSize : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Size")// + 0.02
 
-            let size = float3(shapeSize, shapeHeight, 1.06)
-            var offsetBy = offset
+            let size = float3(shapeSize, shapeHeight, 1)
+            let offsetBy = offset
         
             /*
             if offset < 0 {
@@ -38,7 +38,7 @@ class IsoCubeRenderer
             
             //print(offsetBy, shapeSize)
             
-            let moveBy = float3(offsetBy, -(1.02 - shapeHeight), 0)
+            let moveBy = float3(offset,-(1 - shapeHeight),0)
             
             let q : float3 = abs(p - moveBy) - size
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0)
@@ -96,11 +96,12 @@ class IsoCubeRenderer
                     for n in 0..<AA {
 
                         let camOffset = float2(Float(m), Float(n)) / Float(AA) - 0.5
-                        let camera = isoCamera(uv: pixelContext.uv, tileSize: tileSize, origin: float3(8,8,8), lookAt: float3(0,0,0), fov: 15.1, offset: camOffset)
+                        let camera = isoCamera(uv: pixelContext.uv, tileSize: tileSize, origin: float3(1.2,1.2,1.2), lookAt: float3(0,0,0), fov: 15, offset: camOffset)
                         
                         // Raymarch
                         var hit = false
-                        var t : Float = 0.001;
+                        var t : Float = 0.001
+                        let maxDist : Float = 4
 
                         for _ in 0..<70
                         {
@@ -112,10 +113,10 @@ class IsoCubeRenderer
                             if abs(d) < (0.0001*t) {
                                 hit = true
                                 break
-                            } /*else
+                            } else
                             if t > maxDist {
                                 break
-                            }*/
+                            }
                             
                             t += d
                         }
@@ -140,23 +141,20 @@ class IsoCubeRenderer
                             
                             var nodes   : [TileNode] = []
                             var uv      = float2(0,0)
-                            
+                                                        
                             if normal.y > 0.5 {
                                 nodes = tileJob.tileContext.tile.isoNodesTop
-                                uv = (float2(hp.x, hp.z) + 1.0) / 2.0
-                                uv /= 3
+                                uv = (float2(hp.x, hp.z) * 0.5) + 0.5
                                 pixelContext.uv = uv
                             } else
                             if normal.z > 0.5 {
                                 nodes = tileJob.tileContext.tile.isoNodesLeft
-                                uv = (float2(hp.x, hp.y) + 1.0) / 2.0
-                                uv /= 3
+                                uv = (float2(hp.x, hp.y) * 0.5) + 0.5
                                 pixelContext.uv = uv
-                            } else
-                            if normal.x > 0.5 {
+                            } else {
+                            //if normal.x > 0.5 {
                                 nodes = tileJob.tileContext.tile.isoNodesRight
-                                uv = (float2(hp.z, hp.y) + 1.0) / 2.0
-                                uv /= 3
+                                uv = (float2(hp.z, hp.y) * 0.5) + 0.5
                                 pixelContext.uv = uv
                             }
                             
@@ -190,6 +188,8 @@ class IsoCubeRenderer
     {
         let ratio : Float = tileSize.x / tileSize.y
         let pixelSize : float2 = float2(1.0, 1.0) / tileSize
+        
+        let uv1 = uv + float2(pixelSize.x * 0.75, pixelSize.y * 0.10)
 
         let camOrigin = origin
         let camLookAt = lookAt
@@ -207,8 +207,8 @@ class IsoCubeRenderer
         let vertical = v * halfHeight * 2.0
                 
         var outOrigin = camOrigin
-        outOrigin += horizontal * (pixelSize.x * offset.x + uv.x - 0.5)
-        outOrigin += vertical * (pixelSize.y * offset.y + (1.0 - uv.y) - 0.5)
+        outOrigin += horizontal * (pixelSize.x * offset.x + uv1.x - 0.5)
+        outOrigin += vertical * (pixelSize.y * offset.y + (1.0 - uv1.y) - 0.5)
         
         return (outOrigin, simd_normalize(-w))
     }
