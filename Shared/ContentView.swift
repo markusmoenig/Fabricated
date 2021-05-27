@@ -258,8 +258,8 @@ struct ContentView: View {
                 
             })
             {
-                Text("Screen Grid")
                 Image(systemName: "squareshape")
+                Text("FRONT")
             }
             Button(action: {
             
@@ -272,18 +272,18 @@ struct ContentView: View {
                 updateView.toggle()
             })
             {
-                Text("Screen Grid")
-                Image(systemName: "cube")
+                Image(systemName: "squareshape")
+                Text("ISO")
             }
         }
         label: {
             if let currentScreen = document.core.project.getCurrentScreen() {
                 if currentScreen.gridType == .rectFront {
-                    Text("Screen Grid")
                     Image(systemName: "squareshape")
+                    Text("FRONT")
                 } else {
-                    Text("Screen Grid")
-                    Image(systemName: "cube")
+                    Image(systemName: "squareshape")
+                    Text("ISO")
                     //Label("Rect Iso", systemImage: "cube")
                 }
             }

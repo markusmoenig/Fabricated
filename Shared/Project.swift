@@ -177,9 +177,7 @@ class Screen        : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-        if let gridType = try container.decodeIfPresent(GridType.self, forKey: .gridType) {
-            self.gridType = gridType
-        }
+        gridType = try container.decode(GridType.self, forKey: .gridType)
         layers = try container.decode([Layer].self, forKey: .layers)
     }
     
@@ -237,9 +235,7 @@ class Layer             : MMValues, Codable, Equatable
         name = try container.decode(String.self, forKey: .name)
         tileInstances = try container.decode([SIMD2<Int>: TileInstance].self, forKey: .tileInstances)
         values = try container.decode([String:Float].self, forKey: .values)
-        if let areas = try container.decodeIfPresent([TileInstanceArea].self, forKey: .tileAreas) {
-            self.tileAreas = areas
-        }        
+        tileAreas = try container.decode([TileInstanceArea].self, forKey: .tileAreas)
     }
     
     func encode(to encoder: Encoder) throws
@@ -311,10 +307,15 @@ class TileSet      : Codable, Equatable
     }
 }
 
-class Tile              : Codable, Equatable
+class Tile               : Codable, Equatable
 {
     enum TileRole {
         case Fill
+    }
+    
+    /// Which iso cube we use in iso grid mode
+    enum TileIsoType    : Int, Codable {
+        case Cube
     }
     
     var nodes           : [TileNode] = [TiledNode()]
@@ -322,6 +323,9 @@ class Tile              : Codable, Equatable
     var isoNodesTop     : [TileNode] = [TiledNode()]
     var isoNodesLeft    : [TileNode] = [TiledNode()]
     var isoNodesRight   : [TileNode] = [TiledNode()]
+    
+    /// Holds all options for iso rendering modes
+    var isoCubeNode     = IsoCubeNode()
 
     var id              = UUID()
     var name            = ""
@@ -333,6 +337,7 @@ class Tile              : Codable, Equatable
         case isoNodesTop
         case isoNodesLeft
         case isoNodesRight
+        case isoCubeNode
     }
     
     init(_ name: String = "Unnamed")
@@ -347,6 +352,7 @@ class Tile              : Codable, Equatable
         isoNodesTop = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesTop)
         isoNodesLeft = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesLeft)
         isoNodesRight = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesRight)
+        isoCubeNode = try container.decode(IsoCubeNode.self, forKey: .isoCubeNode)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
     }
@@ -360,6 +366,7 @@ class Tile              : Codable, Equatable
         try container.encode(isoNodesTop, forKey: .isoNodesTop)
         try container.encode(isoNodesLeft, forKey: .isoNodesLeft)
         try container.encode(isoNodesRight, forKey: .isoNodesRight)
+        try container.encode(isoCubeNode, forKey: .isoCubeNode)
     }
     
     static func ==(lhs:Tile, rhs:Tile) -> Bool { // Implement Equatable
@@ -516,9 +523,7 @@ class TileInstance : MMValues, Codable, Equatable
         tileId = try container.decode(UUID.self, forKey: .tileId)
         super.init()
         values = try container.decode([String:Float].self, forKey: .values)
-        if let areas = try container.decodeIfPresent([UUID].self, forKey: .tileAreas) {
-            self.tileAreas = areas
-        }
+        tileAreas = try container.decode([UUID].self, forKey: .tileAreas)
     }
     
     func encode(to encoder: Encoder) throws

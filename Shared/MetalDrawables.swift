@@ -257,11 +257,11 @@ class MetalDrawables
         let minY = min(sy, ey)
         let maxY = max(sy, ey)
         
-        let areaWidth : Float = maxX - minX + borderSize + width * 2 + 100
-        let areaHeight : Float = maxY - minY + borderSize + width * 2 + 100
+        let areaWidth : Float = maxX - minX + borderSize + width * 2 + 200
+        let areaHeight : Float = maxY - minY + borderSize + width * 2 + 200
                 
-        let middleX : Float = (sx + ex) / 2 + 50
-        let middleY : Float = (sy + ey) / 2 + 50
+        let middleX : Float = (sx + ex) / 2 + 100
+        let middleY : Float = (sy + ey) / 2 + 100
         
         var data = BezierUniform()
         data.size = float2(areaWidth, areaHeight)

@@ -16,12 +16,31 @@ class IsoCubeRenderer
      
         let tileContext = tileJob.tileContext
         let tileRect = tileJob.tileRect
-        //let tile = tileContext.tile!
+        let tile = tileContext.tile!
         
         func sdBox(_ p: float3) -> Float
         {
-            let size = float3(1.02,1.02,1.06)
-            let q : float3 = abs(p - float3(0,0,0)) - size
+            let offset : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Offset")
+            let shapeHeight : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Height") + 0.02
+            let shapeSize : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Size") + 0.02
+
+            let size = float3(shapeSize, shapeHeight, 1.06)
+            var offsetBy = offset
+        
+            /*
+            if offset < 0 {
+                offsetBy -= shapeSize / 2//(1.02 / 2 - shapeSize / 2)
+            } else {
+                offsetBy += shapeSize / 2//(1.02 / 2 - shapeSize / 2)
+            }*/
+            
+            //offsetBy -= 0.02
+            
+            //print(offsetBy, shapeSize)
+            
+            let moveBy = float3(offsetBy, -(1.02 - shapeHeight), 0)
+            
+            let q : float3 = abs(p - moveBy) - size
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0)
         }
         
@@ -105,13 +124,14 @@ class IsoCubeRenderer
                             let hp = camera.0 + t * camera.1
                             let normal = calcNormal(position: hp)
 
-                            
+                            /*
                             total.x += normal.x
                             total.y += normal.y
                             total.z += normal.z
                             total.w += 1
+                            */
 
-                            /*
+                            
                             let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
                             let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
 
@@ -123,7 +143,9 @@ class IsoCubeRenderer
                             
                             if normal.y > 0.5 {
                                 nodes = tileJob.tileContext.tile.isoNodesTop
-                                //uv = (float2(hp.x, hp.z) + 1.0) / 2.0
+                                uv = (float2(hp.x, hp.z) + 1.0) / 2.0
+                                uv /= 3
+                                pixelContext.uv = uv
                             } else
                             if normal.z > 0.5 {
                                 nodes = tileJob.tileContext.tile.isoNodesLeft
@@ -155,7 +177,6 @@ class IsoCubeRenderer
                                 
                                 total += color
                             }
-                            */
                         }
                     }
                 }

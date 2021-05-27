@@ -278,8 +278,14 @@ class Core
         let height: Float = Float(tileSize)
                                 
         var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
-            
-        for node in tile.nodes {
+        
+        var nodes = tile.nodes
+        
+        if let nodeView = nodeView {
+            nodes = nodeView.getNodes(tile)
+        }
+        
+        for node in nodes {
             
             // Always render the Tile preview, the other nodes only if the tile is currently shown
             if (node.role != .Tile && project.currentTileSet?.openTile !== tile) || stopRunning {

@@ -231,7 +231,7 @@ fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
 fragment float4 m4mBezierDrawable(RasterizerData in [[stage_in]],
                                constant BezierUniform *data [[ buffer(0) ]])
 {
-    float2 uv = in.textureCoordinate * ( data->size + data->borderSize / 2.0);
+    float2 uv = in.textureCoordinate * ( data->size + data->borderSize * 2.0);
     uv -= float2(data->size / 2.0 + data->borderSize / 2.0);
     
     float2 p1 = data->p1;

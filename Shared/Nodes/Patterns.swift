@@ -10,11 +10,14 @@ import simd
 
 class PatternTileNode : TileNode {
     
+    var isMissing = false
+
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
+        isMissing = false
         let alpha = render(pixelCtx: pixelCtx, tileCtx: tileCtx)
         
-        var color = prevColor
+        var color = float4(repeating: 1)
 
         if var decoNode = tileCtx.tile.getNextInChain(self, .Decorator) {
             color = decoNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx, prevColor: color)
@@ -26,9 +29,14 @@ class PatternTileNode : TileNode {
             }
         }
         
-        color.w *= alpha
+        let backgroundColor = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Background")
         
-        //print(alpha)
+        if isMissing {
+            color = float4(repeating: 0)
+        } else {
+            color = simd_mix(backgroundColor, color, float4(repeating: alpha))
+        }
+        
         return color
     }
 }
@@ -49,7 +57,7 @@ final class DecoratorTilesAndBricks : PatternTileNode {
         type = "DecoratorTilesAndBricks"
         
         optionGroups.append(TileNodeOptionsGroup("Tiles & Bricks Decorator Options", [
-            //TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.682, 0.408, 0.373, 1.000)),
+            TileNodeOption(self, "Background", .Color, defaultFloat4: float4(0.0, 0.0, 0.0, 1)),
             TileNodeOption(self, "Size", .Int, range: float2(1, 40), defaultFloat: 20),
             TileNodeOption(self, "Ratio", .Int, range: float2(1, 20), defaultFloat: 3),
             TileNodeOption(self, "Bevel", .Float, range: float2(0, 1), defaultFloat: 0.2),
@@ -87,9 +95,7 @@ final class DecoratorTilesAndBricks : PatternTileNode {
             return simd_fract((p3.x + p3.y) * p3.z)
         }
         
-        //let color = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
-        var uv = pixelCtx.uv//transformUV(pixelCtx: pixelCtx, tileCtx: tileCtx, pixelise: false, centered: false, areaAdjust: false)
-        uv += tileCtx.tileId
+        var uv = pixelCtx.uv + tileCtx.tileId
         
         var wobble = float2(0,0)
         if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
@@ -134,7 +140,7 @@ final class DecoratorTilesAndBricks : PatternTileNode {
         }
         
         if MISSING > missingHash(floor(U)) {
-            m = 0
+            isMissing = true
         }
     
         return simd_clamp( m, 0.0, 1.0)

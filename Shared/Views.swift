@@ -321,18 +321,10 @@ struct NodeToolbar: View {
                         addNodeToTile(ShapeBox())
                     })
                     Button("Disk", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(ShapeDisk())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(ShapeDisk())
                     })
                     Button("Ground", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(ShapeGround())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(ShapeGround())
                     })
                 }
                 label: {
@@ -353,18 +345,10 @@ struct NodeToolbar: View {
                 }
                 Menu {
                     Button("Color", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(DecoratorColor())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(DecoratorColor())
                     })
                     Button("Gradient", action: {
-                        if let tile = document.core.project.currentTileSet?.openTile {
-                            tile.nodes.append(DecoratorGradient())
-                            document.core.nodeView.setCurrentNode(tile.nodes.last!)
-                            document.core.nodeView.update()
-                        }
+                        addNodeToTile(DecoratorGradient())
                     })
                 }
                 label: {
