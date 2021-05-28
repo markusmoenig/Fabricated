@@ -101,7 +101,8 @@ class DecoratorTileNode : TileNode {
         }
         
         patternColor = simd_mix(prevColor, patternColor, float4(step, step, step, step))
-
+        patternColor = patternColor.clamped(lowerBound: float4(repeating: 0), upperBound: float4(repeating: 1))
+        
         return patternColor
     }
 }

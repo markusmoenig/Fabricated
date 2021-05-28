@@ -263,7 +263,7 @@ class Core
         tileContext.layer = nil
         tileContext.pixelSize = project.getPixelSize()
         tileContext.antiAliasing = project.getAntiAliasing()
-        tileContext.tile = renderer.copyTile(tile)
+        tileContext.tile = copyTile(tile)
         tileContext.tileInstance = TileInstance(UUID(), UUID())
         tileContext.tileArea = TileInstanceArea(UUID(), UUID())
         tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
@@ -360,31 +360,49 @@ class Core
         }
     }
     
-    func getAreaData(_ area: TileInstanceArea) -> (Int, Int, Array<float4>)?
-    {
-        let dims = renderer.calculateTextureSizeForScreen()
-        let tileSize = project.getTileSize()
-
-        let x : Float = Float(abs(dims.1.x - area.area.x)) * tileSize
-        let y : Float = Float(abs(dims.1.y - area.area.y)) * tileSize
-        let width : Float = Float(area.area.z) * tileSize
-        let height : Float = Float(area.area.w) * tileSize
-        
-        if let layer = project.currentLayer {
-            if let texture = layer.texture {
-                let pixelCount = width * height
-                let region = MTLRegionMake2D(Int(x), Int(y), Int(width), Int(height))
-
-                var array = Array<float4>(repeating: float4(0, 0, 0, 0), count: Int(pixelCount))
-
-                array.withUnsafeMutableBytes {
-                    texture.getBytes($0.baseAddress!, bytesPerRow: (MemoryLayout<float4>.size * Int(width)), from: region, mipmapLevel: 0)
-                }
-                
-                return (Int(width), Int(height), array)
+    /// Copy a tile. Each thread during rendering gets a copy of the original tile to prevent race conditions
+    func copyTile(_ tile: Tile) -> Tile {
+        if let data = try? JSONEncoder().encode(tile) {
+            if let copiedTile = try? JSONDecoder().decode(Tile.self, from: data) {
+                return copiedTile
             }
         }
+        return tile
+    }
+    
+    func getAreaData(_ area: TileInstanceArea) -> (Int, Int, Array<float4>)?
+    {
+        let tileSize = Int(project.getTileSize())
         
+        if let layer = project.currentLayer {
+            let rect = area.area
+            
+            let width = rect.z * tileSize
+            let height = rect.w * tileSize
+            var array = Array<float4>(repeating: float4(0, 0, 0, 0), count: width * height)
+            
+            for y in rect.y..<(rect.y + rect.w) {
+                for x in rect.x..<(rect.x + rect.z) {
+                    let tileId = SIMD2<Int>(x, y)
+                    if let tileInstance = layer.tileInstances[tileId] {
+                        if let data = tileInstance.tileData {
+                            
+                            let offsetX = x - rect.x
+                            let offsetY = y - rect.y
+                            
+                            for ly in 0..<tileSize {
+                                for lx in 0..<tileSize {
+                                    array[offsetX * tileSize + lx + (offsetY * tileSize * tileSize) + ly * tileSize ] = data[lx + ly * tileSize]//.clamped(lowerBound: float4(0,0,0,0), upperBound: float4(1,1,1,1))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return(width, height, array)
+        }
+
         return nil
     }
     

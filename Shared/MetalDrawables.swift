@@ -149,7 +149,7 @@ class MetalDrawables
     }
     
     /// Draws a box
-    func drawBox(position: float2, size: float2, rounding: Float = 0, borderSize: Float = 0, onion: Float = 0, rotation: Float = 0, fillColor: float4 = float4(1,1,1,1), borderColor: float4 = float4(0,0,0,0), texture: MTLTexture? = nil)
+    func drawBox(position: float2, size: float2, rounding: Float = 0, borderSize: Float = 0, onion: Float = 0, fillColor: float4 = float4(1,1,1,1), borderColor: float4 = float4(0,0,0,0), texture: MTLTexture? = nil)
     {
         var data = BoxUniform()
         data.borderSize = borderSize
@@ -157,7 +157,7 @@ class MetalDrawables
         data.fillColor = fillColor
         data.borderColor = borderColor
         data.onion = onion
-        data.rotation = rotation.degreesToRadians
+        //data.rotation = rotation.degreesToRadians
         data.hasTexture = texture != nil ? 1 : 0
         data.round = rounding
 

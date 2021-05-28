@@ -437,6 +437,7 @@ class Renderer
             }
             
             drawJobAddTileInstanceData(layer: tileJob.tileContext.layer, tileId: SIMD2<Int>(tileJob.tileContext.tileId), tileRect: tileJob.tileRect, data: texArray)
+            tileJob.tileContext.tileInstance?.tileData = texArray
         }
         
         semaphore.wait()
@@ -548,7 +549,7 @@ class Renderer
         }
     }
     
-    /// Copiea a tile. Each thread during rendering gets a copy of the original tile to prevent race conditions
+    /// Copy a tile. Each thread during rendering gets a copy of the original tile to prevent race conditions
     func copyTile(_ tile: Tile) -> Tile {
         if let data = try? JSONEncoder().encode(tile) {
             if let copiedTile = try? JSONDecoder().decode(Tile.self, from: data) {

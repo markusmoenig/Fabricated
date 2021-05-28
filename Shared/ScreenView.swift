@@ -167,6 +167,54 @@ class ScreenView
         let texX = drawables.viewSize.x / 2 + Float(core.renderer.screenDim.x) * texMulty * graphZoom + graphOffset.x
         let texY = drawables.viewSize.y / 2 + Float(core.renderer.screenDim.y) * texMulty * graphZoom + graphOffset.y
         
+        func drawTileOutline(rect: SIMD4<Int>, borderColor: float4 = float4(0,0,0,0))
+        {
+            let screen = tileIdToScreen(SIMD2<Int>(rect.x, rect.y))
+            let rectBorderSize : Float = 3// * graphZoom
+
+            let position = float2(screen.x,screen.y) - rectBorderSize / 2
+            let size = float2(tileSize * Float(rect.z), tileSize * Float(rect.w)) * graphZoom
+            
+            if gridType == .rectFront {
+                drawables.drawBox(position: position, size: size, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: borderColor)
+            } else
+            if gridType == .rectIso {
+                let radius = rectBorderSize / 2
+                
+                if rect.z == 1 && rect.w == 1 {
+                    let q = size.y / 4.0
+                    drawables.drawLine(startPos: position + float2(size.x / 2.0, 0), endPos: position + float2(0, q), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: position + float2(0, q), endPos: position + float2(0, q * 3), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: position + float2(0, q * 3), endPos: position + float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
+                    
+                    drawables.drawLine(startPos: position + float2(size.x / 2.0, 0), endPos: position + float2(size.x, q), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: position + float2(size.x, q), endPos: position + float2(size.x, q * 3), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: position + float2(size.x, q * 3), endPos: position + float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
+                } else {
+                    
+                    drawables.drawBox(position: position, size: size, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: borderColor)
+
+                    /*
+                    let upperLeft = screen
+                    let upperRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y))
+                    let lowerLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y + rect.w))
+                    let lowerRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y + rect.w))
+
+                    let singleSize = float2(tileSize, tileSize) * graphZoom
+                    let q = singleSize.y / 4.0
+                    
+                    print(upperLeft, lowerLeft)
+
+                    drawables.drawLine(startPos: upperLeft + float2(singleSize.x / 2.0, 0), endPos: upperLeft + float2(0, q), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: upperLeft + float2(0, q), endPos: lowerLeft - float2(0, q * 1), radius: radius, fillColor: borderColor)
+                    drawables.drawLine(startPos: lowerLeft - float2(0, q * 1), endPos: lowerRight - float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
+
+                    //drawables.drawLine(startPos: upperLeft, endPos: lowerLeft, radius: radius, fillColor: borderColor)
+                    */
+                }
+            }
+        }
+        
         if core.renderer.renderMode == .Screen {
             if let currentScreen = core.project.getCurrentScreen() {
                 for layer in currentScreen.layers {
@@ -183,15 +231,10 @@ class ScreenView
                 }
             }
         }
-        
-        let rectBorderSize : Float = 3// * graphZoom
-        
-        // Selected rectangle
-        if let selection = core.project.selectedRect {//, core.currentTool == .Select || action == .DragInsert {
-            
-            let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
-            
-            drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
+                
+        // Hover rectangle
+        if let hover = core.project.hoverRect {
+            drawTileOutline(rect: hover, borderColor: float4(0.4, 0.4, 0.4, 1))
         }
                 
         // Selected areas
@@ -201,26 +244,21 @@ class ScreenView
                 for area in currentLayer.tileAreas {
                     
                     if currentLayer.selectedAreas.contains(area) == false {
-                        let selection = area.area
-                        
-                        let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
-                        
-                        drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: float4(1,1,1,0.5))
+                        drawTileOutline(rect: area.area, borderColor: float4(1,1,1,0.5))
                     }
                 }
             }
+            
+            // Selected rectangle
+            if let selection = core.project.selectedRect, currentLayer.selectedAreas.isEmpty == true {
+                drawTileOutline(rect: selection, borderColor: ScreenView.selectionColor)
+            }
 
             for area in currentLayer.selectedAreas {
-                let selection = area.area
-                
-                let screen = tileIdToScreen(SIMD2<Int>(selection.x, selection.y))
-                
-                drawables.drawBox(position: float2(screen.x,screen.y) - rectBorderSize / 2, size: float2(tileSize * Float(selection.z), tileSize * Float(selection.w)) * graphZoom, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: ScreenView.selectionColor)
+                drawTileOutline(rect: area.area, borderColor: ScreenView.selectionColor)
             }
         }
         
-
-
         // Draw tool shape(s)
         
         let currentNode = core.nodeView?.currentNode
@@ -559,11 +597,30 @@ class ScreenView
         var maxY    : Int = -10000
         
         var tilesInArea : Int = 0
+        
+        let tileSize = core.project.getTileSize()
+
+        // Converts a screen position to an isometric coordinate
+        func toIso(_ p: float2) -> float2
+        {
+            var isoP = float2()
+            isoP.x = (p.x - p.y) * tileSize / 2.0
+            isoP.y = (p.y + p.x) * tileSize / 4.0
+            return isoP
+        }
+        
+        let screen = core.project.getCurrentScreen()!
 
         for index in tileIds {
             
-            let x = index.x
-            let y = index.y
+            var x = index.x
+            var y = index.y
+
+            if screen.gridType == .rectIso {
+                let iso = toIso(float2(Float(x),Float(y)))
+                x = Int(iso.x / tileSize)
+                y = Int(iso.y / tileSize)
+            }
             
             if x < minX {
                 minX = x
@@ -738,8 +795,9 @@ class ScreenView
         update()
     }
     
-    func touchMoved(_ pos: float2)
+    func touchDragged(_ pos: float2)
     {
+        core.project.hoverRect = nil
         if let _ = core.project.currentLayer {
 
             var tileId : SIMD2<Int> = SIMD2<Int>(0,0)
@@ -883,6 +941,19 @@ class ScreenView
                 //}
                 update()
             }
+        }
+    }
+    
+    func touchHover(_ pos: float2)
+    {
+        if let _ = core.project.currentLayer, action == .None {
+            
+            var tileId : SIMD2<Int> = SIMD2<Int>(0,0)
+            var tilePos = SIMD2<Float>(0,0)
+            getTileIdPos(pos, tileId: &tileId, tilePos: &tilePos)
+
+            core.project.hoverRect = SIMD4<Int>(tileId.x, tileId.y, 1, 1)
+            update()
         }
     }
 

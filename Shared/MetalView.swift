@@ -31,7 +31,7 @@ public class DMTKView        : MTKView
 
     var commandIsDown       : Bool = false
     var shiftIsDown         : Bool = false
-    
+
     func reset()
     {
         keysDown = []
@@ -49,6 +49,15 @@ public class DMTKView        : MTKView
     func platformInit()
     {
         layer?.isOpaque = false
+        
+        if viewType == .Preview {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                let options : NSTrackingArea.Options = [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow]
+                let trackingArea = NSTrackingArea(rect: self.bounds, options: options,
+                                              owner: self, userInfo: nil)
+                self.addTrackingArea(trackingArea)
+            }
+        }
     }
     
     func setMousePos(_ event: NSEvent)
@@ -92,10 +101,17 @@ public class DMTKView        : MTKView
     override public func mouseDragged(with event: NSEvent) {
         setMousePos(event)
         if viewType == .Preview {
-            core.screenView.touchMoved(mousePos)
+            core.screenView.touchDragged(mousePos)
         } else
         if viewType == .Nodes {
-            core.nodeView.touchMoved(mousePos)
+            core.nodeView.touchDragged(mousePos)
+        }
+    }
+    
+    override public func mouseMoved(with event: NSEvent) {
+        setMousePos(event)
+        if viewType == .Preview {
+            core.screenView.touchHover(mousePos)
         }
     }
     

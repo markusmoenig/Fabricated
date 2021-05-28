@@ -20,6 +20,9 @@ class Project           : MMValues, Codable
     // For preview of selection in progress
     var selectedRect    : SIMD4<Int>? = nil
     
+    // For cursor preview
+    var hoverRect       : SIMD4<Int>? = nil
+    
     var debug1          : Float = 2
     var debug2          : Float = 4
 

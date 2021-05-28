@@ -76,9 +76,9 @@ class ModifierNoise : TileNode {
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
     {
         //let uvType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
-        let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Pixelise")
-        let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale")
-        let resultScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Result Scale")
+        let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Pixelise", 1)
+        let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale", 1)
+        let resultScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Result Scale", 0.5)
         
         var uv : float2
         
@@ -98,7 +98,7 @@ class ModifierNoise : TileNode {
                     
         uv += float2(round(centerX), round(centerY))
         
-        let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise")
+        let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise", 0)
 
         let n : Float
         n = ((noise(pos: uv * domainScale) * 2) - 1) * resultScale

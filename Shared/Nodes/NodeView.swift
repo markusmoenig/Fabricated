@@ -538,7 +538,7 @@ class NodeView
         drawables.update()
     }
     
-    func touchMoved(_ pos: float2)
+    func touchDragged(_ pos: float2)
     {
         mouseMovedPos = pos
         connectingNode = nil
