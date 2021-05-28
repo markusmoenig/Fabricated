@@ -18,11 +18,13 @@ class IsoCubeRenderer
         let tileRect = tileJob.tileRect
         let tile = tileContext.tile!
         
+        let isoNode = tile.isoNodes[0]
+        
         func sdBox(_ p: float3) -> Float
         {
-            let offset : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Offset")
-            let shapeHeight : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Height")// + 0.02
-            let shapeSize : Float = tile.isoCubeNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, tile.isoCubeNode, "Size")// + 0.02
+            let offset : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Offset")
+            let shapeHeight : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Height")// + 0.02
+            let shapeSize : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Size")// + 0.02
 
             let size = float3(shapeSize, shapeHeight, 1)
             let offsetBy = offset
@@ -139,23 +141,28 @@ class IsoCubeRenderer
                             let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)
                             let tile = tileContext.tile!
                             
-                            var nodes   : [TileNode] = []
+                            let nodes   = tile.isoNodes
+                            let isoNode = tile.isoNodes[0] as! IsoTiledNode
+                            let isoFaceBuffer = isoNode.isoFace
                             var uv      = float2(0,0)
                                                         
                             if normal.y > 0.5 {
-                                nodes = tileJob.tileContext.tile.isoNodesTop
+                                //nodes = tileJob.tileContext.tile.isoNodesTop
                                 uv = (float2(hp.x, hp.z) * 0.5) + 0.5
                                 pixelContext.uv = uv
+                                isoNode.isoFace = .Top
                             } else
                             if normal.z > 0.5 {
-                                nodes = tileJob.tileContext.tile.isoNodesLeft
+                                //nodes = tileJob.tileContext.tile.isoNodesLeft
                                 uv = (float2(hp.x, hp.y) * 0.5) + 0.5
                                 pixelContext.uv = uv
+                                isoNode.isoFace = .Left
                             } else {
                             //if normal.x > 0.5 {
-                                nodes = tileJob.tileContext.tile.isoNodesRight
+                                //nodes = tileJob.tileContext.tile.isoNodesRight
                                 uv = (float2(hp.z, hp.y) * 0.5) + 0.5
                                 pixelContext.uv = uv
+                                isoNode.isoFace = .Right
                             }
                             
                             var color = float4(0, 0, 0, 0)
@@ -175,6 +182,8 @@ class IsoCubeRenderer
                                 
                                 total += color
                             }
+                            
+                            isoNode.isoFace = isoFaceBuffer
                         }
                     }
                 }

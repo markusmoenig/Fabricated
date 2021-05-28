@@ -23,7 +23,8 @@ enum NodeDiscriminator: String, CodingKey {
 /// The NodeFamily enum describes the node types
 enum NodeFamily: String, NodeClassFamily {
     case tiledNode = "TiledNode"
-    
+    case isoTiledNode = "IsoTiledNode"
+
     case shapeBox = "ShapeBox"
     case shapeDisk = "ShapeDisk"
     case shapeGround = "ShapeGround"
@@ -43,6 +44,8 @@ enum NodeFamily: String, NodeClassFamily {
         {
             case .tiledNode:
                 return TiledNode.self
+            case .isoTiledNode:
+                return IsoTiledNode.self
                 
             case .shapeBox:
                 return ShapeBox.self

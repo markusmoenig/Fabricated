@@ -309,23 +309,8 @@ class TileSet      : Codable, Equatable
 
 class Tile               : Codable, Equatable
 {
-    enum TileRole {
-        case Fill
-    }
-    
-    /// Which iso cube we use in iso grid mode
-    enum TileIsoType    : Int, Codable {
-        case Cube
-    }
-    
     var nodes           : [TileNode] = [TiledNode()]
-
-    var isoNodesTop     : [TileNode] = [TiledNode()]
-    var isoNodesLeft    : [TileNode] = [TiledNode()]
-    var isoNodesRight   : [TileNode] = [TiledNode()]
-    
-    /// Holds all options for iso rendering modes
-    var isoCubeNode     = IsoCubeNode()
+    var isoNodes        : [TileNode] = [IsoTiledNode()]
 
     var id              = UUID()
     var name            = ""
@@ -334,10 +319,7 @@ class Tile               : Codable, Equatable
         case id
         case name
         case nodes
-        case isoNodesTop
-        case isoNodesLeft
-        case isoNodesRight
-        case isoCubeNode
+        case isoNodes
     }
     
     init(_ name: String = "Unnamed")
@@ -349,10 +331,7 @@ class Tile               : Codable, Equatable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         nodes = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .nodes)
-        isoNodesTop = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesTop)
-        isoNodesLeft = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesLeft)
-        isoNodesRight = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodesRight)
-        isoCubeNode = try container.decode(IsoCubeNode.self, forKey: .isoCubeNode)
+        isoNodes = try container.decode([TileNode].self, ofFamily: NodeFamily.self, forKey: .isoNodes)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
     }
@@ -363,10 +342,7 @@ class Tile               : Codable, Equatable
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(nodes, forKey: .nodes)
-        try container.encode(isoNodesTop, forKey: .isoNodesTop)
-        try container.encode(isoNodesLeft, forKey: .isoNodesLeft)
-        try container.encode(isoNodesRight, forKey: .isoNodesRight)
-        try container.encode(isoCubeNode, forKey: .isoCubeNode)
+        try container.encode(isoNodes, forKey: .isoNodes)
     }
     
     static func ==(lhs:Tile, rhs:Tile) -> Bool { // Implement Equatable
@@ -381,17 +357,7 @@ class Tile               : Codable, Equatable
                 return node
             }
         }
-        for node in isoNodesTop {
-            if node.id == id {
-                return node
-            }
-        }
-        for node in isoNodesLeft {
-            if node.id == id {
-                return node
-            }
-        }
-        for node in isoNodesRight {
+        for node in isoNodes {
             if node.id == id {
                 return node
             }

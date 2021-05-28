@@ -31,6 +31,8 @@
 		2B6F8478265CC8C700E3FFC7 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2B6F8477265CC8C700E3FFC7 /* MarkdownUI */; };
 		2B70505C262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
 		2B70505D262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
+		2B7408CD2660758A000C6BE3 /* Iso.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7408CC2660758A000C6BE3 /* Iso.swift */; };
+		2B7408CE2660758A000C6BE3 /* Iso.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7408CC2660758A000C6BE3 /* Iso.swift */; };
 		2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194D261D4DC70027C905 /* FabricatedDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */; };
@@ -83,6 +85,7 @@
 		2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoCubeRenderer.swift; sourceTree = "<group>"; };
 		2B6D6C44265DF06700D1FA7A /* Patterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
 		2B70505B262A95DA00E7E4A1 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
+		2B7408CC2660758A000C6BE3 /* Iso.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Iso.swift; sourceTree = "<group>"; };
 		2B7B1937261D4DC50027C905 /* FabricatedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedApp.swift; sourceTree = "<group>"; };
 		2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedDocument.swift; sourceTree = "<group>"; };
 		2B7B1939261D4DC50027C905 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -233,6 +236,7 @@
 				2B70505B262A95DA00E7E4A1 /* Modifier.swift */,
 				2B81CBE3262D0AC0001EFB61 /* Decorator.swift */,
 				2B6D6C44265DF06700D1FA7A /* Patterns.swift */,
+				2B7408CC2660758A000C6BE3 /* Iso.swift */,
 				2B1A6FCC262189A7005F65E6 /* NodeView.swift */,
 				2B649CC6265F270F00A296A7 /* NodeViewIso.swift */,
 				2B1A6FBE26213F60005F65E6 /* NodeArray.swift */,
@@ -360,6 +364,7 @@
 				2B7B1986261D86930027C905 /* MetalView.swift in Sources */,
 				2B7B1965261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D7263FF0EE005D7F93 /* Undo.swift in Sources */,
+				2B7408CD2660758A000C6BE3 /* Iso.swift in Sources */,
 				2B7D0755261EA0050097212F /* Classes.swift in Sources */,
 				2B6D6C45265DF06700D1FA7A /* Patterns.swift in Sources */,
 				2B7B198B261D86DC0027C905 /* MathLibrary.swift in Sources */,
@@ -393,6 +398,7 @@
 				2B7B1987261D86930027C905 /* MetalView.swift in Sources */,
 				2B7B1966261D52DF0027C905 /* Project.swift in Sources */,
 				2B6B23D8263FF0EE005D7F93 /* Undo.swift in Sources */,
+				2B7408CE2660758A000C6BE3 /* Iso.swift in Sources */,
 				2B7D0756261EA0050097212F /* Classes.swift in Sources */,
 				2B6D6C46265DF06700D1FA7A /* Patterns.swift in Sources */,
 				2B7B198C261D86DC0027C905 /* MathLibrary.swift in Sources */,

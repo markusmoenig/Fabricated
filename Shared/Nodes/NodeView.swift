@@ -64,12 +64,7 @@ class NodeView
         case None, DragNode, DragConnect
     }
     
-    enum IsoFace {
-        case Top, Left, Right
-    }
-    
     var action              : Action = .None
-    var isoFace             : IsoFace = .Left
     
     var core                : Core
     var view                : DMTKView!
@@ -111,7 +106,7 @@ class NodeView
 
         isoCubeNormalArray =  Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: isoCubeSize * isoCubeSize)
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             self.renderIsoCube()
         }        
     }
@@ -171,24 +166,6 @@ class NodeView
             }
         }
         
-        /// Iso Cube
-        if core.project.getCurrentScreen()?.gridType == .rectIso {
-            var texture : MTLTexture? = nil
-            if isoFace == .Top {
-                texture = isoCubePreviewTop
-            } else
-            if isoFace == .Left {
-                texture = isoCubePreviewLeft
-            }
-            if isoFace == .Right {
-                texture = isoCubePreviewRight
-            }
-            
-            if let texture = texture {
-                drawables.drawBox(position: drawables.viewSize - float2(Float(texture.width), Float(texture.height)) - float2(5,5), size: float2(Float(texture.width), Float(texture.height)), rounding: 0, borderSize: 0, fillColor: float4(1,1,1,1), texture: texture)
-            }
-        }
-        
         drawables.encodeEnd()
     }
     
@@ -200,18 +177,7 @@ class NodeView
                 return tile.nodes
             } else
             if screen.gridType == .rectIso {
-                if isoFace == .Top {
-                    tile.isoNodesTop[0].name = "Iso Top"
-                    return tile.isoNodesTop
-                } else
-                if isoFace == .Left {
-                    tile.isoNodesLeft[0].name = "Iso Left"
-                    return tile.isoNodesLeft
-                } else
-                if isoFace == .Right {
-                    tile.isoNodesRight[0].name = "Iso Right"
-                    return tile.isoNodesRight
-                }
+                return tile.isoNodes
             }
         }
         return []
@@ -225,18 +191,7 @@ class NodeView
                 tile.nodes = nodes
             } else
             if screen.gridType == .rectIso {
-                if isoFace == .Top {
-                    tile.isoNodesTop[0].name = "Iso Top"
-                    tile.isoNodesTop = nodes
-                } else
-                if isoFace == .Left {
-                    tile.isoNodesLeft[0].name = "Iso Left"
-                    tile.isoNodesLeft = nodes
-                } else
-                if isoFace == .Right {
-                    tile.isoNodesRight[0].name = "Iso Right"
-                    tile.isoNodesRight = nodes
-                }
+                tile.isoNodes = nodes
             }
         }
     }
@@ -284,6 +239,14 @@ class NodeView
                 fillColor = skin.shapeColor
             }
         } else
+        if node.role == .IsoTile {
+            fillColor = skin.shapeColor
+            if let isoNode = node as? IsoTiledNode {
+                if terminalId == isoNode.isoFace.rawValue {
+                    borderColor = skin.selectedBorderColor
+                }
+            }
+        } else
         if node.role == .Shape {
             if terminalId == 0 {
                 fillColor = skin.modifierColor
@@ -312,9 +275,9 @@ class NodeView
             }
         }
         
-        if selected {
-            borderColor = skin.selectedBorderColor
-        }
+        //if selected {
+            //borderColor = skin.selectedBorderColor
+        //}
         
         return (fillColor, borderColor)
     }
@@ -355,9 +318,29 @@ class NodeView
         if action == .DragConnect && (node === currentNode || node === connectingNode) {
             borderColor = skin.selectedBorderColor
         }
+        
         node.nodePreviewRect = MMRect(previewPos.x, previewPos.y, previewSize.x, previewSize.y)
-        if node.texture != nil {
-            drawables.drawBox(position: previewPos, size: previewSize, rounding: 8 * graphZoom, borderSize: borderSize, fillColor: skin.normalInteriorColor, borderColor: borderColor, texture: node.texture)
+        if node.role != .IsoTile {
+            if node.texture != nil {
+                drawables.drawBox(position: previewPos, size: previewSize, rounding: 8 * graphZoom, borderSize: borderSize, fillColor: skin.normalInteriorColor, borderColor: borderColor, texture: node.texture)
+            }
+        } else
+        if let isoNode = node as? IsoTiledNode {
+            /// Iso Cube
+            var texture : MTLTexture? = nil
+            if isoNode.isoFace == .Top {
+                texture = isoCubePreviewTop
+            } else
+            if isoNode.isoFace == .Left {
+                texture = isoCubePreviewLeft
+            }
+            if isoNode.isoFace == .Right {
+                texture = isoCubePreviewRight
+            }
+            
+            if let texture = texture {
+                drawables.drawBox(position: previewPos, size: previewSize, rounding: 8 * graphZoom, borderSize: borderSize, fillColor: skin.normalInteriorColor, borderColor: borderColor, texture: texture)
+            }
         }
         
         /// Get the colors for a terminal
@@ -418,6 +401,13 @@ class NodeView
             drawOutTerminal(0, y)
             y += 24 * graphZoom
             drawOutTerminal(1, y)
+        } else
+        if node.role == .IsoTile {
+            drawOutTerminal(0, y)
+            y += 24 * graphZoom
+            drawOutTerminal(1, y)
+            y += 24 * graphZoom
+            drawOutTerminal(2, y)
         }
     }
     
@@ -479,11 +469,6 @@ class NodeView
     
     func touchDown(_ pos: float2)
     {
-        // Click on Iso Cube ?
-        if handleClickOnIsoCube(pos) {
-            return
-        }
-        
         if view.hasDoubleTap == true {
             if let tile = getCurrentTile() {
                 let nodes = getNodes(tile)
@@ -511,6 +496,26 @@ class NodeView
             for node in nodes {
                 var freshlySelectedNode : TileNode? = nil
                 if node.nodeRect.contains(pos.x, pos.y) {
+                    
+                    if let isoNode = node as? IsoTiledNode {
+                        // Click on Iso Cube
+                        
+                        let x : Int = Int(pos.x - node.nodeRect.x)
+                        let y : Int = Int(pos.y - node.nodeRect.y)
+                        
+                        let n = isoCubeNormalArray[y * isoCubeSize + x]
+                        
+                        if (n.z > 0.5) {
+                            isoNode.isoFace = .Left
+                        } else
+                        if (n.y > 0.5) {
+                            isoNode.isoFace = .Top
+                        } else
+                        if (n.x > 0.5) {
+                            isoNode.isoFace = .Right
+                        }
+                    }
+                    
                     action = .DragNode
                     dragStart = pos
                     
@@ -552,6 +557,11 @@ class NodeView
                         return true
                     } else
                     if to.role == .Pattern {
+                        return true
+                    }
+                } else
+                if from.role == .IsoTile {
+                    if to.role == .Shape {
                         return true
                     }
                 } else
@@ -627,6 +637,13 @@ class NodeView
                     addIdToTerminalIndex(0, to.id)
                 }
             } else
+            if from.role == .IsoTile {
+                if to.role == .Shape {
+                    if let isoNode = from as? IsoTiledNode {
+                        addIdToTerminalIndex(isoNode.isoFace.rawValue, to.id)
+                    }
+                }
+            }
             if from.role == .Shape {
                 if to.role == .Modifier {
                     addIdToTerminalIndex(0, to.id)

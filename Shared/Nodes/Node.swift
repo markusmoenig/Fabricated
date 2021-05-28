@@ -79,7 +79,7 @@ class TileNodeOption
 class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     enum TileNodeRole : Int, Codable {
-        case Tile, Shape, Modifier, Decorator, Pattern
+        case Tile, Shape, Modifier, Decorator, Pattern, IsoTile
     }
     
     enum TileNodeTool {
@@ -102,7 +102,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
 
     var optionGroups        : [TileNodeOptionsGroup] = []
     
-    // For node preview, always fixed size of ?
+    // For node preview, always fixed size of 80
     var texture             : MTLTexture? = nil
     
     // --- The terminals, nodes can have multiple outputs but only one input
@@ -237,6 +237,15 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
             if connectedRole == .Shape {
                 if let id = terminalsOut[0] {
                     return id
+                }
+            }
+        } else
+        if role == .IsoTile {
+            if connectedRole == .Shape {
+                if let isoNode = self as? IsoTiledNode {
+                    if let id = terminalsOut[isoNode.isoFace.rawValue] {
+                        return id
+                    }
                 }
             }
         } else
