@@ -500,10 +500,13 @@ class NodeView
                     if let isoNode = node as? IsoTiledNode {
                         // Click on Iso Cube
                         
-                        let x : Int = Int(pos.x - node.nodeRect.x)
-                        let y : Int = Int(pos.y - node.nodeRect.y)
+                        let x = ((pos.x - node.nodeRect.x) / node.nodeRect.width) * Float(isoCubeSize)
+                        let y = ((pos.y - node.nodeRect.y) / node.nodeRect.height) * Float(isoCubeSize)
                         
-                        let n = isoCubeNormalArray[y * isoCubeSize + x]
+                        let xInt : Int = Int(x)
+                        let yInt : Int = Int(y)
+                                                
+                        let n = isoCubeNormalArray[yInt * isoCubeSize + xInt]
                         
                         if (n.z > 0.5) {
                             isoNode.isoFace = .Left
