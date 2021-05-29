@@ -456,6 +456,19 @@ class TileInstanceArea : MMValues, Codable, Equatable
     static func ==(lhs:TileInstanceArea, rhs:TileInstanceArea) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
+    
+    /// Returns all tileIds of the area
+    func collectTileIds() -> [SIMD2<Int>] {
+        var ids : [SIMD2<Int>] = []
+        
+        for y in area.y..<(area.y + area.w) {
+            for x in area.x..<(area.x + area.z) {
+                ids.append(SIMD2<Int>(x, y))
+            }
+        }
+        
+        return ids
+    }
 }
 
 class TileInstance : MMValues, Codable, Equatable

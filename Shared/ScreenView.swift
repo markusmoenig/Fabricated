@@ -169,49 +169,36 @@ class ScreenView
         
         func drawTileOutline(rect: SIMD4<Int>, borderColor: float4 = float4(0,0,0,0))
         {
-            let screen = tileIdToScreen(SIMD2<Int>(rect.x, rect.y))
             let rectBorderSize : Float = 3// * graphZoom
-
-            let position = float2(screen.x,screen.y) - rectBorderSize / 2
-            let size = float2(tileSize * Float(rect.z), tileSize * Float(rect.w)) * graphZoom
             
             if gridType == .rectFront {
+                
+                let screen = tileIdToScreen(SIMD2<Int>(rect.x, rect.y))
+                let position = float2(screen.x,screen.y) - rectBorderSize / 2
+                let size = float2(tileSize * Float(rect.z), tileSize * Float(rect.w)) * graphZoom
+                
                 drawables.drawBox(position: position, size: size, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: borderColor)
             } else
             if gridType == .rectIso {
                 let radius = rectBorderSize / 2
-                
-                if rect.z == 1 && rect.w == 1 {
-                    let q = size.y / 4.0
-                    drawables.drawLine(startPos: position + float2(size.x / 2.0, 0), endPos: position + float2(0, q), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: position + float2(0, q), endPos: position + float2(0, q * 3), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: position + float2(0, q * 3), endPos: position + float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
-                    
-                    drawables.drawLine(startPos: position + float2(size.x / 2.0, 0), endPos: position + float2(size.x, q), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: position + float2(size.x, q), endPos: position + float2(size.x, q * 3), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: position + float2(size.x, q * 3), endPos: position + float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
-                } else {
-                    
-                    drawables.drawBox(position: position, size: size, borderSize: rectBorderSize, fillColor: float4(0,0,0,0), borderColor: borderColor)
+                let singleSize = float2(tileSize, tileSize) * graphZoom
 
-                    /*
-                    let upperLeft = screen
-                    let upperRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y))
-                    let lowerLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y + rect.w))
-                    let lowerRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y + rect.w))
+                let w2 = singleSize.x / 2.0
+                let h2 = singleSize.y / 2.0
 
-                    let singleSize = float2(tileSize, tileSize) * graphZoom
-                    let q = singleSize.y / 4.0
-                    
-                    print(upperLeft, lowerLeft)
+                let upperLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y))
+                let upperRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y))
+                let lowerLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y + rect.w))
+                let lowerRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y + rect.w))
 
-                    drawables.drawLine(startPos: upperLeft + float2(singleSize.x / 2.0, 0), endPos: upperLeft + float2(0, q), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: upperLeft + float2(0, q), endPos: lowerLeft - float2(0, q * 1), radius: radius, fillColor: borderColor)
-                    drawables.drawLine(startPos: lowerLeft - float2(0, q * 1), endPos: lowerRight - float2(size.x / 2, size.y), radius: radius, fillColor: borderColor)
+                drawables.drawLine(startPos: upperLeft + float2(w2, 0), endPos: lowerLeft + float2(w2, 0), radius: radius, fillColor: borderColor)
+                drawables.drawLine(startPos: upperLeft + float2(w2, 0), endPos: upperRight + float2(w2, 0), radius: radius, fillColor: borderColor)
+                drawables.drawLine(startPos: lowerLeft + float2(w2, 0), endPos: lowerLeft + float2(w2, h2), radius: radius, fillColor: borderColor)
 
-                    //drawables.drawLine(startPos: upperLeft, endPos: lowerLeft, radius: radius, fillColor: borderColor)
-                    */
-                }
+                drawables.drawLine(startPos: upperRight + float2(w2, 0), endPos: upperRight + float2(w2, h2), radius: radius, fillColor: borderColor)
+                drawables.drawLine(startPos: upperRight + float2(w2, h2), endPos: lowerRight + float2(w2, h2), radius: radius, fillColor: borderColor)
+
+                drawables.drawLine(startPos: lowerLeft + float2(w2, h2), endPos: lowerRight + float2(w2, h2), radius: radius, fillColor: borderColor)
             }
         }
         
@@ -597,30 +584,10 @@ class ScreenView
         var maxY    : Int = -10000
         
         var tilesInArea : Int = 0
-        
-        let tileSize = core.project.getTileSize()
-
-        // Converts a screen position to an isometric coordinate
-        func toIso(_ p: float2) -> float2
-        {
-            var isoP = float2()
-            isoP.x = (p.x - p.y) * tileSize / 2.0
-            isoP.y = (p.y + p.x) * tileSize / 4.0
-            return isoP
-        }
-        
-        let screen = core.project.getCurrentScreen()!
-
         for index in tileIds {
             
-            var x = index.x
-            var y = index.y
-
-            if screen.gridType == .rectIso {
-                let iso = toIso(float2(Float(x),Float(y)))
-                x = Int(iso.x / tileSize)
-                y = Int(iso.y / tileSize)
-            }
+            let x = index.x
+            let y = index.y
             
             if x < minX {
                 minX = x
@@ -925,20 +892,13 @@ class ScreenView
                 update()
             } else
             if action == .DragInsert {
-                //if let currentTileSet = core.project.currentTileSet {
-                    //if let currentTile = currentTileSet.currentTile {
-                        
-                        if dragTileIds.contains(tileId) == false {
-                            dragTileIds.append(tileId)
-                            
-                            let dim = calculateAreaDimensions(dragTileIds)
-                            core.project.selectedRect = SIMD4<Int>(dim.1.x, dim.1.y, dim.0.x, dim.0.y)
-                        }
+
+                if dragTileIds.contains(tileId) == false {
+                    dragTileIds.append(tileId)
                                                 
-                        //layer.tileInstances[tileId] = TileInstance(currentTileSet.id, currentTile.id)
-                        //core.renderer.render()
-                    //}
-                //}
+                    let dim = calculateAreaDimensions(dragTileIds)
+                    core.project.selectedRect = SIMD4<Int>(dim.1.x, dim.1.y, dim.0.x, dim.0.y)
+                }
                 update()
             }
         }
