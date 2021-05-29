@@ -43,7 +43,7 @@ class ScreenView
     var resizeToolPos2      = float2(0, 0)
 
     var firstDraw           = true
-    
+        
     static var selectionColor = SIMD4<Float>(0.494, 0.455, 0.188, 1.000)
     
     init(_ core: Core)
@@ -63,25 +63,6 @@ class ScreenView
         
         let tileSize = core.project.getTileSize()
         let gridType = core.project.getCurrentScreen()?.gridType
-        
-        /// Convert a tileId to the screen position
-        func tileIdToScreen(_ tileId: SIMD2<Int>) -> float2
-        {
-            let x : Float
-            let y : Float
-
-            if gridType == .rectFront {
-                x = drawables.viewSize.x / 2 + Float(tileId.x) * tileSize * graphZoom + graphOffset.x
-                y = drawables.viewSize.y / 2 + Float(tileId.y) * tileSize * graphZoom + graphOffset.y
-            } else {
-                let iso = core.renderer.toIso(float2(Float(tileId.x), Float(tileId.y)))
-                x = drawables.viewSize.x / 2 + iso.x * graphZoom + graphOffset.x
-                y = drawables.viewSize.y / 2 + iso.y * graphZoom + graphOffset.y
-            }
-            
-            return float2(x,y)
-        }
-        
         
         if showGrid == true {
             // Rect Front Grid
@@ -186,9 +167,9 @@ class ScreenView
                 let w2 = singleSize.x / 2.0
                 let h2 = singleSize.y / 2.0
 
-                let upperLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y))
+                let upperLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y)) - radius
                 let upperRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y))
-                let lowerLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y + rect.w))
+                let lowerLeft = tileIdToScreen(SIMD2<Int>(rect.x, rect.y + rect.w)) - radius
                 let lowerRight = tileIdToScreen(SIMD2<Int>(rect.x + rect.z, rect.y + rect.w))
 
                 drawables.drawLine(startPos: upperLeft + float2(w2, 0), endPos: lowerLeft + float2(w2, 0), radius: radius, fillColor: borderColor)
@@ -269,14 +250,41 @@ class ScreenView
         }
         drawables.encodeEnd()
     }
+
+    /// Convert a tileId to the screen position
+    func tileIdToScreen(_ tileId: SIMD2<Int>) -> float2
+    {
+        let x : Float
+        let y : Float
+
+        let tileSize = core.project.getTileSize()
+        let gridType = core.project.getCurrentScreen()?.gridType
+        
+        if gridType == .rectFront {
+            x = drawables.viewSize.x / 2 + Float(tileId.x) * tileSize * graphZoom + graphOffset.x
+            y = drawables.viewSize.y / 2 + Float(tileId.y) * tileSize * graphZoom + graphOffset.y
+        } else {
+            let iso = core.renderer.toIso(float2(Float(tileId.x), Float(tileId.y)))
+            x = drawables.viewSize.x / 2 + iso.x * graphZoom + graphOffset.x
+            y = drawables.viewSize.y / 2 + iso.y * graphZoom + graphOffset.y
+        }
+        
+        return float2(x,y)
+    }
     
     /// Draw the current tool shape of the currently selected shape node
     func drawToolShapes(_ node: TileNode?,_ area: TileInstanceArea,_ pos: float2,_ skin: NodeSkin)
     {
         let tileSize = core.project.getTileSize()
-        
+        let gridType = core.project.getCurrentScreen()?.gridType
+                
         func convertPos(_ p: float2) -> float2 {
-            return pos + p * tileSize * float2(Float(area.area.z), Float(area.area.w)) * graphZoom
+            if gridType == .rectFront {
+                return pos + p * tileSize * float2(Float(area.area.z), Float(area.area.w)) * graphZoom
+            } else {
+                let posIso = tileIdToScreen(SIMD2<Int>(area.area.x, area.area.y))
+                return posIso + p * tileSize * float2(Float(area.area.z), Float(area.area.w)) * graphZoom
+            }
         }
         
         func convertFloat(_ v: Float) -> Float {
@@ -374,8 +382,22 @@ class ScreenView
             
             let rectBorderSize : Float = 3 * graphZoom
 
-            let p1 = convertPos(float2(0.0, 0.0)) - float2(rectBorderSize, 30 * graphZoom)
-            var p2 = convertPos(float2(1.0, 1.0))
+            var p1 : float2 = convertPos(float2(0.0, 0.0))
+            var p2 : float2 = convertPos(float2(1.0, 1.0))
+            
+            if gridType == .rectFront {
+                p1 = convertPos(float2(0.0, 0.0))
+                p2 = convertPos(float2(1.0, 1.0))
+            } else {
+            //if gridType == .rectIso {
+                
+                let upperLeft = tileIdToScreen(SIMD2<Int>(area.area.x, area.area.y))
+                let lowerRight = tileIdToScreen(SIMD2<Int>(area.area.x + area.area.z, area.area.y + area.area.w))
+                p1 = upperLeft + float2(tileSize / 2.0, 0) * graphZoom
+                p2 = lowerRight + (float2(tileSize, tileSize) / 2.0) * graphZoom
+            }
+            
+            p1 -= float2(rectBorderSize, 30 * graphZoom)
 
             drawables.drawBox(position: p1, size: float2(rectBorderSize, 30 * graphZoom), fillColor: ScreenView.selectionColor)
             drawables.drawBox(position: p2, size: float2(rectBorderSize, 30 * graphZoom), fillColor: ScreenView.selectionColor)
@@ -391,7 +413,7 @@ class ScreenView
             
             resizeToolPos1 = p1
             drawables.drawDisk(position: p1 - r, radius: r, borderSize: borderSize, fillColor: fillColor, borderColor: borderColor)
-            
+                        
             fillColor = ScreenView.selectionColor
             borderColor = skin.selectedBorderColor
             
@@ -458,7 +480,7 @@ class ScreenView
         if control == .None && core.currentTool == .Resize {
             
             if let area = getCurrentArea() {
-
+                
                 let tileSize = core.project.getTileSize()
 
                 func convertFloat(_ v: Float) -> Float {
