@@ -33,6 +33,8 @@
 		2B70505D262A95DA00E7E4A1 /* Modifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B70505B262A95DA00E7E4A1 /* Modifier.swift */; };
 		2B7408CD2660758A000C6BE3 /* Iso.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7408CC2660758A000C6BE3 /* Iso.swift */; };
 		2B7408CE2660758A000C6BE3 /* Iso.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7408CC2660758A000C6BE3 /* Iso.swift */; };
+		2B79C305266464C90093FCB8 /* ScreenViewTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B79C304266464C90093FCB8 /* ScreenViewTools.swift */; };
+		2B79C306266464C90093FCB8 /* ScreenViewTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B79C304266464C90093FCB8 /* ScreenViewTools.swift */; };
 		2B7B194B261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194C261D4DC70027C905 /* FabricatedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1937261D4DC50027C905 /* FabricatedApp.swift */; };
 		2B7B194D261D4DC70027C905 /* FabricatedDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */; };
@@ -86,6 +88,7 @@
 		2B6D6C44265DF06700D1FA7A /* Patterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
 		2B70505B262A95DA00E7E4A1 /* Modifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifier.swift; sourceTree = "<group>"; };
 		2B7408CC2660758A000C6BE3 /* Iso.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Iso.swift; sourceTree = "<group>"; };
+		2B79C304266464C90093FCB8 /* ScreenViewTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewTools.swift; sourceTree = "<group>"; };
 		2B7B1937261D4DC50027C905 /* FabricatedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedApp.swift; sourceTree = "<group>"; };
 		2B7B1938261D4DC50027C905 /* FabricatedDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FabricatedDocument.swift; sourceTree = "<group>"; };
 		2B7B1939261D4DC50027C905 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -168,6 +171,7 @@
 				2B7B195D261D52530027C905 /* Core.swift */,
 				2B6B23D6263FF0EE005D7F93 /* Undo.swift */,
 				2B9D93042625807200A18D2A /* ScreenView.swift */,
+				2B79C304266464C90093FCB8 /* ScreenViewTools.swift */,
 				2B1A6FAC2621239C005F65E6 /* Renderer.swift */,
 				2B6B6D9E2655F52D0069191A /* IsoCubeRenderer.swift */,
 				2B7B1977261D851F0027C905 /* Metal.metal */,
@@ -384,6 +388,7 @@
 				2B1A6FCD262189A7005F65E6 /* NodeView.swift in Sources */,
 				2B81CBE4262D0AC0001EFB61 /* Decorator.swift in Sources */,
 				2B70505C262A95DA00E7E4A1 /* Modifier.swift in Sources */,
+				2B79C305266464C90093FCB8 /* ScreenViewTools.swift in Sources */,
 				2B1A6FAD2621239C005F65E6 /* Renderer.swift in Sources */,
 				2B7D074D261E9E850097212F /* MetalDrawables.swift in Sources */,
 				2B1A6FBF26213F60005F65E6 /* NodeArray.swift in Sources */,
@@ -418,6 +423,7 @@
 				2B1A6FCE262189A7005F65E6 /* NodeView.swift in Sources */,
 				2B81CBE5262D0AC0001EFB61 /* Decorator.swift in Sources */,
 				2B70505D262A95DA00E7E4A1 /* Modifier.swift in Sources */,
+				2B79C306266464C90093FCB8 /* ScreenViewTools.swift in Sources */,
 				2B1A6FAE2621239C005F65E6 /* Renderer.swift in Sources */,
 				2B7D074E261E9E850097212F /* MetalDrawables.swift in Sources */,
 				2B1A6FC026213F60005F65E6 /* NodeArray.swift in Sources */,

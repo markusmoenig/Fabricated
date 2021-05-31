@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Handles undo for a layer
 class LayerUndoComponent
 {
     let core            : Core
@@ -56,6 +57,7 @@ class LayerUndoComponent
                                 screen.layers[index!] = layer
                                 self.core.project.currentLayer = layer
                                 self.core.layerChanged.send(layer)
+                                self.core.project.setHasChanged(true)
                                 self.core.renderer.render()
                             }
                         }
@@ -70,6 +72,7 @@ class LayerUndoComponent
     }
 }
 
+/// Handles Undo for a given tile
 class TileUndoComponent
 {
     let core            : Core
@@ -135,6 +138,7 @@ class TileUndoComponent
                                 
                                 self.core.nodeView.update()
                                 self.core.updateTilePreviews(tile)
+                                self.core.project.setHasChanged(true)
                                 self.core.renderer.render()
                             }
                         }
