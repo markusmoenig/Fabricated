@@ -67,27 +67,24 @@ struct TileGridView: View {
                         ZStack {
                         //Text(tile.name)
                             
-                            if let tiled = tile.nodes[0] as? TiledNode {
-                                if let image = tiled.cgiImage {
-                                    Image(image, scale: 1.0, label: Text(tile.name))
+                            if let image = getTileImage(tile) {
+                                Image(image, scale: 1.0, label: Text(tile.name))
                                         .onTapGesture(perform: {
                                             currentTile = tile
                                             currentTileSet.currentTile = tile
                                         })
                                         .frame(width: 80, height: 80)
                                         .padding(10)
-                                } else {
-                                    Rectangle()
-                                        .fill(Color.secondary)
-                                        .frame(width: 80, height: 80)
-                                        .onTapGesture(perform: {
-                                            currentTile = tile
-                                            currentTileSet.currentTile = tile
-                                        })
-                                        .padding(10)
-                                }
+                            } else {
+                                Rectangle()
+                                    .fill(Color.secondary)
+                                    .frame(width: 80, height: 80)
+                                    .onTapGesture(perform: {
+                                        currentTile = tile
+                                        currentTileSet.currentTile = tile
+                                    })
+                                    .padding(10)
                             }
-                        
                             
                             if tile === currentTile {
                                 Rectangle()
@@ -119,5 +116,22 @@ struct TileGridView: View {
             }
             document.core.updateTilePreviews()
         }
+    }
+    
+    func getTileImage(_ tile: Tile) -> CGImage? {
+        let gridType = document.core.project.getCurrentScreen()?.gridType
+
+        if gridType == .rectFront {
+            if let tiled = tile.nodes[0] as? TiledNode {
+                return tiled.cgiImage
+            }
+        } else
+        if gridType == .rectIso {
+            if let tiled = tile.isoNodes[0] as? IsoTiledNode {
+                return tiled.cgiImage
+            }
+        }
+        
+        return nil
     }
 }

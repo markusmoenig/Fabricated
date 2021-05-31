@@ -568,27 +568,36 @@ struct ParamFloatView: View {
             }
             HStack {
                 Slider(value: Binding<Double>(get: {value}, set: { v in
-                    
-                    if let tile = core.project.currentTileSet?.openTile {
-                        core.startTileUndo(tile, "Node Option Changed")
-                    }
-                    
-                    value = v
-                    valueText = String(format: "%.02f", v)
-
-                    option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
-                    core.renderer.render()
-                    if let tile = core.project.currentTileSet?.openTile {
-                        core.updateTilePreviews(tile)
-                    }
-                    
-                    core.currentTileUndo?.end()
-                    
+                    updateValue(v)
                 }), in: rangeX...rangeY)//, step: Double(parameter.step))
+                Button(valueText, action: {
+                    updateValue(Double(option.defaultFloat))
+                })
+                .frame(maxWidth: 50)
+                .buttonStyle(BorderlessButtonStyle())
+                /*
                 Text(valueText)
-                    .frame(maxWidth: 40)
+                    .frame(maxWidth: 30)
+                */
             }
         }
+    }
+    
+    func updateValue(_ v: Double) {
+        if let tile = core.project.currentTileSet?.openTile {
+            core.startTileUndo(tile, "Node Option Changed")
+        }
+        
+        value = v
+        valueText = String(format: "%.02f", v)
+
+        option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
+        core.renderer.render()
+        if let tile = core.project.currentTileSet?.openTile {
+            core.updateTilePreviews(tile)
+        }
+        
+        core.currentTileUndo?.end()
     }
 }
 

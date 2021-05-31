@@ -233,6 +233,7 @@ class Renderer
         screenDim = dims.1
         
         if tileJobs.isEmpty {
+            print("no jobs")
             core.updatePreviewOnce()
             isRunning = false
         } else {
@@ -427,7 +428,7 @@ class Renderer
             
             var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
                             
-            isoCubeRenderer.render(self, tileJob, &texArray)
+            isoCubeRenderer.render(core, tileJob, &texArray)
             
             if stopRunning {
                 break

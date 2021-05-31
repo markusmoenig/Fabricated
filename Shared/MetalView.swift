@@ -49,15 +49,15 @@ public class DMTKView        : MTKView
     func platformInit()
     {
         layer?.isOpaque = false
-        
-        if viewType == .Preview {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let options : NSTrackingArea.Options = [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow]
-                let trackingArea = NSTrackingArea(rect: self.bounds, options: options,
-                                              owner: self, userInfo: nil)
-                self.addTrackingArea(trackingArea)
-            }
-        }
+    }
+    
+    /// To get continuous mouse events on macOS
+    override public func updateTrackingAreas()
+    {
+        let options : NSTrackingArea.Options = [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow]
+        let trackingArea = NSTrackingArea(rect: self.bounds, options: options,
+                                      owner: self, userInfo: nil)
+        self.addTrackingArea(trackingArea)
     }
     
     func setMousePos(_ event: NSEvent)

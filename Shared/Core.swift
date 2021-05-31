@@ -180,7 +180,7 @@ class Core
         stopRunning = false
         isRunning = true
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInteractive).async {
             self.dispatchGroup.enter()
             self.renderTilePreview(tile)
         }
@@ -204,11 +204,18 @@ class Core
         stopRunning = false
         isRunning = true
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        let gridType = project.getCurrentScreen()?.gridType
+
+        DispatchQueue.global(qos: .utility).async {
             self.dispatchGroup.enter()
             for tile in tileSet.tiles {
                 if self.stopRunning == false {
-                    self.renderTilePreview(tile, singleShot: false)
+                    
+                    if gridType == .rectFront {
+                        self.renderTilePreview(tile, singleShot: false)
+                    } else {
+                        self.renderIsoTilePreview(tile, singleShot: false)
+                    }
                 }
             }
             self.dispatchGroup.leave()
@@ -284,14 +291,14 @@ class Core
         if let nodeView = nodeView {
             nodes = nodeView.getNodes(tile)
         }
-        
+                
         for node in nodes {
             
             // Always render the Tile preview, the other nodes only if the tile is currently shown
-            if (node.role != .Tile && project.currentTileSet?.openTile !== tile) || stopRunning {
+            if ((node.role != .Tile || node.role != .IsoTile) && project.currentTileSet?.openTile !== tile) || stopRunning {
                 break
             }
-         
+                     
             for h in tileRect.y..<tileRect.bottom {
 
                 if stopRunning {
@@ -314,9 +321,9 @@ class Core
                     var color = float4(0, 0, 0, 0)
                     
                     let tile = tileContext.tile!
-                    
-                    if node.role == .Tile {
-                        var node = tile.getNextInChain(tile.nodes[0], .Shape)
+                                        
+                    if node.role == .Tile || node.role == .IsoTile {
+                        var node = tile.getNextInChain(nodes[0], .Shape)
                         if let node = node, node.role == .Pattern {
                             pixelContext.distance = -1
                         }
@@ -351,6 +358,78 @@ class Core
                     if let tiled = node as? TiledNode {
                         tiled.cgiImage = createCGIImage(texArray, tileSize)
                     }
+                }
+            }
+        }
+
+        if singleShot {
+            dispatchGroup.leave()
+        }
+    }
+    
+    /// Renders the is tile preview
+    func renderIsoTilePreview(_ tile: Tile, singleShot: Bool = true)
+    {
+        print("render update for iso tile", tile.name)
+        
+        let tileSize = 80
+        
+        func updateTexture(_ texture: MTLTexture,_ a: Array<SIMD4<Float>>)
+        {
+            var array = a
+            
+            semaphore.wait()
+            let region = MTLRegionMake2D(tileRect.x, tileRect.y, tileRect.width, tileRect.height)
+            
+            array.withUnsafeMutableBytes { texArrayPtr in
+                texture.replace(region: region, mipmapLevel: 0, withBytes: texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * tileRect.width))
+            }
+            
+            if let _ = self.project.currentTileSet?.openTile {
+                DispatchQueue.main.async {
+                    if let _ = self.project.currentTileSet?.openTile {
+                        self.nodeView.update()
+                    }
+                }
+            }
+            
+            semaphore.signal()
+        }
+                
+        let tileContext = TileContext()
+        tileContext.layer = nil
+        tileContext.pixelSize = project.getPixelSize()
+        tileContext.antiAliasing = project.getAntiAliasing()
+        tileContext.tile = copyTile(tile)
+        tileContext.tileInstance = TileInstance(UUID(), UUID())
+        tileContext.tileArea = TileInstanceArea(UUID(), UUID())
+        tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
+        
+        tileContext.areaOffset = float2(0,0)
+        tileContext.areaSize = float2(1, 1)
+        tileContext.tileId = float2(0,0)
+        
+        let tileRect = TileRect(0, 0, tileSize, tileSize)
+                                
+        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(0, 0, 0, 0), count: tileRect.size)
+ 
+        let isoCubeRenderer = IsoCubeRenderer()
+        
+        let node = tile.isoNodes[0]
+
+        let tileJob = TileJob(tileContext, tileRect)
+        
+        isoCubeRenderer.render(self, tileJob, &texArray)
+
+        if stopRunning == false {
+            if node.texture == nil {
+                node.texture = renderer.allocateTexture(device, width: tileSize, height: tileSize)
+            }
+            updateTexture(node.texture!, texArray)
+            
+            if node.role == .IsoTile {
+                if let tiled = node as? IsoTiledNode {
+                    tiled.cgiImage = createCGIImage(texArray, tileSize)
                 }
             }
         }

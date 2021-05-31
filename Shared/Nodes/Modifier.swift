@@ -27,10 +27,12 @@ class ModifierNoise : TileNode {
         type = "ModifierNoise"
         optionGroups.append(TileNodeOptionsGroup("Noise Modifier Options", [
             TileNodeOption(self, "Noise", .Menu, menuEntries: ["Value", "Gradient", "Perlin"], defaultFloat: 0),
-            //TileNodeOption(self, "UV", .Menu, menuEntries: ["Tile", "Area"], defaultFloat: 0),
             TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
-            TileNodeOption(self, "Domain Scale", .Float, range: float2(0.001, 20), defaultFloat: 1),
             TileNodeOption(self, "Result Scale", .Float, defaultFloat: 0.5),
+            TileNodeOption(self, "Domain Scale", .Float, range: float2(0.001, 20), defaultFloat: 1),
+            TileNodeOption(self, "Domain Scale X", .Float, range: float2(0.001, 20), defaultFloat: 1),
+            TileNodeOption(self, "Domain Scale Y", .Float, range: float2(0.001, 20), defaultFloat: 1),
+            TileNodeOption(self, "Rotation", .Int, range: float2(0, 360), defaultFloat: 0)
         ]))
      }
     
@@ -78,21 +80,36 @@ class ModifierNoise : TileNode {
         //let uvType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "UV")
         let pixelize : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Pixelise", 1)
         let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale", 1)
+        let domainScaleX : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale X", 1)
+        let domainScaleY : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale Y", 1)
         let resultScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Result Scale", 0.5)
         
         var uv : float2
         
-        
         if pixelize == 1 {
-            uv = getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) + tileCtx.tileId
+            uv = getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv)
         } else {
-            uv = pixelCtx.uv + tileCtx.tileId
+            uv = pixelCtx.uv
         }
+        
+        func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
+        {
+            let ca : Float = cos(angle), sa = sin(angle)
+            return pos * float2x2(float2(ca, sa), float2(-sa, ca))
+        }
+        
+        let rotation = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Rotation", 0)
+        
+        if rotation != 0 {
+            uv = rotateCW(uv, angle: rotation.degreesToRadians)
+        }
+        
+        uv += tileCtx.tileId
         
         let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise", 0)
 
         let n : Float
-        n = ((noise(pos: uv * domainScale) * 2) - 1) * resultScale
+        n = ((noise(pos: uv * domainScale * float2(domainScaleX, domainScaleY)) * 2) - 1) * resultScale
         /*
         if noiseType == 1 {
             n = swiftNoise.gradientNoise(pos: uv, scale: float2(subDivisions, subDivisions), seed: seed) * scale

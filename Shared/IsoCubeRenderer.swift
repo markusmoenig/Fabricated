@@ -12,7 +12,7 @@ class IsoCubeRenderer
     init() {
     }
     
-    func render(_ renderer: Renderer,_ tileJob: TileJob,_ array: inout Array<float4>) {
+    func render(_ core: Core,_ tileJob: TileJob,_ array: inout Array<float4>) {
      
         let tileContext = tileJob.tileContext
         let tileRect = tileJob.tileRect
@@ -80,7 +80,7 @@ class IsoCubeRenderer
             return simd_normalize(float3(n1, n2, n3))
         }
         
-        let AA = max(Int(renderer.core.project.getAntiAliasing()), 1)
+        let AA = max(Int(core.project.getAntiAliasing()), 1)
         let tileSize = float2(Float(tileRect.width), Float(tileRect.height))
         
         for h in tileRect.y..<tileRect.bottom {
@@ -89,7 +89,7 @@ class IsoCubeRenderer
                 
                 var total = float4(0,0,0,0)
 
-                let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
+                let areaOffset = /*tileContext.areaOffset +*/ float2(Float(w), Float(h))
                 let areaSize = tileContext.areaSize * tileSize
 
                 let pixelContext = TilePixelContext(areaOffset: areaOffset, areaSize: areaSize, tileRect: tileRect)

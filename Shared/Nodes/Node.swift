@@ -52,6 +52,8 @@ class TileNodeOption
     
     var exclusion           : TileNodeOptionExclusion? = nil
     var exclusionTrigger    : Bool = false
+    
+    var defaultFloat        : Float
 
     init(_ node: TileNode,_ name: String,_ type: OptionType, menuEntries: [String]? = nil, range: float2 = float2(0,1), exclusion: TileNodeOptionExclusion? = nil, exclusionTrigger: Bool = false, defaultFloat: Float = 1, defaultFloat4: float4 = float4(0.5, 0.5, 0.5, 1))
     {
@@ -62,6 +64,7 @@ class TileNodeOption
         self.range = range
         self.exclusion = exclusion
         self.exclusionTrigger = exclusionTrigger
+        self.defaultFloat = defaultFloat
         
         if type == .Color {
             if node.doesFloatExist(name + "_x") == false {
@@ -192,7 +195,7 @@ class TileNode : MMValues, Codable, Equatable, Identifiable {
     func transformUV(pixelCtx: TilePixelContext, tileCtx: TileContext, pixelise: Bool = true, centered: Bool = true, areaAdjust: Bool = false) -> float2
     {
         var uv = pixelCtx.uv
-                
+        
         if areaAdjust {
             if tileCtx.areaSize.x > 1 {
                 uv.x += tileCtx.areaSize.x - (tileCtx.areaSize.x - tileCtx.areaOffset.x)

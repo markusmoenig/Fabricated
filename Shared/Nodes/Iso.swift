@@ -8,7 +8,8 @@
 import Foundation
 
 final class IsoTiledNode : TileNode {
-    
+    var cgiImage        : CGImage? = nil
+
     enum IsoFace : Int {
         case Top, Left, Right
     }
@@ -22,6 +23,14 @@ final class IsoTiledNode : TileNode {
     required init()
     {
         super.init(.IsoTile, "Iso Tile")
+    }
+    
+    deinit {
+        cgiImage = nil
+        if let texture = texture {
+            texture.setPurgeableState(.empty)
+        }
+        texture = nil
     }
     
     override func setup()
