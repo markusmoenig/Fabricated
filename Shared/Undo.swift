@@ -100,7 +100,9 @@ class TileUndoComponent
     }
     
     func end() {
-            
+                    
+        tile.setHasChanged(true)
+
         let encodedData = try? JSONEncoder().encode(tile)
         if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
             processedData = encodedObjectJsonString

@@ -133,7 +133,6 @@ class IsoCubeRenderer
                             total.z += normal.z
                             total.w += 1
                             */
-
                             
                             let areaOffset = tileContext.areaOffset + float2(Float(w), Float(h))
                             let areaSize = tileContext.areaSize * float2(Float(tileRect.width), Float(tileRect.height))
@@ -147,20 +146,22 @@ class IsoCubeRenderer
                             var uv      = float2(0,0)
                                                         
                             if normal.y > 0.5 {
-                                //nodes = tileJob.tileContext.tile.isoNodesTop
+                                // Top
                                 uv = (float2(hp.x, hp.z) * 0.5) + 0.5
                                 pixelContext.uv = uv
                                 isoNode.isoFace = .Top
                             } else
                             if normal.z > 0.5 {
-                                //nodes = tileJob.tileContext.tile.isoNodesLeft
+                                // Left
                                 uv = (float2(hp.x, hp.y) * 0.5) + 0.5
+                                uv.y = 1.0 - uv.y
                                 pixelContext.uv = uv
                                 isoNode.isoFace = .Left
                             } else {
                             //if normal.x > 0.5 {
-                                //nodes = tileJob.tileContext.tile.isoNodesRight
+                                // Right
                                 uv = (float2(hp.z, hp.y) * 0.5) + 0.5
+                                uv.y = 1.0 - uv.y
                                 pixelContext.uv = uv
                                 isoNode.isoFace = .Right
                             }

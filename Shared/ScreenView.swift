@@ -398,7 +398,7 @@ class ScreenView
             // --- Check for Control Tool
             if let area = toolControlArea {
                 let nAreaPos = getNormalizedAreaPos(pos, area)
-                
+                                
                 let control = getToolControl(pos, nAreaPos)
                 if control != .None {
                     self.toolControl = control
@@ -484,9 +484,13 @@ class ScreenView
                         //core.nodeView.update()
                     }
                 } else {
-                    layer.selectedAreas = []
-                    core.areaChanged.send()
-                    update()
+                    
+                    // Deselect only if no controls are being selected
+                    if toolControl == .None {
+                        layer.selectedAreas = []
+                        core.areaChanged.send()
+                        update()
+                    }
                 }
             } else
             if core.currentTool == .Clear {
@@ -751,10 +755,8 @@ class ScreenView
                 layer.selectedAreas = [area]
                 
                 core.currentLayerUndo?.end()
-                core.currentTileUndo?.end()
                 
                 core.currentLayerUndo = nil
-                core.currentTileUndo = nil
 
                 if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl {
                     core.project.setHasChanged(true)
@@ -765,7 +767,10 @@ class ScreenView
             } else
             if action == .DragTool {
                 core.currentLayerUndo?.end()
+                core.currentTileUndo?.end()
+
                 core.currentLayerUndo = nil
+                core.currentTileUndo = nil
             }
         }
         

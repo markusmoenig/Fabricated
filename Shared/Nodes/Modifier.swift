@@ -84,19 +84,10 @@ class ModifierNoise : TileNode {
         
         
         if pixelize == 1 {
-            uv = getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.originalUV)// + tileCtx.tileId
+            uv = getPixelUV(pixelCtx: pixelCtx, tileCtx: tileCtx, uv: pixelCtx.uv) + tileCtx.tileId
         } else {
-            uv = pixelCtx.originalUV// + tileCtx.tileId
+            uv = pixelCtx.uv + tileCtx.tileId
         }
-        
-        let tileAspectX : Float = 1 / 2
-        let tileAspectY : Float = 1 / 4
-        
-        let center = tileCtx.tileId
-        let centerX = (center.x / tileAspectX + center.y / tileAspectY) / 2.0
-        let centerY = (center.y / tileAspectY - (center.x / tileAspectX)) / 2.0
-                    
-        uv += float2(round(centerX), round(centerY))
         
         let noiseType : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Noise", 0)
 

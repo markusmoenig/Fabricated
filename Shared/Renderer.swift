@@ -41,8 +41,6 @@ class TilePixelContext
     let offset      : float2    // The local tile offset
     var uv          : float2    // The local tile UV
 
-    var originalUV  : float2    // The original, untransformed UV
-
     let width       : Float     // Tile Width
     let height      : Float     // Tile Height
     
@@ -61,7 +59,6 @@ class TilePixelContext
         height = Float(tileRect.height)
         
         uv = offset / float2(width, height)
-        originalUV = uv
         distance = 10000
     }
 }
