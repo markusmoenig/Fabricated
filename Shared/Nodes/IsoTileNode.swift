@@ -13,7 +13,9 @@ final class IsoTiledNode : TileNode {
         case Top, Left, Right
     }
 
-    var isoFace : IsoFace = .Top
+    var cgiImage        : CGImage? = nil
+    
+    var isoFace         : IsoFace = .Top
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -22,6 +24,14 @@ final class IsoTiledNode : TileNode {
     required init()
     {
         super.init(.IsoTile, "Iso Tile")
+    }
+    
+    deinit {
+        cgiImage = nil
+        if let texture = texture {
+            texture.setPurgeableState(.empty)
+        }
+        texture = nil
     }
     
     override func setup()

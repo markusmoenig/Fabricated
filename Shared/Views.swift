@@ -315,6 +315,19 @@ struct NodeToolbar: View {
 
     var body: some View {
         HStack {
+            Button(action: {
+                if let tileSet = document.core.project.currentTileSet {
+                    tileSet.openTile = nil
+                    document.core.tileSetChanged.send(tileSet)
+                }
+            })
+            {
+                //Label("Tile Set", systemImage: "arrowshape.turn.up.backward")
+                Image(systemName: "arrowshape.turn.up.backward")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .padding(.horizontal, 10)
+            
             Menu {
                 Menu {
                     Button("Box", action: {
@@ -366,7 +379,7 @@ struct NodeToolbar: View {
                 }
             }
             label: {
-                Label("Add Node", systemImage: "plus")
+                Text("Add Node")
             }
             .menuStyle(BorderlessButtonMenuStyle())
             .frame(maxWidth: 120)
@@ -381,8 +394,10 @@ struct NodeToolbar: View {
                     document.core.nodeView.nodeIsAboutToBeDeleted(node)
                     
                     if let tile = document.core.project.currentTileSet?.openTile {
-                        if let index = tile.nodes.firstIndex(of: node) {
-                            tile.nodes.remove(at: index)
+                        var nodes = document.core.nodeView.getNodes(tile)
+                        if let index = nodes.firstIndex(of: node) {
+                            nodes.remove(at: index)
+                            document.core.nodeView.setNodes(tile, nodes)
                             tile.setHasChanged(true)
                         }
                     }
@@ -422,17 +437,6 @@ struct NodeToolbar: View {
             .frame(maxWidth: 100)
             
             Spacer()
-            
-            Button(action: {
-                if let tileSet = document.core.project.currentTileSet {
-                    tileSet.openTile = nil
-                    document.core.tileSetChanged.send(tileSet)
-                }
-            })
-            {
-                Label("Tile Set", systemImage: "arrowshape.turn.up.backward")
-            }
-            .buttonStyle(BorderlessButtonStyle())
         }
         .padding(4)
         .frame(minHeight: 30)

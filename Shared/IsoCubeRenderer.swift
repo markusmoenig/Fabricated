@@ -169,11 +169,11 @@ class IsoCubeRenderer
                             var color = float4(0, 0, 0, 0)
 
                             if nodes.count > 0 {
-                                /*
+                                
                                 let noded = nodes[0]
                                 let offset = noded.readFloat2FromInstanceAreaIfExists(tileContext.tileArea, noded, "_offset", float2(0.5, 0.5)) - float2(0.5, 0.5)
                                 pixelContext.uv -= offset
-                                pixelContext.areaUV -= offset*/
+                                pixelContext.areaUV -= offset
                                                                                             
                                 var node = tile.getNextInChain(nodes[0], .Shape)
                                 while node !== nil {

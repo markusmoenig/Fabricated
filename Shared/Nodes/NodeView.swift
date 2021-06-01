@@ -464,6 +464,7 @@ class NodeView
                 }
             }
         }
+        setNodes(tile, nodes)
         return false
     }
     

@@ -39,10 +39,13 @@ class ScreenView
     var dragId              = SIMD2<Int>(0, 0)
     var mouseMovedPos       : float2? = nil
     
+    // Tool Related
     var toolControlArea     : TileInstanceArea? = nil
     
     var resizeToolPos1      = float2(0, 0)
     var resizeToolPos2      = float2(0, 0)
+    
+    var toolControlRadius   : Float = 0
 
     var firstDraw           = true
         

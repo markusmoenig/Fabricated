@@ -45,6 +45,8 @@ class TilePixelContext
     let height      : Float     // Tile Height
     
     var distance    : Float     // The current 2D SDF distance as computed by the Shape nodes
+    
+    var preview      : Bool = false
         
     init(areaOffset: float2, areaSize: float2, tileRect: TileRect)
     {

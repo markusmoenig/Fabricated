@@ -19,6 +19,7 @@ extension ScreenView {
 
         if gridType == .rectIso {
             // Draw a box around the area to show valid range
+            print("draw iso rect", areaRect.x, areaRect.y, areaRect.width, areaRect.height)
             drawables.drawBox(position: areaRect.position(), size: areaRect.size(), borderSize: 2, fillColor: float4(repeating: 0), borderColor: float4(1, 1, 1, 1))
         }
         
@@ -50,8 +51,10 @@ extension ScreenView {
         
         let borderSize = 2 * graphZoom
         
-        let r = convertFloat(0.08)
+        let r : Float = 15 * graphZoom//min(convertFloat(0.08), 15)
         let off = r / 2 + r / 3
+        
+        toolControlRadius = r
         
         if let node = node, core.currentTool == .Select {
             if node.tool == .QuadraticSpline {
@@ -171,7 +174,9 @@ extension ScreenView {
     {
         var control : ToolControl = .None
         
-        func checkForDisc(_ pos: float2,_ discPos: float2,_ radius: Float) -> Bool {
+        let radius = toolControlRadius
+        
+        func checkForDisc(_ pos: float2,_ discPos: float2) -> Bool {
             let rect = MMRect(discPos.x - radius, discPos.y - radius, radius * 2, radius * 2)
             if rect.contains(pos.x, pos.y) {
                 return true
@@ -186,26 +191,26 @@ extension ScreenView {
                     
                     // Tool controls available in .Select Mode
                     if currentNode.tool == .QuadraticSpline {
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control1", float2(0.0, 0.5))) {
                             control = .BezierControl1
                         } else
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control2", float2(0.5, 0.501))) {
                             control = .BezierControl2
                         } else
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_control3", float2(1.0, 0.5))) {
                             control = .BezierControl3
                         }
                     } else
                     if currentNode.tool == .Offset {
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_offset", float2(0.5, 0.5))) {
                             control = .OffsetControl
                         }
                     } else
                     if currentNode.tool == .Range {
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range1", float2(0.5, 0.3)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range1", float2(0.5, 0.3))) {
                             control = .Range1Control
                         }
-                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range2", float2(0.5, 0.7)), 0.08) {
+                        if checkForDisc(nPos, currentNode.readOptionalFloat2InstanceArea(core, currentNode, "_range2", float2(0.5, 0.7))) {
                             control = .Range2Control
                         }
                     }
@@ -226,13 +231,11 @@ extension ScreenView {
                 func convertFloat(_ v: Float) -> Float {
                     return v * tileSize * Float(area.area.w) * graphZoom
                 }
-                
-                let r = convertFloat(0.08)
-                
-                if checkForDisc(pos, resizeToolPos1, r) {
+                                
+                if checkForDisc(pos, resizeToolPos1) {
                     control = .ResizeControl1
                 } else
-                if checkForDisc(pos, resizeToolPos2, r) {
+                if checkForDisc(pos, resizeToolPos2) {
                     control = .ResizeControl2
                 }
                 
@@ -297,8 +300,14 @@ extension ScreenView {
         } else {
             let lowerRight = tileIdToScreen(SIMD2<Int>(area.area.x + area.area.z, area.area.y + area.area.w))
 
-            rect.width = lowerRight.x - upperLeft.x + tileSize * graphZoom
-            rect.height = lowerRight.y - upperLeft.y + (tileSize / 2.0) * graphZoom
+            if lowerRight.x < upperLeft.x {
+                rect.x = lowerRight.x
+                rect.width = upperLeft.x - lowerRight.x + tileSize * graphZoom
+            } else {
+                rect.width = lowerRight.x - upperLeft.x + tileSize * graphZoom
+            }
+            
+            rect.height = abs(lowerRight.y - upperLeft.y) + (tileSize / 2.0) * graphZoom
         }
         
         return rect

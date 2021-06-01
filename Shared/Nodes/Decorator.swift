@@ -76,6 +76,10 @@ class DecoratorTileNode : TileNode {
     
     override func render(pixelCtx: TilePixelContext, tileCtx: TileContext, prevColor: float4) -> float4
     {
+        if pixelCtx.preview {
+            return renderDecorator(pixelCtx: pixelCtx, tileCtx: tileCtx)
+        }
+        
         let shapeMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Shape")
         let modifierMode = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Modifier")
         let sign : Float = shapeMode == 0 ? -1 : 1
@@ -102,7 +106,7 @@ class DecoratorTileNode : TileNode {
         
         patternColor = simd_mix(prevColor, patternColor, float4(step, step, step, step))
         patternColor = patternColor.clamped(lowerBound: float4(repeating: 0), upperBound: float4(repeating: 1))
-        
+                
         return patternColor
     }
 }

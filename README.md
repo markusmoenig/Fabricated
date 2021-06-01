@@ -2,7 +2,7 @@
 
 ![screenshot](images/screen.png)
 
-## Create procedural 2D game assets on macOS and iOS
+## Create procedural 2D and 2.5D game assets on macOS and iOS
 
 Fabricated can create tile based game assets via an easy to use procedural node system.
 
@@ -15,7 +15,3 @@ Create seamlessly repeating shaped tiles for every eventuality and decorate them
 ## Status
 
 Fabricated is at the start of its development cycle and is currently in the concept stage.
-
-## How to help
-
-A small donation to the author (via [PayPal](https://paypal.me/markusmoenig)) is appreciated. Should Fabricated become popular I may start a Patreon for it.
