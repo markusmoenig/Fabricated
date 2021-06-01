@@ -180,7 +180,7 @@ class Core
         stopRunning = false
         isRunning = true
         
-        DispatchQueue.global(qos: .userInteractive).async {
+        DispatchQueue.global(qos: .utility).async {
             self.dispatchGroup.enter()
             self.renderTilePreview(tile)
         }
@@ -210,17 +210,15 @@ class Core
             self.dispatchGroup.enter()
             for tile in tileSet.tiles {
                 if self.stopRunning == false {
+                    self.renderTilePreview(tile, singleShot: false)
                     
-                    if gridType == .rectFront {
-                        self.renderTilePreview(tile, singleShot: false)
-                    } else {
+                    if gridType == .rectIso {
                         self.renderIsoTilePreview(tile, singleShot: false)
                     }
                 }
             }
             self.dispatchGroup.leave()
             //DispatchQueue.main.async {
-            print("finished")
             DispatchQueue.main.async {
                 self.tileSetChanged.send(tileSet)
             }
@@ -240,7 +238,7 @@ class Core
     /// Renders the tile previews in a separate thread
     func renderTilePreview(_ tile: Tile, singleShot: Bool = true)
     {
-        print("render update for tile", tile.name)
+        //print("render update for tile", tile.name)
         
         let tileSize = 80
         
@@ -290,6 +288,12 @@ class Core
         
         if let nodeView = nodeView {
             nodes = nodeView.getNodes(tile)
+        } else {
+            let gridType = project.getCurrentScreen()?.gridType
+
+            if gridType == .rectIso {
+                nodes = tile.isoNodes
+            }
         }
                 
         for node in nodes {
@@ -298,7 +302,7 @@ class Core
             if ((node.role != .Tile || node.role != .IsoTile) && project.currentTileSet?.openTile !== tile) || stopRunning {
                 break
             }
-                     
+                                 
             for h in tileRect.y..<tileRect.bottom {
 
                 if stopRunning {
@@ -351,7 +355,7 @@ class Core
                 }
             }
         }
-
+        
         if singleShot {
             dispatchGroup.leave()
         }
@@ -360,7 +364,7 @@ class Core
     /// Renders the is tile preview
     func renderIsoTilePreview(_ tile: Tile, singleShot: Bool = true)
     {
-        print("render update for iso tile", tile.name)
+        //print("render update for iso tile", tile.name)
         
         let tileSize = 80
         

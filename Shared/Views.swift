@@ -19,6 +19,8 @@ struct ProjectView: View {
     @State      var debugText1                  : String = "2.12"
     @State      var debugText2                  : String = "3.71"
 
+    @State var tileImage                        : CGImage? = nil
+
     var body: some View {
         VStack {
             List() {
@@ -98,16 +100,8 @@ struct ProjectView: View {
                             }
                     }
                 }
-                
-                #if os(macOS)
-                Divider()
-                #endif
-                
-                // MARK: Debug Entries
-            
             }
-            
-            
+
             /*
             TextField("Debug1", text: $debugText1, onEditingChanged: { (changed) in
                 document.core.project.debug1 = Float(debugText1)!
@@ -125,7 +119,40 @@ struct ProjectView: View {
                 currentLayer = document.core.project.currentLayer
                 currentTileSet = document.core.project.currentTileSet
             })
+            
+            .onReceive(document.core.tileSetChanged) { tileNode in
+                tileImage = nil
+                if let tile = document.core.project.currentTileSet?.openTile {
+                    tileImage = getTileImage(tile)
+                }
+            }
+            
+            if let image = tileImage {
+                #if os(macOS)
+                Divider()
+                #endif
+                Text("Tile Preview")
+                Image(image, scale: 1.0, label: Text(""))
+                    .padding(.bottom, 10)
+            }
         }
+    }
+    
+    func getTileImage(_ tile: Tile) -> CGImage? {
+        let gridType = document.core.project.getCurrentScreen()?.gridType
+
+        if gridType == .rectFront {
+            if let tiled = tile.nodes[0] as? TiledNode {
+                return tiled.cgiImage
+            }
+        } else
+        if gridType == .rectIso {
+            if let tiled = tile.isoNodes[0] as? IsoTiledNode {
+                return tiled.cgiImage
+            }
+        }
+        
+        return nil
     }
 }
 

@@ -64,9 +64,8 @@ struct TileGridView: View {
             LazyVGrid(columns: columns, spacing: 0) {
                 if let currentTileSet = currentTileSet {
                     ForEach(currentTileSet.tiles, id: \.id) { tile in
-                        ZStack {
-                        //Text(tile.name)
-                            
+                        ZStack(alignment: .bottom) {
+                        
                             if let image = getTileImage(tile) {
                                 Image(image, scale: 1.0, label: Text(tile.name))
                                         .onTapGesture(perform: {
@@ -78,12 +77,12 @@ struct TileGridView: View {
                             } else {
                                 Rectangle()
                                     .fill(Color.secondary)
-                                    .frame(width: 80, height: 80)
+                                    .frame(width: 87, height: 87)
                                     .onTapGesture(perform: {
                                         currentTile = tile
                                         currentTileSet.currentTile = tile
                                     })
-                                    .padding(10)
+                                    .padding(3)
                             }
                             
                             if tile === currentTile {
@@ -91,6 +90,15 @@ struct TileGridView: View {
                                     .stroke(Color.primary, lineWidth: 2)
                                     .frame(width: 90, height: 90)
                             }
+                            
+                            Rectangle()
+                                .fill(Color.secondary)
+                                .opacity(0.5)
+                                .frame(width: 80, height: 20)
+                                .padding(4)
+                            
+                            Text(tile.name)
+                                .padding(6)
                         }
                     }
                 }
