@@ -364,7 +364,7 @@ class TileSetPalette : Codable, Equatable
         return lhs.id == rhs.id
     }
     
-    func getColor(_ index: Int) -> TileSetColor {
+    func getColorAtIndex(_ index: Int) -> TileSetColor {
         if index >= 0 && colors.count > index {
             return colors[index]
         } else {
@@ -431,6 +431,8 @@ class TileSet      : Codable, Equatable
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(tiles, forKey: .tiles)
+        try container.encode(palettes, forKey: .palettes)
+        try container.encode(currentPalette, forKey: .currentPalette)
     }
     
     /// Return the current palette of the TileSet

@@ -71,6 +71,7 @@ class TileContext
     var tileInstance    : TileInstance!     // The instance of the tile
     var tileArea        : TileInstanceArea! // The area of the tile
     var layer           : Layer!            // The current layer
+    var tileSet         : TileSet!          // The current tile set
 
     var pixelSize       : Float = 1
     var antiAliasing    : Float = 2
@@ -175,6 +176,7 @@ class Renderer
                             let tileContext = TileContext()
                             tileContext.tileInstance = layer.tileInstances[SIMD2<Int>(w,h)]
                             tileContext.tileId = SIMD2<Float>(Float(w),Float(h))
+                            tileContext.tileSet = core.project.currentTileSet
 
                             // Calculate tileRect
                             let x : Float

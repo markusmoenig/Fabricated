@@ -29,7 +29,7 @@ class PatternTileNode : TileNode {
             }
         }
         
-        let backgroundColor = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Background")
+        let backgroundColor = tileCtx.tileSet.getPalette().getColorAtIndex(Int(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Background", 0))).value
         
         if isMissing {
             color = float4(repeating: 0)
@@ -57,7 +57,7 @@ final class DecoratorTilesAndBricks : PatternTileNode {
         type = "DecoratorTilesAndBricks"
         
         optionGroups.append(TileNodeOptionsGroup("Tiles & Bricks Decorator Options", [
-            TileNodeOption(self, "Background", .Color, defaultFloat4: float4(0.0, 0.0, 0.0, 1)),
+            TileNodeOption(self, "Background", .Color, defaultFloat: 0),
             TileNodeOption(self, "Size", .Int, range: float2(1, 40), defaultFloat: 20),
             TileNodeOption(self, "Ratio", .Int, range: float2(1, 20), defaultFloat: 3),
             TileNodeOption(self, "Bevel", .Float, range: float2(0, 1), defaultFloat: 0.2),

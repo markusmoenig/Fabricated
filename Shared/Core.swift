@@ -47,6 +47,8 @@ class Core
     let layerChanged    = PassthroughSubject<Layer?, Never>()
     let areaChanged     = PassthroughSubject<Void, Never>()
 
+    let colorChanged    = PassthroughSubject<Void, Never>()
+
     let tileSetChanged  = PassthroughSubject<TileSet?, Never>()
 
     let updateTools     = PassthroughSubject<Void, Never>()
@@ -272,6 +274,7 @@ class Core
         tileContext.tileInstance = TileInstance(UUID(), UUID())
         tileContext.tileArea = TileInstanceArea(UUID(), UUID())
         tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
+        tileContext.tileSet = project.currentTileSet
         
         tileContext.areaOffset = float2(0,0)
         tileContext.areaSize = float2(1, 1)
@@ -398,6 +401,7 @@ class Core
         tileContext.tileInstance = TileInstance(UUID(), UUID())
         tileContext.tileArea = TileInstanceArea(UUID(), UUID())
         tileContext.tileArea.area = SIMD4<Int>(0,0,1,1)
+        tileContext.tileSet = project.currentTileSet
         
         tileContext.areaOffset = float2(0,0)
         tileContext.areaSize = float2(1, 1)

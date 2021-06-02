@@ -105,6 +105,19 @@ struct ProjectView: View {
                 Divider()
                 #endif
                 
+                HStack {
+                    Menu {
+                        Button("Default", action: {
+
+                        })
+                    }
+                    
+                    label: {
+                        Text("Default")
+                    }
+                }
+            
+                
                 PaletteView(core: document.core, updateView: $updateView)
             }
 
@@ -753,7 +766,7 @@ struct ParamColorView: View {
             let palette = tileSet.getPalette()
             let index = Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name, 0))
                     
-            _colorValue = State(initialValue: palette.getColor(index).toColor())
+            _colorValue = State(initialValue: palette.getColorAtIndex(index).toColor())
         } else {
             _colorValue = State(initialValue: Color.gray)
         }
@@ -774,19 +787,21 @@ struct ParamColorView: View {
                     .onTapGesture(perform: {
                         
                     })
-                    .padding(5)
             }
-            .buttonStyle(BorderlessButtonStyle())
             // Edit Node name
             .popover(isPresented: $showPopover,
                      arrowEdge: .top
             ) {
                 VStack {
-                    PaletteView(core: core, updateView: $updateView, editor: false)
+                    PaletteView(core: core, updateView: $updateView, option: option)
                         .padding()
                 } .frame(width: 220, height: 150)
 
             }.padding()
+            
+            .onReceive(core.colorChanged) { _ in
+                colorValue = getColor()
+            }
 
             /*
             ColorPicker("", selection: $colorValue, supportsOpacity: true)
@@ -813,7 +828,7 @@ struct ParamColorView: View {
             let palette = tileSet.getPalette()
             let index = Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name, 0))
                     
-            return palette.getColor(index).toColor()
+            return palette.getColorAtIndex(index).toColor()
         } else {
             return Color.gray
         }

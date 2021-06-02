@@ -130,8 +130,8 @@ final class DecoratorGradient : DecoratorTileNode {
             TileNodeOption(self, "Gradient", .Menu, menuEntries: ["Linear", "Radial", "Angle"], defaultFloat: 0),
             TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
 
-            TileNodeOption(self, "Color1", .Color, defaultFloat4: float4(0.0, 0.0, 0.0, 1)),
-            TileNodeOption(self, "Color2", .Color, defaultFloat4: float4(1.0, 1.0, 1.0, 1))
+            TileNodeOption(self, "Color #1", .Color, defaultFloat: 0),
+            TileNodeOption(self, "Color #2", .Color, defaultFloat: 1)
         ]))
         optionGroups.append(createDefaultDecoratorOptionsGroup())
     }
@@ -194,8 +194,9 @@ final class DecoratorGradient : DecoratorTileNode {
             s = gradient_linear(uv: uv, p1: p1, p2: p2)
         }
         
-        let color1 = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color1")
-        let color2 = readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color2")
+        let color1 = tileCtx.tileSet.getPalette().getColorAtIndex(Int(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Color #1", 0))).value
+        let color2 = tileCtx.tileSet.getPalette().getColorAtIndex(Int(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Color #2", 0))).value
+
         
         return simd_mix(color1, color2, float4(repeating: s))
     }
@@ -217,7 +218,7 @@ final class DecoratorColor : DecoratorTileNode {
         type = "DecoratorColor"
         
         optionGroups.append(TileNodeOptionsGroup("Color Decorator Options", [
-            TileNodeOption(self, "Color", .Color, defaultFloat4: float4(0.765, 0.600, 0.365, 1))
+            TileNodeOption(self, "Color", .Color, defaultFloat: 0)
         ]))
         optionGroups.append(createDefaultDecoratorOptionsGroup())
     }
@@ -241,7 +242,7 @@ final class DecoratorColor : DecoratorTileNode {
     
     override func renderDecorator(pixelCtx: TilePixelContext, tileCtx: TileContext) -> float4
     {
-        return readFloat4FromInstanceAreaIfExists(tileCtx.tileArea, self, "Color")
+        return tileCtx.tileSet.getPalette().getColorAtIndex(Int(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Color", 0))).value
     }
 }
 
