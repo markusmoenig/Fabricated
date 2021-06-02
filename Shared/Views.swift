@@ -100,6 +100,12 @@ struct ProjectView: View {
                             }
                     }
                 }
+                
+                #if os(macOS)
+                Divider()
+                #endif
+                
+                PaletteView(core: document.core, updateView: $updateView)
             }
 
             /*
@@ -127,11 +133,12 @@ struct ProjectView: View {
                 }
             }
             
+            Spacer()
+            
             if let image = tileImage {
                 #if os(macOS)
                 Divider()
                 #endif
-                Text("Tile Preview")
                 Image(image, scale: 1.0, label: Text(""))
                     .padding(.bottom, 10)
             }
@@ -732,15 +739,24 @@ struct ParamColorView: View {
     let core                                : Core
     let option                              : TileNodeOption
     
+    @State var updateView                   : Bool = false
+    
     @State var colorValue                   : Color
+    @State var showPopover                  : Bool = false
 
     init(_ core: Core, _ option: TileNodeOption)
     {
         self.core = core
         self.option = option
         
-        let value = option.node.readOptionalFloat4InstanceArea(core, option.node, option.name)
-        _colorValue = State(initialValue: Color(.sRGB, red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w)))
+        if let tileSet = core.project.currentTileSet {
+            let palette = tileSet.getPalette()
+            let index = Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name, 0))
+                    
+            _colorValue = State(initialValue: palette.getColor(index).toColor())
+        } else {
+            _colorValue = State(initialValue: Color.gray)
+        }
     }
     
     var body: some View {
@@ -748,6 +764,31 @@ struct ParamColorView: View {
         HStack(alignment: .center) {
             Text(option.name)
             Spacer()
+            Button(action: {
+                showPopover = true
+            })
+            {
+                Rectangle()
+                    .fill(colorValue)
+                    .frame(width: 25, height: 15)
+                    .onTapGesture(perform: {
+                        
+                    })
+                    .padding(5)
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            // Edit Node name
+            .popover(isPresented: $showPopover,
+                     arrowEdge: .top
+            ) {
+                VStack {
+                    PaletteView(core: core, updateView: $updateView, editor: false)
+                        .padding()
+                } .frame(width: 220, height: 150)
+
+            }.padding()
+
+            /*
             ColorPicker("", selection: $colorValue, supportsOpacity: true)
                 .onChange(of: colorValue) { color in
                     
@@ -762,7 +803,19 @@ struct ParamColorView: View {
                         core.updateTilePreviews(tile)
                     }
                     core.currentTileUndo?.end()
-                }
+                }*/
+        }
+    }
+    
+    /// Gets the current color for the option
+    func getColor() -> Color {
+        if let tileSet = core.project.currentTileSet {
+            let palette = tileSet.getPalette()
+            let index = Int(option.node.readOptionalFloatInstanceArea(core, option.node, option.name, 0))
+                    
+            return palette.getColor(index).toColor()
+        } else {
+            return Color.gray
         }
     }
 }

@@ -6,7 +6,9 @@
 //
 
 import MetalKit
+import SwiftUI
 
+/// A fabricated project consists of a set of screens (or levels) which can multiple layers and a set of tilesets.
 class Project           : MMValues, Codable
 {
     var screens         : [Screen] = []
@@ -151,6 +153,7 @@ class Project           : MMValues, Codable
     }
 }
 
+/// A screen (or level) contains multiple layers of tiles. A screen also contains a grid / viewing mode specific to this screen.
 class Screen        : Codable, Equatable
 {    
     enum GridType : Int, Codable {
@@ -198,6 +201,7 @@ class Screen        : Codable, Equatable
     }
 }
 
+/// A layer contains references to tile instances and areas
 class Layer             : MMValues, Codable, Equatable
 {
     var layers          : [Layer] = []
@@ -268,12 +272,118 @@ class Layer             : MMValues, Codable, Equatable
     }
 }
 
+/// A single color value
+class TileSetColor : Codable, Equatable
+{
+    var id          = UUID()
+    var name        = ""
+    
+    var value      : float4
+    
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case value
+    }
+    
+    init(_ name: String = "", value: float4 = float4(0.5,0.5,0.5,1))
+    {
+        self.name = name
+        self.value = value
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        value = try container.decode(float4.self, forKey: .value)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(value, forKey: .value)
+    }
+    
+    static func ==(lhs:TileSetColor, rhs:TileSetColor) -> Bool { // Implement Equatable
+        return lhs.id == rhs.id
+    }
+    
+    /// Convert the value to a SwiftUI Color
+    func toColor() -> Color {
+        return Color(.sRGB, red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w))
+    }
+    
+    func fromColor(_ color: Color) {
+        value = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
+    }
+}
+
+/// A palette of color values
+class TileSetPalette : Codable, Equatable
+{
+    var id          = UUID()
+    var name        = ""
+    var colors      : [TileSetColor] = []
+    
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case colors
+    }
+    
+    init(_ name: String = "Unnamed")
+    {
+        self.name = name
+        
+        for _ in 1...30 {
+            colors.append(TileSetColor())
+        }
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        colors = try container.decode([TileSetColor].self, forKey: .colors)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(colors, forKey: .colors)
+    }
+    
+    static func ==(lhs:TileSetPalette, rhs:TileSetPalette) -> Bool { // Implement Equatable
+        return lhs.id == rhs.id
+    }
+    
+    func getColor(_ index: Int) -> TileSetColor {
+        if index >= 0 && colors.count > index {
+            return colors[index]
+        } else {
+            return TileSetColor()
+        }
+    }
+}
+
+/// A tileset contains a set of tiles
 class TileSet      : Codable, Equatable
 {
     var tiles      : [Tile] = []
+    var palettes   : [TileSetPalette] = []
     
     var currentTile: Tile? = nil
     var openTile   : Tile? = nil
+    
+    var currentPalette      : UUID? = nil
+    var currentColorIndex   : Int = 0
 
     var id          = UUID()
     var name        = ""
@@ -282,11 +392,17 @@ class TileSet      : Codable, Equatable
         case id
         case name
         case tiles
+        case palettes
+        case currentPalette
     }
     
     init(_ name: String = "Unnamed")
     {
         self.name = name
+        
+        let defPalette = TileSetPalette("Default")
+        currentPalette = defPalette.id
+        palettes.append(defPalette)
     }
     
     required init(from decoder: Decoder) throws
@@ -295,6 +411,18 @@ class TileSet      : Codable, Equatable
         tiles = try container.decode([Tile].self, forKey: .tiles)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        
+        if let palettes = try container.decodeIfPresent([TileSetPalette].self, forKey: .palettes) {
+            self.palettes = palettes
+        } else {
+            let defPalette = TileSetPalette("Default")
+            currentPalette = defPalette.id
+            palettes.append(defPalette)
+        }
+                
+        if let currentPalette = try container.decodeIfPresent(UUID?.self, forKey: .currentPalette) {
+            self.currentPalette = currentPalette
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -305,11 +433,28 @@ class TileSet      : Codable, Equatable
         try container.encode(tiles, forKey: .tiles)
     }
     
+    /// Return the current palette of the TileSet
+    func getPalette() -> TileSetPalette {
+        return palettes[0]
+    }
+    
+    /// Returns the current color
+    func getColor() -> TileSetColor? {
+        let palette = getPalette()
+        
+        if palette.colors.count > currentColorIndex {
+            return palette.colors[currentColorIndex]
+        }
+        
+        return nil
+    }
+    
     static func ==(lhs:TileSet, rhs:TileSet) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
 }
 
+/// A tile contains sets of nodes (one for each viewing mode, i.e. frontal or iso).
 class Tile               : Codable, Equatable
 {
     var nodes           : [TileNode] = [TiledNode()]
@@ -407,6 +552,7 @@ class Tile               : Codable, Equatable
     }
 }
 
+/// An instance area defines an area of tile instances in a layer.
 class TileInstanceArea : MMValues, Codable, Equatable
 {
     var id          = UUID()
@@ -471,6 +617,7 @@ class TileInstanceArea : MMValues, Codable, Equatable
     }
 }
 
+/// A tile instance is a reference to tile inside a layer.
 class TileInstance : MMValues, Codable, Equatable
 {
     var id          = UUID()
