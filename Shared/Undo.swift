@@ -133,12 +133,13 @@ class TileUndoComponent
                                 }
                                 tileSet.currentTile = tile
                                 tileSet.openTile = tile
+
+                                tile.setHasChanged(true)
                                 
                                 self.core.tileNodeChanged.send(self.core.nodeView.currentNode)
                                 
                                 self.core.nodeView.update()
                                 self.core.updateTilePreviews(tile)
-                                self.core.project.setHasChanged(true)
                                 self.core.renderer.render()
                             }
                         }

@@ -40,13 +40,19 @@ struct PaletteView: View {
                                     .onTapGesture(perform: {
                                         
                                         if let option = option {
-                                            // Called from ParamColor, set the new index
-                                            if let index = currentPalette.colors.firstIndex(of: color) {
-                                                option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(index))
-                                                core.colorChanged.send()
-                                                
-                                                core.renderer.render()
-                                                if let tile = core.project.currentTileSet?.openTile {
+                                            
+                                            if let tile = core.project.currentTileSet?.openTile {
+                                                                                            
+                                                // Called from ParamColor, set the new index
+                                                if let index = currentPalette.colors.firstIndex(of: color) {
+                                                    core.startTileUndo(tile, "Color Changed")
+
+                                                    option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(index))
+                                                    core.colorChanged.send()
+                                                 
+                                                    core.currentTileUndo?.end()
+
+                                                    core.renderer.render()
                                                     core.updateTilePreviews(tile)
                                                 }
                                             }

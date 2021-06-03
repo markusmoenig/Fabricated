@@ -404,7 +404,7 @@ class ScreenView
                 let nAreaPos = getNormalizedAreaPos(pos, area)
                                 
                 let control = getToolControl(pos, nAreaPos, area)
-                print(control)
+                
                 if control != .None {
                     self.toolControl = control
                     action = .DragTool
@@ -523,7 +523,6 @@ class ScreenView
                     }
                 }
                 core.project.selectedRect = nil
-                core.project.setHasChanged(true)
                 layer.selectedAreas = []
                 core.renderer.render()
                 

@@ -552,10 +552,10 @@ class Tile               : Codable, Equatable
     /// Sets the changed state of the current screen and all tilesets
     func setHasChanged(_ changed: Bool = true) {
         for node in nodes {
-            node.hasChanged = true
+            node.hasChanged = changed
         }
         for node in isoNodes {
-            node.hasChanged = true
+            node.hasChanged = changed
         }
     }
 }
