@@ -21,6 +21,10 @@ struct ProjectView: View {
 
     @State var tileImage                        : CGImage? = nil
 
+    @State private var showRenameLayerPopover   : Bool = false
+    @State private var layerName                : String = ""
+    @State private var contextLayer             : Layer? = nil
+
     var body: some View {
         VStack {
             List() {
@@ -36,7 +40,9 @@ struct ProjectView: View {
                                 currentLayer = layer
                                 document.core.project.currentLayer = layer
                                 document.core.layerChanged.send(layer)
-                                document.core.renderer.render()
+                                if document.core.renderer.renderMode == .Layer {
+                                    document.core.renderer.render()
+                                }
                             })
                             {
                                 Label(layer.name, systemImage: "rectangle.split.3x3")
@@ -54,8 +60,8 @@ struct ProjectView: View {
                                                     if let index = screen.layers.firstIndex(of: currentLayer) {
                                                         screen.layers.insert(layer, at: index)
                                                         self.currentLayer = layer
+                                                        document.core.project.currentLayer = layer
                                                         document.core.layerChanged.send(layer)
-                                                        document.core.renderer.render()
                                                     }
                                                 }
                                             }
@@ -67,13 +73,22 @@ struct ProjectView: View {
                                                     if let index = screen.layers.firstIndex(of: currentLayer) {
                                                         screen.layers.insert(layer, at: index+1)
                                                         self.currentLayer = layer
+                                                        document.core.project.currentLayer = layer
                                                         document.core.layerChanged.send(layer)
-                                                        document.core.renderer.render()
                                                     }
                                                 }
                                             }
                                         })
                                     }
+                                    
+                                    
+                                    Divider()
+
+                                    Button("Rename ...", action: {
+                                        layerName = layer.name
+                                        contextLayer = layer
+                                        showRenameLayerPopover = true
+                                    })
                                 }
                         }
                     }
@@ -119,6 +134,21 @@ struct ProjectView: View {
             
                 
                 PaletteView(core: document.core, updateView: $updateView)
+            }
+            
+            .popover(isPresented: $showRenameLayerPopover,
+                     arrowEdge: .top
+            ) {
+                VStack(alignment: .leading) {
+                    Text("Layer Name:")
+                    TextField("Name", text: $layerName, onEditingChanged: { (changed) in
+                        if let currentLayer = contextLayer {
+                            currentLayer.name = layerName
+                            updateView.toggle()
+                        }
+                    })
+                    .frame(minWidth: 200)
+                }.padding()
             }
 
             /*
@@ -802,23 +832,6 @@ struct ParamColorView: View {
             .onReceive(core.colorChanged) { _ in
                 colorValue = getColor()
             }
-
-            /*
-            ColorPicker("", selection: $colorValue, supportsOpacity: true)
-                .onChange(of: colorValue) { color in
-                    
-                    if let tile = core.project.currentTileSet?.openTile {
-                        core.startTileUndo(tile, "Node Option Changed")
-                    }
-                    let newValue = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
-                    
-                    option.node.writeOptionalFloat4InstanceArea(core, option.node, option.name, value: newValue)
-                    core.renderer.render()
-                    if let tile = core.project.currentTileSet?.openTile {
-                        core.updateTilePreviews(tile)
-                    }
-                    core.currentTileUndo?.end()
-                }*/
         }
     }
     

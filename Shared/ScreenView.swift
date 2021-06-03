@@ -69,6 +69,7 @@ class ScreenView
         let tileSize = core.project.getTileSize()
         let gridType = core.project.getCurrentScreen()?.gridType
         
+        // Grid
         if showGrid == true {
             // Rect Front Grid
             var xOffset    : Float = 0
@@ -402,7 +403,8 @@ class ScreenView
             if let area = toolControlArea {
                 let nAreaPos = getNormalizedAreaPos(pos, area)
                                 
-                let control = getToolControl(pos, nAreaPos)
+                let control = getToolControl(pos, nAreaPos, area)
+                print(control)
                 if control != .None {
                     self.toolControl = control
                     action = .DragTool

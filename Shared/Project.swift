@@ -130,9 +130,7 @@ class Project           : MMValues, Codable
         
         for tileSet in tileSets {
             for tile in tileSet.tiles {
-                for node in tile.nodes {
-                    node.hasChanged = changed
-                }
+                tile.setHasChanged(changed)
             }
         }
     }
@@ -543,12 +541,20 @@ class Tile               : Codable, Equatable
                 return true
             }
         }
+        for node in isoNodes {
+            if node.hasChanged {
+                return true
+            }
+        }
         return false
     }
     
     /// Sets the changed state of the current screen and all tilesets
     func setHasChanged(_ changed: Bool = true) {
         for node in nodes {
+            node.hasChanged = true
+        }
+        for node in isoNodes {
             node.hasChanged = true
         }
     }

@@ -7,12 +7,52 @@
 
 import SwiftUI
 
+struct TileDropViewDelegate: DropDelegate {
+    
+    var grid: Tile
+    var gridData: TileSet
+    
+    func performDrop(info: DropInfo) -> Bool {
+        ///To never disappear drag item when dropped outside
+        //gridData.currentGrid = nil
+        return true
+    }
+    
+    func dropEntered(info: DropInfo) {
+
+        let fromIndex = gridData.tiles.firstIndex { (grid) -> Bool in
+            return grid.id == gridData.currentTile?.id
+        } ?? 0
+        
+        let toIndex = gridData.tiles.firstIndex { (grid) -> Bool in
+            return grid.id == self.grid.id
+        } ?? 0
+        
+        if fromIndex != toIndex{
+            withAnimation(.default){
+                let fromGrid = gridData.tiles[fromIndex]
+                gridData.tiles[fromIndex] = gridData.tiles[toIndex]
+                gridData.tiles[toIndex] = fromGrid
+            }
+        }
+    }
+    
+    // setting Action as Move...
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .move)
+    }
+}
+
 struct TileGridView: View {
     @State      var document                    : FabricatedDocument
     @Binding    var updateView                  : Bool
     
     @State     var currentTileSet               : TileSet? = nil
     @State     var currentTile                  : Tile? = nil
+    
+    @State     var showRenameTilePopover        : Bool = false
+    @State     var tileName                     : String = ""
+    @State     var contextTile                  : Tile? = nil
 
     var body: some View {
         VStack {
@@ -100,12 +140,62 @@ struct TileGridView: View {
                             Text(tile.name)
                                 .padding(6)
                         }
+                        
+                        /*
+                        .onDrag({
+                            currentTile = tile
+                            currentTileSet.currentTile = tile
+                           return NSItemProvider(object: String(tile.name) as NSString)
+                        })
+                        
+                        .onDrop(of: [.text], delegate: TileDropViewDelegate(grid: tile, gridData: currentTileSet))
+                        */
+                        
+                        .contextMenu {
+                            Button("Duplicate", action: {
+                                func copyTile(_ tile: Tile) -> Tile {
+                                    if let data = try? JSONEncoder().encode(tile) {
+                                        if let copiedTile = try? JSONDecoder().decode(Tile.self, from: data) {
+                                            return copiedTile
+                                        }
+                                    }
+                                    return tile
+                                }
+                                
+                                let copy = copyTile(tile)
+                                copy.id = UUID()
+                                currentTileSet.tiles.append(copy)
+                                updateView = true
+                                document.core.updateTileSetPreviews(currentTileSet)
+                            })
+                            
+                            Button("Rename ...", action: {
+                                tileName = tile.name
+                                contextTile = tile
+                                showRenameTilePopover = true
+                            })
+                        }
                     }
                 }
             }
             .padding(4)
             
             Spacer()
+        }
+        
+        .popover(isPresented: $showRenameTilePopover,
+                 arrowEdge: .top
+        ) {
+            VStack(alignment: .leading) {
+                Text("Tile Name:")
+                TextField("Name", text: $tileName, onEditingChanged: { (changed) in
+                    if let currentTile = contextTile {
+                        currentTile.name = tileName
+                        updateView.toggle()
+                    }
+                })
+                .frame(minWidth: 200)
+            }.padding()
         }
         
         .onAppear(perform: {
