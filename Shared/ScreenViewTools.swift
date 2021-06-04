@@ -252,10 +252,7 @@ extension ScreenView {
         
         if control == .None && core.currentTool == .Move {
             control = .MoveControl
-            
-            if control != .None {
-                actionArea = area
-            }
+            actionArea = area
         }
         
         return control

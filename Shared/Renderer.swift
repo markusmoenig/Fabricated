@@ -238,6 +238,7 @@ class Renderer
         
         if tileJobs.isEmpty {
             print("no jobs")
+            drawJobPurge()
             core.updatePreviewOnce()
             isRunning = false
         } else {

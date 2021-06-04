@@ -58,7 +58,6 @@ final class PatternVoronoi : PatternTileNode {
         
         optionGroups.append(TileNodeOptionsGroup("Voronoi Options", [
             TileNodeOption(self, "Background", .Color, defaultFloat: 0),
-            TileNodeOption(self, "Pixelise", .Switch, defaultFloat: 1),
             TileNodeOption(self, "Domain Scale", .Float, range: float2(0.001, 20), defaultFloat: 1),
             TileNodeOption(self, "Rounded", .Switch, defaultFloat: 1),
         ]))
@@ -229,7 +228,6 @@ final class PatternVoronoi : PatternTileNode {
                     }
                 }
             }
-            
 
             for j in 0..<3 {
                 for i in 0..<3 {

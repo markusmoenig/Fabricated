@@ -238,7 +238,7 @@ class ScreenView
         toolControlArea = nil
         
         let currentNode = core.nodeView?.currentNode
-        if (currentNode != nil && core.project.currentTileSet?.openTile != nil ) || core.currentTool == .Resize {
+        if (currentNode != nil && core.project.currentTileSet?.openTile != nil ) || core.currentTool == .Resize || core.currentTool == .Move {
             
             var area = getCurrentArea()
             
@@ -247,7 +247,7 @@ class ScreenView
             }
             
             if let area = area {
-                if currentNode?.tool != .None || core.currentTool == .Resize {
+                if currentNode?.tool != .None || core.currentTool == .Resize || core.currentTool == .Move {
                     drawToolControls(currentNode, area, skin)
                     toolControlArea = area
                 }
@@ -759,15 +759,9 @@ class ScreenView
                 layer.selectedAreas = [area]
                 
                 core.currentLayerUndo?.end()
-                
                 core.currentLayerUndo = nil
 
-                if toolControl == .ResizeControl1 || toolControl == .ResizeControl2 || toolControl == .MoveControl {
-                    core.project.setHasChanged(true)
-                    core.renderer.render()
-                } else {
-                    core.renderer.render()
-                }
+                core.renderer.render()
             } else
             if action == .DragTool {
                 core.currentLayerUndo?.end()
