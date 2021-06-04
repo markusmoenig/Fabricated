@@ -447,7 +447,10 @@ struct NodeToolbar: View {
                 }
                 Menu {
                     Button("Tiles & Bricks", action: {
-                        addNodeToTile(DecoratorTilesAndBricks())
+                        addNodeToTile(PatternTilesAndBricks())
+                    })
+                    Button("Voronoi", action: {
+                        addNodeToTile(PatternVoronoi())
                     })
                 }
                 label: {

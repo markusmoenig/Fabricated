@@ -34,7 +34,9 @@ enum NodeFamily: String, NodeClassFamily {
 
     case decoratorColor = "DecoratorColor"
     case decoratorGradient = "DecoratorGradient"
-    case decoratorTilesAndBricks = "DecoratorTilesAndBricks"
+    
+    case patternTilesAndBricks = "PatternTilesAndBricks"
+    case patternVoronoi = "PatternVoronoi"
     
     static var discriminator: NodeDiscriminator = .type
     
@@ -63,8 +65,11 @@ enum NodeFamily: String, NodeClassFamily {
                 return DecoratorColor.self
             case .decoratorGradient:
                 return DecoratorGradient.self
-            case .decoratorTilesAndBricks:
-                return DecoratorTilesAndBricks.self
+                
+            case .patternTilesAndBricks:
+                return PatternTilesAndBricks.self
+            case .patternVoronoi:
+                return PatternVoronoi.self
         }
     }
 }
