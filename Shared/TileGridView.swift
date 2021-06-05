@@ -165,7 +165,7 @@ struct TileGridView: View {
                                 let copy = copyTile(tile)
                                 copy.id = UUID()
                                 currentTileSet.tiles.append(copy)
-                                updateView = true
+                                updateView.toggle()
                                 document.core.updateTileSetPreviews(currentTileSet)
                             })
                             
@@ -173,6 +173,15 @@ struct TileGridView: View {
                                 tileName = tile.name
                                 contextTile = tile
                                 showRenameTilePopover = true
+                            })
+                            
+                            Divider()
+                            
+                            Button("Remove", action: {
+                                if let index = currentTileSet.tiles.firstIndex(of: tile) {
+                                    currentTileSet.tiles.remove(at: index)
+                                    updateView.toggle()
+                                }
                             })
                         }
                     }

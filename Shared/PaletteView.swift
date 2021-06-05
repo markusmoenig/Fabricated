@@ -88,6 +88,10 @@ struct PaletteView: View {
                             currentColor.fromColor(color)
                             core.colorChanged.send()
                             updateView.toggle()
+                            if let tileSet = currentTileSet {
+                                tileSet.invalidateColorIndex()
+                            }
+                            core.renderer.render()
                         }
                     }
             }

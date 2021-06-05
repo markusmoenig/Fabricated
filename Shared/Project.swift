@@ -456,6 +456,33 @@ class TileSet      : Codable, Equatable
         return nil
     }
     
+    /// Sets all tiles to dirty who use the current color index in one of their nodes
+    func invalidateColorIndex() {
+        for tile in tiles {
+            
+            func checkNode(_ node: TileNode) {
+                for g in node.optionGroups {
+                    for o in g.options {
+                        if o.type == .Color {
+                            let index = Int(node.readFloat(o.name, 0))
+                            if index == currentColorIndex {
+                                tile.setHasChanged(true)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            
+            for node in tile.nodes {
+                checkNode(node)
+            }
+            for node in tile.isoNodes {
+                checkNode(node)
+            }
+        }
+    }
+    
     static func ==(lhs:TileSet, rhs:TileSet) -> Bool { // Implement Equatable
         return lhs.id == rhs.id
     }
