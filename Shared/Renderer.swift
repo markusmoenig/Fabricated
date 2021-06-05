@@ -103,13 +103,7 @@ struct DrawJob {
 
 class Renderer
 {
-    enum RenderMode {
-        case Screen, Layer
-    }
-    
     let core            : Core
-    
-    var renderMode      : RenderMode = .Screen
     
     var commandQueue    : MTLCommandQueue? = nil
     var commandBuffer   : MTLCommandBuffer? = nil
@@ -221,17 +215,15 @@ class Renderer
             }
         }
         
-        if renderMode == .Screen {
-            if let screen = core.project.getCurrentScreen() {
-                for layer in screen.layers {
+        if let screen = core.project.getCurrentScreen() {
+            for layer in screen.layers {
+                if layer.visible == false {
+                    clearLayerTexture(layer)
+                } else {
                     collectJobsForLayer(layer)
                     renderedLayers.append(layer)
                 }
             }
-        } else
-        if let layer = core.project.currentLayer {
-            collectJobsForLayer(layer)
-            renderedLayers.append(layer)
         }
             
         screenDim = dims.1
@@ -639,17 +631,18 @@ class Renderer
         return device.makeTexture(descriptor: textureDescriptor)
     }
     
+    /// Clears the texture of the layer
+    func clearLayerTexture(_ layer: Layer) {
+        startDrawing(core.device)
+        clearTexture(layer.texture!, float4(0,0,0,0))
+        stopDrawing(syncTexture: layer.texture!, waitUntilCompleted: true)
+    }
+    
     /// Checks if the texture is of the given size and if not reallocate, returns true if the texture has been reallocated
     @discardableResult func checkIfLayerTextureIsValid(layer: Layer, size: SIMD2<Int>) -> Bool
     {
         if size.x == 0 || size.y == 0 {
             return false
-        }
-        
-        func clear() {
-            startDrawing(core.device)
-            clearTexture(layer.texture!, float4(0,0,0,0))
-            stopDrawing(syncTexture: layer.texture!, waitUntilCompleted: true)
         }
         
         // Make sure texture is of size size
@@ -664,13 +657,13 @@ class Renderer
             
             layer.texture = allocateTexture(core.device, width: size.x, height: size.y)
             
-            clear()
+            clearLayerTexture(layer)
             //core.project.setHasChanged(true)
             return true
         }
         
-        clear()
-        
+        clearLayerTexture(layer)
+
         return false
     }
     

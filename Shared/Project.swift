@@ -206,6 +206,8 @@ class Layer             : MMValues, Codable, Equatable
     var id              = UUID()
     var name            = ""
     
+    var visible         = true
+    
     var tileInstances   : [SIMD2<Int>: TileInstance] = [:]
     var tileAreas       : [TileInstanceArea] = []
     
@@ -224,6 +226,7 @@ class Layer             : MMValues, Codable, Equatable
         case tileInstances
         case values
         case tileAreas
+        case visible
     }
     
     init(_ name: String = "Unnamed")
@@ -238,6 +241,9 @@ class Layer             : MMValues, Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        if let visible = try container.decodeIfPresent(Bool.self, forKey: .visible) {
+            self.visible = visible
+        }
         tileInstances = try container.decode([SIMD2<Int>: TileInstance].self, forKey: .tileInstances)
         values = try container.decode([String:Float].self, forKey: .values)
         tileAreas = try container.decode([TileInstanceArea].self, forKey: .tileAreas)
@@ -251,6 +257,7 @@ class Layer             : MMValues, Codable, Equatable
         try container.encode(tileInstances, forKey: .tileInstances)
         try container.encode(values, forKey: .values)
         try container.encode(tileAreas, forKey: .tileAreas)
+        try container.encode(visible, forKey: .visible)
     }
     
     static func ==(lhs:Layer, rhs:Layer) -> Bool { // Implement Equatable

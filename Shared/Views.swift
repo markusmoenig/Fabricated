@@ -36,60 +36,78 @@ struct ProjectView: View {
                                     Text(screen.name)
                                 } ) {
                         ForEach(screen.layers, id: \.id) { layer in
-                            Button(action: {
-                                currentLayer = layer
-                                document.core.project.currentLayer = layer
-                                document.core.layerChanged.send(layer)
-                                if document.core.renderer.renderMode == .Layer {
-                                    document.core.renderer.render()
-                                }
-                            })
-                            {
-                                Label(layer.name, systemImage: "rectangle.split.3x3")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .contentShape(Rectangle())
-                                    .foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
+                            
+                            // Divider
+                            if layer !== screen.layers.first {
+                                Divider()
+                                    .padding(0)
                             }
-                                .buttonStyle(PlainButtonStyle())
-                                .contextMenu {
-                                    Menu("Add Layer") {
-                                        Button("Before", action: {
-                                            let layer = Layer("New Layer")
-                                            if let currentLayer = currentLayer {
-                                                if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
-                                                    if let index = screen.layers.firstIndex(of: currentLayer) {
-                                                        screen.layers.insert(layer, at: index)
-                                                        self.currentLayer = layer
-                                                        document.core.project.currentLayer = layer
-                                                        document.core.layerChanged.send(layer)
+                            
+                            HStack {
+                                Button(action: {
+                                    currentLayer = layer
+                                    document.core.project.currentLayer = layer
+                                    document.core.layerChanged.send(layer)
+                                })
+                                {
+                                    //Label(layer.name, systemImage: "rectangle.split.3x3")
+                                    Text(layer.name)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .contentShape(Rectangle())
+                                        .foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
+                                }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .contextMenu {
+                                        Menu("Add Layer") {
+                                            Button("Before", action: {
+                                                let layer = Layer("New Layer")
+                                                if let currentLayer = currentLayer {
+                                                    if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
+                                                        if let index = screen.layers.firstIndex(of: currentLayer) {
+                                                            screen.layers.insert(layer, at: index)
+                                                            self.currentLayer = layer
+                                                            document.core.project.currentLayer = layer
+                                                            document.core.layerChanged.send(layer)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        })
-                                        Button("After", action: {
-                                            let layer = Layer("New Layer")
-                                            if let currentLayer = currentLayer {
-                                                if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
-                                                    if let index = screen.layers.firstIndex(of: currentLayer) {
-                                                        screen.layers.insert(layer, at: index+1)
-                                                        self.currentLayer = layer
-                                                        document.core.project.currentLayer = layer
-                                                        document.core.layerChanged.send(layer)
+                                            })
+                                            Button("After", action: {
+                                                let layer = Layer("New Layer")
+                                                if let currentLayer = currentLayer {
+                                                    if let screen = document.core.project.getScreenForLayer(currentLayer.id) {
+                                                        if let index = screen.layers.firstIndex(of: currentLayer) {
+                                                            screen.layers.insert(layer, at: index+1)
+                                                            self.currentLayer = layer
+                                                            document.core.project.currentLayer = layer
+                                                            document.core.layerChanged.send(layer)
+                                                        }
                                                     }
                                                 }
-                                            }
+                                            })
+                                        }
+                                        
+                                        
+                                        Divider()
+
+                                        Button("Rename ...", action: {
+                                            layerName = layer.name
+                                            contextLayer = layer
+                                            showRenameLayerPopover = true
                                         })
                                     }
-                                    
-                                    
-                                    Divider()
-
-                                    Button("Rename ...", action: {
-                                        layerName = layer.name
-                                        contextLayer = layer
-                                        showRenameLayerPopover = true
-                                    })
+                                Spacer()
+                                
+                                Button(action: {
+                                    layer.visible.toggle()
+                                    updateView.toggle()
+                                    document.core.renderer.render()
+                                })
+                                {
+                                    Image(systemName: layer.visible ? "eye" : "eye.slash")
                                 }
+                                .buttonStyle(BorderlessButtonStyle())
+                            }
                         }
                     }
                 }
@@ -325,6 +343,7 @@ struct ToolsView2: View {
 
     var body: some View {
         HStack {
+            /*
             Menu {
                 Button("Render: Screen", action: {
                     text = "Render: Screen"
@@ -342,7 +361,7 @@ struct ToolsView2: View {
             }
             .menuStyle(BorderlessButtonMenuStyle())
             .frame(maxWidth: 120)
-                    
+            */
         }
         .frame(minHeight: 30)
     }

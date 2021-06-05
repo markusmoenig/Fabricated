@@ -189,17 +189,9 @@ class ScreenView
             }
         }
         
-        if core.renderer.renderMode == .Screen {
-            if let currentScreen = core.project.getCurrentScreen() {
-                for layer in currentScreen.layers {
-                    if let texture = layer.texture {
-                        drawables.drawBox(position: float2(texX,texY), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
-                    }
-                }
-            }
-        } else
-        if core.renderer.renderMode == .Layer {
-            if let layer = core.project.currentLayer {
+        // Draw the layer textures
+        if let currentScreen = core.project.getCurrentScreen() {
+            for layer in currentScreen.layers {
                 if let texture = layer.texture {
                     drawables.drawBox(position: float2(texX,texY), size: float2(Float(texture.width), Float(texture.height)) * graphZoom, texture: texture)
                 }
