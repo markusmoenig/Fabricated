@@ -37,25 +37,20 @@ struct ProjectView: View {
                                 } ) {
                         ForEach(screen.layers, id: \.id) { layer in
                             
-                            // Divider
-                            if layer !== screen.layers.first {
-                                Divider()
-                                    .padding(0)
-                            }
-                            
                             HStack {
                                 Button(action: {
                                     currentLayer = layer
                                     document.core.project.currentLayer = layer
-                                    document.core.layerChanged.send(layer)
+                                    document.core.screenView.update()
                                 })
                                 {
                                     //Label(layer.name, systemImage: "rectangle.split.3x3")
                                     Text(layer.name)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .contentShape(Rectangle())
-                                        .foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
+                                        //.foregroundColor(layer === currentLayer ? Color.accentColor : Color.primary)
                                 }
+                                    .padding(.leading, 4)
                                     .buttonStyle(PlainButtonStyle())
                                     .contextMenu {
                                         Menu("Add Layer") {
@@ -67,7 +62,6 @@ struct ProjectView: View {
                                                             screen.layers.insert(layer, at: index)
                                                             self.currentLayer = layer
                                                             document.core.project.currentLayer = layer
-                                                            document.core.layerChanged.send(layer)
                                                         }
                                                     }
                                                 }
@@ -80,13 +74,11 @@ struct ProjectView: View {
                                                             screen.layers.insert(layer, at: index+1)
                                                             self.currentLayer = layer
                                                             document.core.project.currentLayer = layer
-                                                            document.core.layerChanged.send(layer)
                                                         }
                                                     }
                                                 }
                                             })
                                         }
-                                        
                                         
                                         Divider()
 
@@ -106,8 +98,14 @@ struct ProjectView: View {
                                 {
                                     Image(systemName: layer.visible ? "eye" : "eye.slash")
                                 }
+                                .padding(.trailing, 4)
                                 .buttonStyle(BorderlessButtonStyle())
                             }
+                            .listRowBackground(RoundedRectangle(cornerRadius: 5)
+                                                .background(Color.clear)
+                                                .foregroundColor(layer === currentLayer ? Color.accentColor : Color.clear)
+                                                .opacity(0.4)
+                            )
                         }
                     }
                 }
@@ -192,6 +190,11 @@ struct ProjectView: View {
                 if let tile = document.core.project.currentTileSet?.openTile {
                     tileImage = getTileImage(tile)
                 }
+            }
+            
+            // Layer changed in code, update UI
+            .onReceive(document.core.layerChanged) { layer in
+                currentLayer = layer
             }
             
             Spacer()

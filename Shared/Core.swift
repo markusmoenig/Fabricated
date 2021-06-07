@@ -44,9 +44,14 @@ class Core
     let tileNodeChanged = PassthroughSubject<TileNode?, Never>()
     
     let screenChanged   = PassthroughSubject<Screen?, Never>()
+    
+    // Layer changed in code and UI has to be updated (Select tool)
     let layerChanged    = PassthroughSubject<Layer?, Never>()
+    
+    // Area changed in code and UI has to be updated (Select tool)
     let areaChanged     = PassthroughSubject<Void, Never>()
 
+    // A color has been changed, update all UI views
     let colorChanged    = PassthroughSubject<Void, Never>()
 
     let tileSetChanged  = PassthroughSubject<TileSet?, Never>()

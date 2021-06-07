@@ -23,24 +23,30 @@ class IsoCubeRenderer
         func sdBox(_ p: float3) -> Float
         {
             let offset : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Offset")
+            let facing : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Facing")
             let shapeHeight : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Height")// + 0.02
             let shapeSize : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Size")// + 0.02
 
-            let size = float3(shapeSize, shapeHeight, 1)
-            let offsetBy = offset
-        
-            /*
-            if offset < 0 {
-                offsetBy -= shapeSize / 2//(1.02 / 2 - shapeSize / 2)
+            var size     : float3
+            
+            var moveBy   : float3
+            var offsetBy : Float
+            
+            if offset >= 0 {
+                offsetBy = min(offset, 1.0 - shapeSize)
             } else {
-                offsetBy += shapeSize / 2//(1.02 / 2 - shapeSize / 2)
-            }*/
-            
-            //offsetBy -= 0.02
-            
-            //print(offsetBy, shapeSize)
-            
-            let moveBy = float3(offset,-(1 - shapeHeight),0)
+                offsetBy = max(offset, -(1.0 - shapeSize))
+            }
+
+            if facing == 0 {
+                // Facing right
+                size = float3(shapeSize, shapeHeight, 1)
+                moveBy = float3(offsetBy, -(1 - shapeHeight), 0)
+            } else {
+                // Facing left
+                size = float3(1, shapeHeight, shapeSize)
+                moveBy = float3(0, -(1 - shapeHeight), offsetBy)
+            }
             
             let q : float3 = abs(p - moveBy) - size
             return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0)

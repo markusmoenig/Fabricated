@@ -56,7 +56,6 @@ class LayerUndoComponent
                             if index != nil {
                                 screen.layers[index!] = layer
                                 self.core.project.currentLayer = layer
-                                self.core.layerChanged.send(layer)
                                 self.core.project.setHasChanged(true)
                                 self.core.renderer.render()
                             }

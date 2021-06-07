@@ -460,10 +460,34 @@ class ScreenView
                 }
             } else
             if core.currentTool == .Select || (core.currentTool == .Resize && toolControl == .None) || core.currentTool == .Move {
-                if let instance = layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
+                
+                // On Select select also the appropriate layer where the selected tile is located
+                
+                var selectionLayer = layer
+                
+                if core.currentTool == .Select {
+                    if layer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] == nil {
+                        if let screen = core.project.getCurrentScreen() {
+                            for l in screen.layers {
+                                if l !== layer {
+                                    if l.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] != nil {
+                                        // Found a tileInstance in another layer, switch to this new layer
+                                        selectionLayer = l
+                                        core.project.currentLayer = l
+                                        // Update UI
+                                        core.layerChanged.send(l)
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if let instance = selectionLayer.tileInstances[SIMD2<Int>(tileId.x, tileId.y)] {
 
                     // Assemble all areas in which the tile is included and select them
-                    layer.selectedAreas = getAreasOfTileInstance(layer, instance)
+                    selectionLayer.selectedAreas = getAreasOfTileInstance(selectionLayer, instance)
                     core.areaChanged.send()
 
                     //

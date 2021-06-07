@@ -39,8 +39,8 @@ final class IsoTiledNode : TileNode {
         type = "IsoTiledNode"
         
         optionGroups.append(TileNodeOptionsGroup("Iso Shape Options", [
-            TileNodeOption(self, "Noise", .Menu, menuEntries: ["Cube"], defaultFloat: 0),
-            TileNodeOption(self, "Orientation", .Menu, menuEntries: ["Normal", "Back"], defaultFloat: 0),
+            TileNodeOption(self, "Shape", .Menu, menuEntries: ["Cube"], defaultFloat: 0),
+            TileNodeOption(self, "Facing", .Menu, menuEntries: ["Right", "Left"], defaultFloat: 0),
             TileNodeOption(self, "Size", .Float, range: float2(0, 1), defaultFloat: 1),
             TileNodeOption(self, "Height", .Float, range: float2(0, 1), defaultFloat: 1),
             TileNodeOption(self, "Offset", .Float, range: float2(-1, 1), defaultFloat: 0),
