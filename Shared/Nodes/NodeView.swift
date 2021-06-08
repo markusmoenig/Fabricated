@@ -477,6 +477,7 @@ class NodeView
                     if node.nodePreviewRect.contains(pos.x, pos.y) {
                         core.startTileUndo(tile, "Node Disconnected")
                         if nodeIsAboutToBeDeleted(node) {
+                            tile.cgiImage = nil
                             core.updateTileAndNodesPreviews()
                             tile.setHasChanged(true)
                             core.renderer.render()
@@ -677,6 +678,7 @@ class NodeView
             }
             
             core.currentTileUndo?.end()
+            getCurrentTile()!.cgiImage = nil
             
             core.updateTileAndNodesPreviews()
             getCurrentTile()!.setHasChanged(true)

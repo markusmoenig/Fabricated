@@ -73,7 +73,11 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        NodeSettingsView(document: document, updateView: $updateView)
+                        if let tileSet = currentTileSet {
+                            if tileSet.openTile !== nil {
+                                NodeSettingsView(document: document, updateView: $updateView)
+                            }
+                        }
                     }
                     .animation(.default)
                 }
