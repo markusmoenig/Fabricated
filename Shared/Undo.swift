@@ -138,7 +138,7 @@ class TileUndoComponent
                                 self.core.tileNodeChanged.send(self.core.nodeView.currentNode)
                                 
                                 self.core.nodeView.update()
-                                self.core.updateTilePreviews(tile)
+                                self.core.updateTileAndNodesPreviews()
                                 self.core.renderer.render()
                             }
                         }

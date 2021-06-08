@@ -12,8 +12,6 @@ final class IsoTiledNode : TileNode {
     enum IsoFace : Int {
         case Top, Left, Right
     }
-
-    var cgiImage        : CGImage? = nil
     
     var isoFace         : IsoFace = .Top
     
@@ -27,7 +25,6 @@ final class IsoTiledNode : TileNode {
     }
     
     deinit {
-        cgiImage = nil
         if let texture = texture {
             texture.setPurgeableState(.empty)
         }

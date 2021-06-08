@@ -117,7 +117,7 @@ struct ProjectView: View {
                             document.core.project.currentTileSet = tileSet
                             tileSet.openTile = nil
                             document.core.tileSetChanged.send(tileSet)
-                            document.core.updateTileSetPreviews(tileSet)
+                            document.core.updateTileAndNodesPreviews(tileSet)
                         })
                         {
                             Label(tileSet.name, systemImage: "rectangle.grid.2x2")
@@ -188,7 +188,7 @@ struct ProjectView: View {
             .onReceive(document.core.tileSetChanged) { tileNode in
                 tileImage = nil
                 if let tile = document.core.project.currentTileSet?.openTile {
-                    tileImage = getTileImage(tile)
+                    tileImage = tile.cgiImage
                 }
             }
             
@@ -207,23 +207,6 @@ struct ProjectView: View {
                     .padding(.bottom, 10)
             }
         }
-    }
-    
-    func getTileImage(_ tile: Tile) -> CGImage? {
-        let gridType = document.core.project.getCurrentScreen()?.gridType
-
-        if gridType == .rectFront {
-            if let tiled = tile.nodes[0] as? TiledNode {
-                return tiled.cgiImage
-            }
-        } else
-        if gridType == .rectIso {
-            if let tiled = tile.isoNodes[0] as? IsoTiledNode {
-                return tiled.cgiImage
-            }
-        }
-        
-        return nil
     }
 }
 
@@ -506,7 +489,7 @@ struct NodeToolbar: View {
                     
                     document.core.nodeView.update()
                     document.core.renderer.render()
-                    document.core.updateTilePreviews()
+                    document.core.updateTileAndNodesPreviews()
                     
                     document.core.currentTileUndo?.end()
                 }
@@ -700,7 +683,8 @@ struct ParamFloatView: View {
         option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
         core.renderer.render()
         if let tile = core.project.currentTileSet?.openTile {
-            core.updateTilePreviews(tile)
+            tile.cgiImage = nil
+            core.updateTileAndNodesPreviews()
         }
         
         core.currentTileUndo?.end()
@@ -746,9 +730,12 @@ struct ParamIntView: View {
 
                     option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(v))
                     core.renderer.render()
+                    
                     if let tile = core.project.currentTileSet?.openTile {
-                        core.updateTilePreviews(tile)
+                        tile.cgiImage = nil
                     }
+                    
+                    core.updateTileAndNodesPreviews()
                     
                     core.currentTileUndo?.end()
                 }), in: rangeX...rangeY, step: 1)
@@ -790,9 +777,12 @@ struct ParamSwitchView: View {
             
             option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: value == false ? 0 : 1)
             core.renderer.render()
+            
             if let tile = core.project.currentTileSet?.openTile {
-                core.updateTilePreviews(tile)
+                tile.cgiImage = nil
             }
+            
+            core.updateTileAndNodesPreviews()
             core.currentTileUndo?.end()
             
             if option.exclusionTrigger == true {
@@ -900,9 +890,12 @@ struct ParamMenuView: View {
                         menuIndex = index
                         option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(index))
                         core.renderer.render()
+                        
                         if let tile = core.project.currentTileSet?.openTile {
-                            core.updateTilePreviews(tile)
+                            tile.cgiImage = nil
                         }
+                        
+                        core.updateTileAndNodesPreviews()
                         core.currentTileUndo?.end()
                     })
                 }

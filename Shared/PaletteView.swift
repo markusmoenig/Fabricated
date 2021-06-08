@@ -50,10 +50,12 @@ struct PaletteView: View {
                                                     option.node.writeOptionalFloatInstanceArea(core, option.node, option.name, value: Float(index))
                                                     core.colorChanged.send()
                                                  
+                                                    tile.cgiImage = nil
+                                                    
                                                     core.currentTileUndo?.end()
 
                                                     core.renderer.render()
-                                                    core.updateTilePreviews(tile)
+                                                    core.updateTileAndNodesPreviews()
                                                 }
                                             }
                                         } else {

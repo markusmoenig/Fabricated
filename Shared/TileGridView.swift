@@ -55,7 +55,7 @@ struct TileGridView: View {
     @State     var contextTile                  : Tile? = nil
 
     var body: some View {
-        VStack {
+        ScrollView {
             
             HStack {
                 
@@ -85,6 +85,7 @@ struct TileGridView: View {
                         currentTileSet.currentTile = currentTile
                         currentTileSet.openTile = currentTile
                         document.core.tileSetChanged.send(currentTileSet)
+                        document.core.updateTileAndNodesPreviews()
                     }
                 })
                 {
@@ -106,7 +107,7 @@ struct TileGridView: View {
                     ForEach(currentTileSet.tiles, id: \.id) { tile in
                         ZStack(alignment: .bottom) {
                         
-                            if let image = getTileImage(tile) {
+                            if let image = tile.cgiImage {
                                 Image(image, scale: 1.0, label: Text(tile.name))
                                         .onTapGesture(perform: {
                                             currentTile = tile
@@ -166,7 +167,7 @@ struct TileGridView: View {
                                 copy.id = UUID()
                                 currentTileSet.tiles.append(copy)
                                 updateView.toggle()
-                                document.core.updateTileSetPreviews(currentTileSet)
+                                document.core.updateTileAndNodesPreviews(currentTileSet)
                             })
                             
                             Button("Rename ...", action: {
@@ -211,7 +212,7 @@ struct TileGridView: View {
             currentTileSet = document.core.project.currentTileSet
             if let currentTileSet = currentTileSet {
                 currentTile = currentTileSet.currentTile
-                document.core.updateTilePreviews()
+                document.core.updateTileAndNodesPreviews()
             }
         })
         
@@ -221,24 +222,6 @@ struct TileGridView: View {
             if let tileSet = tileSet {
                 currentTile = tileSet.currentTile
             }
-            document.core.updateTilePreviews()
         }
-    }
-    
-    func getTileImage(_ tile: Tile) -> CGImage? {
-        let gridType = document.core.project.getCurrentScreen()?.gridType
-
-        if gridType == .rectFront {
-            if let tiled = tile.nodes[0] as? TiledNode {
-                return tiled.cgiImage
-            }
-        } else
-        if gridType == .rectIso {
-            if let tiled = tile.isoNodes[0] as? IsoTiledNode {
-                return tiled.cgiImage
-            }
-        }
-        
-        return nil
     }
 }

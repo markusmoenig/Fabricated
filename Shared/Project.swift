@@ -497,6 +497,8 @@ class Tile               : Codable, Equatable
     var id              = UUID()
     var name            = ""
     
+    var cgiImage        : CGImage? = nil
+
     private enum CodingKeys: String, CodingKey {
         case id
         case name
@@ -507,6 +509,10 @@ class Tile               : Codable, Equatable
     init(_ name: String = "Unnamed")
     {
         self.name = name
+    }
+    
+    deinit {
+        cgiImage = nil
     }
     
     required init(from decoder: Decoder) throws

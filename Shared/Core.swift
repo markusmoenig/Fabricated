@@ -111,7 +111,7 @@ class Core
     {
         self.project = project
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.updateTileSetPreviews()
+            self.updateTileAndNodesPreviews()
         }
     }
     
@@ -177,36 +177,14 @@ class Core
         }
     }
     
-    // MARK: Node and Tile preview rendering
-    
-    /// Updates the node previews for the given tile
-    func updateTilePreviews(_ tile: Tile)
-    {
-        stopUpdateThread()
-        
-        stopRunning = false
-        isRunning = true
-        
-        DispatchQueue.global(qos: .utility).async {
-            self.dispatchGroup.enter()
-            self.renderTilePreview(tile)
-        }
-    }
-    
-    /// Updates the node previews for the current tile
-    func updateTilePreviews()
-    {
-        guard let tile = project.currentTileSet?.openTile else {
-            return
-        }
-        
-        updateTilePreviews(tile)
-    }
+    // MARK: Tile and Node preview rendering
     
     /// Updates the node previews for the given tileset
-    func updateTileSetPreviews(_ tileSet: TileSet)
+    func updateTileAndNodesPreviews(_ tileSet: TileSet)
     {
-        stopUpdateThread()
+        if stopUpdateThread() {
+            return
+        }
         
         stopRunning = false
         isRunning = true
@@ -214,32 +192,60 @@ class Core
         let gridType = project.getCurrentScreen()?.gridType
 
         DispatchQueue.global(qos: .utility).async {
+            
+            // Tile and Node async renderer
+            
             self.dispatchGroup.enter()
+            
             for tile in tileSet.tiles {
                 if self.stopRunning == false {
                     self.renderTilePreview(tile, singleShot: false)
                     
-                    if gridType == .rectIso {
+                    if tile.cgiImage == nil && gridType == .rectIso {
                         self.renderIsoTilePreview(tile, singleShot: false)
                     }
                 }
             }
-            self.dispatchGroup.leave()
-            //DispatchQueue.main.async {
-            DispatchQueue.main.async {
-                self.tileSetChanged.send(tileSet)
+            
+            self.semaphore.wait()
+            self.isRunning = false
+            self.semaphore.signal()
+                        
+            if self.stopRunning == true {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.updateTileAndNodesPreviews()
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.tileSetChanged.send(tileSet)
+                }
             }
+            
+            self.dispatchGroup.leave()
         }
     }
     
+    /// Stop the thread and return the status
+    func stopUpdateThread() -> Bool {
+        semaphore.wait()
+        let busy = isRunning
+        semaphore.signal()
+
+        if busy {
+            stopRunning = true
+        }
+        
+        return busy
+    }
+    
     /// Updates the node previews for the current tileset
-    func updateTileSetPreviews()
+    func updateTileAndNodesPreviews()
     {
         guard let tileSet = project.currentTileSet else {
             return
         }
         
-        updateTileSetPreviews(tileSet)
+        updateTileAndNodesPreviews(tileSet)
     }
     
     /// Renders the tile previews in a separate thread
@@ -431,9 +437,7 @@ class Core
             updateTexture(node.texture!, texArray)
             
             if node.role == .IsoTile {
-                if let tiled = node as? IsoTiledNode {
-                    tiled.cgiImage = createCGIImage(texArray, tileSize)
-                }
+                tile.cgiImage = createCGIImage(texArray, tileSize)
             }
         }
 
@@ -486,13 +490,6 @@ class Core
         }
 
         return nil
-    }
-    
-    /// Stops the preview rendering thread
-    func stopUpdateThread()
-    {
-        stopRunning = true
-        dispatchGroup.wait()
     }
     
     /// Creates an CGIImage from an float4 array

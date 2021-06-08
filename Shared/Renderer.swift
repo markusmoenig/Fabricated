@@ -234,7 +234,7 @@ class Renderer
             core.updatePreviewOnce()
             isRunning = false
         } else {
-            let cores = ProcessInfo().activeProcessorCount// + 1
+            let cores = ProcessInfo().activeProcessorCount
             
             startTime = Double(Date().timeIntervalSince1970)
             totalTime = 0
