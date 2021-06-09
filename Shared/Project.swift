@@ -322,8 +322,16 @@ class TileSetColor : Codable, Equatable
         return Color(.sRGB, red: Double(value.x), green: Double(value.y), blue: Double(value.z), opacity: Double(value.w))
     }
     
-    func fromColor(_ color: Color) {
-        value = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
+    /// Sets the color value from an SwiftUI color, returns true if the value is actually different
+    @discardableResult func fromColor(_ color: Color) -> Bool {
+        let v = float4(Float(color.cgColor!.components![0]), Float(color.cgColor!.components![1]), Float(color.cgColor!.components![2]), Float(color.cgColor!.components![3]))
+        
+        if v != value {
+            value = v
+            return true
+        }
+        
+        return false
     }
 }
 

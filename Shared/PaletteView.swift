@@ -87,13 +87,14 @@ struct PaletteView: View {
                 ColorPicker("", selection: $colorPickerValue, supportsOpacity: true)
                     .onChange(of: colorPickerValue) { color in
                         if let currentColor = currentColor {
-                            currentColor.fromColor(color)
-                            core.colorChanged.send()
-                            updateView.toggle()
-                            if let tileSet = currentTileSet {
-                                tileSet.invalidateColorIndex()
+                            if currentColor.fromColor(color) {
+                                core.colorChanged.send()
+                                updateView.toggle()
+                                if let tileSet = currentTileSet {
+                                    tileSet.invalidateColorIndex()
+                                }
+                                core.renderer.render()
                             }
-                            core.renderer.render()
                         }
                     }
             }

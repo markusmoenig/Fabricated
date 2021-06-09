@@ -486,6 +486,10 @@ class Renderer
             let drawJob = DrawJob(layer: layer, tileId: tileId, tileRect: tileRect, data: data)
             layer.drawJobs.append(drawJob)
         }
+        
+        DispatchQueue.main.async {
+            self.core.renderProgressChanged.send(1.0 / Float(self.tileJobs.count))
+        }
     }
     
     /// Everything has been rendered, draw depending on the grid type
@@ -538,6 +542,7 @@ class Renderer
             
             DispatchQueue.main.async {
                 self.core.updatePreviewOnce()
+                self.core.renderProgressChanged.send(0)
             }
             
             semaphore.signal()

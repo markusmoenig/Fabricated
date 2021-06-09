@@ -51,7 +51,7 @@ struct ContentView: View {
                 ProjectView(document: document, updateView: $updateView)
                     .frame(minWidth: leftPanelWidth, idealWidth: leftPanelWidth, maxWidth: leftPanelWidth)
                 
-                VStack(spacing: 2) {
+                VStack(spacing: 0) {
                     GeometryReader { geometry in
                         ZStack(alignment: .topLeading) {
                             MetalView(document.core, .Preview)
@@ -62,6 +62,7 @@ struct ContentView: View {
                                 .offset(x: geometry.size.width - 130, y: geometry.size.height - 30)
                         }
                     }
+                    ProgressBar(document: document).frame(height: 4)
                     HStack {
                         ZStack(alignment: .topLeading) {
                             if let tileSet = currentTileSet {
@@ -347,6 +348,27 @@ struct ContentView: View {
             } catch {
                 // Handle failure.
             }
+        }
+    }
+}
+
+/// For displaying render progress
+struct ProgressBar: View {
+    
+    @State var document                    : FabricatedDocument
+    @State var value                       : Float = 0.0
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Rectangle().frame(width: min(CGFloat(self.value)*geometry.size.width, geometry.size.width), height: geometry.size.height)
+                    .foregroundColor(.accentColor)
+                    .animation(.linear)
+            }.cornerRadius(45.0)
+        }
+        
+        .onReceive(document.core.renderProgressChanged) { progress in
+            value = progress
         }
     }
 }

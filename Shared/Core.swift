@@ -54,11 +54,17 @@ class Core
     // A color has been changed, update all UI views
     let colorChanged    = PassthroughSubject<Void, Never>()
 
+    // The current tileset or a tile in the tile set has changed, update the UI
     let tileSetChanged  = PassthroughSubject<TileSet?, Never>()
 
+    // A screen view tool has changed (zoom), update the UI
     let updateTools     = PassthroughSubject<Void, Never>()
     
+    // Handles app startup
     let startupSignal   = PassthroughSubject<Void, Never>()
+    
+    // Update the render progress indicator
+    let renderProgressChanged = PassthroughSubject<Float, Never>()
 
     // Preview Rendering
     var semaphore       : DispatchSemaphore!
