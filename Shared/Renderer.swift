@@ -122,6 +122,8 @@ class Renderer
     
     var tileJobs        : [TileJob] = []
     var renderedLayers  : [Layer] = []
+    
+    var totalJobs       : Int = 0
 
     init(_ core: Core)
     {
@@ -147,6 +149,8 @@ class Renderer
         
         tileJobs = []
         renderedLayers = []
+        
+        totalJobs = 0
 
         let dims = calculateTextureSizeForScreen()
         let texSize : SIMD2<Int>
@@ -240,10 +244,12 @@ class Renderer
             totalTime = 0
             coresActive = 0
             
+            totalJobs = tileJobs.count
+            
             func startThread() {
                 coresActive += 1
                 dispatchGroup.enter()
-                DispatchQueue.global(qos: .userInitiated).async {
+                DispatchQueue.global(qos: .utility).async {
                     if gridType == .rectFront {
                         self.renderTile()
                     } else
@@ -488,7 +494,9 @@ class Renderer
         }
         
         DispatchQueue.main.async {
-            self.core.renderProgressChanged.send(1.0 / Float(self.tileJobs.count))
+            let progress = Float(self.totalJobs - self.tileJobs.count) / Float(self.totalJobs)
+            //self.core.renderProgressChanged.send(1.0 / Float(self.tileJobs.count))
+            self.core.renderProgressChanged.send(progress)
         }
     }
     

@@ -197,7 +197,7 @@ class Core
         
         let gridType = project.getCurrentScreen()?.gridType
 
-        DispatchQueue.global(qos: .utility).async {
+        DispatchQueue.global(qos: .background).async {
             
             // Tile and Node async renderer
             
