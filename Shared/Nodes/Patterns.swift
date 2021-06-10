@@ -106,7 +106,7 @@ final class PatternVoronoi : PatternTileNode {
             wobble.y = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
             pixelCtx.uv = backup
             
-            uv += wobble * 0.08
+            uv += wobble * 0.5
         }
         
         let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale", 1)
@@ -264,7 +264,6 @@ final class PatternVoronoi : PatternTileNode {
     }
 }
 
-
 final class PatternTilesAndBricks : PatternTileNode {
     
     private enum CodingKeys: String, CodingKey {
@@ -368,5 +367,257 @@ final class PatternTilesAndBricks : PatternTileNode {
         }
     
         return simd_clamp( m, 0.0, 1.0)
+    }
+}
+
+final class PatternWorley : PatternTileNode {
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    required init()
+    {
+        super.init(.Pattern, "Worley")
+    }
+    
+    override func setup()
+    {
+        type = "PatternWorley"
+        
+        optionGroups.append(TileNodeOptionsGroup("Worley Options", [
+            TileNodeOption(self, "Background", .Color, defaultFloat: 0),
+            TileNodeOption(self, "Mode", .Menu, menuEntries: ["Mode 1", "Mode 2", "Mode 3", "MM"], defaultFloat: 0),
+            TileNodeOption(self, "Domain Scale", .Float, range: float2(0.001, 20), defaultFloat: 1),
+        ]))
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
+    {
+        var uv = pixelCtx.uv + tileCtx.tileId
+        
+        var wobble = float2(0,0)
+        if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+            let backup = pixelCtx.uv
+            wobble.x = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv += 7.23
+            wobble.y = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv = backup
+            
+            uv += wobble * 0.5
+        }
+        
+        let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale", 1)
+        let mode : Int = Int(readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Mode", 0))
+
+        // Based on https://www.shadertoy.com/view/XdSSW1, used with permission, thanks Fabrice!
+        
+        func rnd(_ x: Float) -> Float { return simd_fract(Float(1000) * sin(234.56 * x)) }
+        func rnd3(_ x: Float) -> float3 { return float3(rnd(x), rnd(x + 0.1), rnd( x + 0.2)) }
+        func hash1(_ x: Float,_ y : Float,_ z: Float) -> Float { return (x + 432.432 * y - 1178.65 * z) }
+        func hash3(_ v: float3) -> Float { return dot(v, float3(1.0, 32.432, -1178.65)) }
+            
+        func Worley(_ uvw: float3) -> float4 {
+            
+            let uvwi = floor(uvw)                            // cell coords
+            var dmin : Float = 1e9
+            var d2min : Float = 1e9
+            var nmin : Float = -1.0
+            
+            for i in -1...1 {                       // visit neighborhood
+                for j in -1...1 {                   // to find the closest point
+                    for k in -1...1 {
+                      let c = uvwi + float3(Float(i), Float(j), Float(k)) // neighbor cells
+                      let n = hash3(c)                                 // cell ID
+                      let p = c + rnd3(n + 0.1)                            // random point in cell
+                      let d = length(p - uvw)                            // dist to point
+                      if d < dmin { d2min=dmin; dmin=d; nmin=n; }        // 2 closest dists
+                      else if (d < d2min) { d2min=d; }
+                    }
+                }
+            }
+            return float4(dmin, d2min, d2min-dmin, nmin)            // 2 closest dists + closest ID
+        }
+        
+        let rc = Worley(float3(uv.x * domainScale, uv.y * domainScale, 1.0))
+        hash = rnd(rc.w)
+        
+        var m = rc.x
+        
+        if mode == 1 {
+            m = rc.y
+        } else
+        if mode == 2 {
+            m = pow(rc.z, 0.025)
+        }
+        
+        return simd_clamp( m, 0.0, 1.0)
+    }
+}
+
+
+final class PatternTrabeculum : PatternTileNode {
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    required init()
+    {
+        super.init(.Pattern, "Trabeculum")
+    }
+    
+    override func setup()
+    {
+        type = "PatternTrabeculum"
+        
+        optionGroups.append(TileNodeOptionsGroup("Trabeculum Options", [
+            TileNodeOption(self, "Background", .Color, defaultFloat: 0),
+            TileNodeOption(self, "Domain Scale", .Float, range: float2(0.001, 20), defaultFloat: 1),
+            TileNodeOption(self, "Rounded", .Switch, defaultFloat: 1),
+        ]))
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func render(pixelCtx: TilePixelContext, tileCtx: TileContext) -> Float
+    {
+        func missingHash(_ p: float2) -> Float { simd_fract(sin(simd_dot(p, float2(27.619, 57.583))) * 43758.5453) }
+
+        func hash21(_ p: float2) -> Float {
+            var p3  = fract(float3(p.x, p.y, p.x) * 0.1031)
+            p3 += simd_dot(p3, float3(p3.y, p3.z, p3.x) + 33.33)
+            return simd_fract((p3.x + p3.y) * p3.z)
+        }
+                
+        func hash22(_ p: float2) -> float2 {
+
+            let n = sin(dot(p, float2(27, 57)))
+            return fract(float2(262144, 32768) * n) * 0.7
+        }
+        
+        var uv = pixelCtx.uv + tileCtx.tileId
+        
+        var wobble = float2(0,0)
+        if let modifierNode = tileCtx.tile.getNextInChain(self, .Modifier) {
+            let backup = pixelCtx.uv
+            wobble.x = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv += 7.23
+            wobble.y = modifierNode.render(pixelCtx: pixelCtx, tileCtx: tileCtx)
+            pixelCtx.uv = backup
+            
+            uv += wobble * 0.5
+        }
+        
+        let domainScale : Float = readFloatFromInstanceAreaIfExists(tileCtx.tileArea, self, "Domain Scale", 1)
+
+        func H(_ n: inout float2) -> float2 {
+            var p = n.x + n.y / 0.7 + float2(1.0, 12.34)
+            p.x = sin(p.x)
+            p.y = sin(p.y)
+            return fract( 1e4 * p)
+        }
+
+        var O = float4(repeating: 1)
+        
+        let U = 5.0 * uv * domainScale// (uv + uv - float2(pixelCtx.width, pixelCtx.height) * domainScale
+        var c = float2(0, 0)
+        //var l = Float(0)
+        //var p = float2(0,0)
+        
+        O += 1e9 - O  // --- Worley noise: return O.xyz = sorted distance to first 3 nodes
+        
+        for k1 in 0..<9 {//for (int k=0; k<9; k++) // replace loops i,j: -1..1
+
+            let k = Float(k1)
+            var p = ceil(U) + float2(k - k / 3.0 * 3.0, k / 3.0) - 2.0
+            
+            let c1 = H(&p) + p - U
+            let l = dot(c1, c)
+            c = c1
+            
+            if l < O.x {
+                O.y = O.x
+                O.z = O.y
+                O.x = l
+            } else {
+                if l < O.y {
+                    O.z = O.y
+                    O.y = l
+                } else {
+                    if l < O.z {
+                        O.z = l
+                    } else {
+                        //O = float4(repeating: l)
+                    }
+                }
+            }
+            
+            /*
+            l < O.x  ? O.yz = O.xy, O.x=l       // ordered 3 min distances
+          : l < O.y  ? O.z =O.y , O.y=l
+          : l < O.z  ?            O.z=l : l;
+            
+            //p = ceil(U) + vec2(k-k/3*3,k/3)-2., // cell id = floor(U)+vec2(i,j)
+            //l = dot(c = H(p) + p-U , c);        // distance^2 to its node
+              l < O.x  ? O.yz=O.xy, O.x=l       // ordered 3 min distances
+            : l < O.y  ? O.z =O.y , O.y=l
+            : l < O.z  ?            O.z=l : l;
+            */
+        }
+        
+        
+        O.x = 5.0 * sqrt(O.x)
+        O.y = 5.0 * sqrt(O.y)
+        O.z = 5.0 * sqrt(O.z)
+        O.w = 5.0 * sqrt(O.w)
+        
+        //let l = 1.0 / (1.0 / (O.y - O.x) + 1.0 / ( O.z - O.x ) ) // Formula (c) Fabrice NEYRET - BSD3:mention author.
+        //O += simd_smoothstep(0.0, 0.3, l - 0.5) - O
+        
+        O -= O.x
+        O += 4.0 * (O.y / (O.y / O.z + 1.0) - 0.5 ) - O
+
+        
+        
+        //hash = hash21(cellId)
+                
+        //if MISSING > missingHash(floor(U)) {
+        //    isMissing = true
+        //}
+    
+        return simd_clamp( O.w, 0.0, 1.0)
     }
 }

@@ -153,7 +153,7 @@ struct ProjectView: View {
             }
             
             .popover(isPresented: $showRenameLayerPopover,
-                     arrowEdge: .top
+                     arrowEdge: .bottom
             ) {
                 VStack(alignment: .leading) {
                     Text("Layer Name:")
@@ -454,8 +454,14 @@ struct NodeToolbar: View {
                     Button("Tiles & Bricks", action: {
                         addNodeToTile(PatternTilesAndBricks())
                     })
+                    Button("Trabeculum", action: {
+                        addNodeToTile(PatternTrabeculum())
+                    })
                     Button("Voronoi", action: {
                         addNodeToTile(PatternVoronoi())
+                    })
+                    Button("Worley", action: {
+                        addNodeToTile(PatternWorley())
                     })
                 }
                 label: {

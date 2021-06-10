@@ -24,8 +24,8 @@ class IsoCubeRenderer
         {
             let offset : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Offset")
             let facing : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Facing")
-            let shapeHeight : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Height")// + 0.02
-            let shapeSize : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Size")// + 0.02
+            let shapeHeight : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Height")
+            let shapeSize : Float = isoNode.readFloatFromInstanceAreaIfExists(tileContext.tileArea, isoNode, "Size")
 
             var size     : float3
             

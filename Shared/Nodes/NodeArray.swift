@@ -37,7 +37,9 @@ enum NodeFamily: String, NodeClassFamily {
     
     case patternTilesAndBricks = "PatternTilesAndBricks"
     case patternVoronoi = "PatternVoronoi"
-    
+    case patternWorley = "PatternWorley"
+    case patternTrabeculum = "PatternTrabeculum"
+
     static var discriminator: NodeDiscriminator = .type
     
     func getType() -> AnyObject.Type
@@ -70,6 +72,10 @@ enum NodeFamily: String, NodeClassFamily {
                 return PatternTilesAndBricks.self
             case .patternVoronoi:
                 return PatternVoronoi.self
+            case .patternWorley:
+                return PatternWorley.self
+            case .patternTrabeculum:
+                return PatternTrabeculum.self
         }
     }
 }

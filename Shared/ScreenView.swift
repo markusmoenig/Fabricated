@@ -103,8 +103,9 @@ class ScreenView
             if gridType == .rectIso {
                 
                 let halfTileSize = tileSize / 2 * graphZoom
+                let maxOffset = tileSize * graphZoom * 100
 
-                while center.x - xOffset >= 0 || center.x + xOffset <= drawables.viewSize.x * 2 {
+                while xOffset < maxOffset {
                     var r = radius
                     if xOffset == 0 {
                         r *= 1.5
