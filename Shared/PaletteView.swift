@@ -30,7 +30,7 @@ struct PaletteView: View {
             
             LazyVGrid(columns: columns, spacing: 0) {
                 if let tileSet = currentTileSet {
-                    if let currentPalette = tileSet.getPalette() {
+                    let currentPalette = tileSet.getPalette()
                         ForEach(currentPalette.colors, id: \.id) { color in
                             ZStack {
                             
@@ -78,7 +78,7 @@ struct PaletteView: View {
                                 }
                             }
                         }
-                    }
+                    //}
                 }
             }
             .padding(4)
